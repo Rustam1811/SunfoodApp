@@ -1,0 +1,89 @@
+import React, { useState } from 'react';
+import { auth, bookTable } from '../firebase/firebase';
+
+export type TableStatus = 'free' | 'occupied' | 'reserved';
+
+interface Table {
+  id: number;
+  status: TableStatus;
+}
+
+const initialTables: Table[] = [
+  { id: 1, status: 'free' },
+  { id: 2, status: 'occupied' },
+  { id: 3, status: 'reserved' },
+  { id: 4, status: 'free' },
+];
+
+const BookingTable: React.FC = () => {
+  const [tables, setTables] = useState<Table[]>(initialTables);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [isBooking, setIsBooking] = useState(false);
+
+  const handleSelect = async (table: Table) => {
+    if (table.status !== 'free') {
+      alert('Столик занят или уже забронирован, выберите другой, пожалуйста.');
+      return;
+    }
+    setSelectedId(table.id);
+  };
+
+  const handleConfirm = async () => {
+    if (!selectedId) return;
+    const user = auth.currentUser;
+    if (!user) {
+      alert('Для бронирования необходимо войти в систему.');
+      return;
+    }
+    setIsBooking(true);
+    const success = await bookTable(selectedId, user.uid);
+    if (success) {
+      alert(`Столик ${selectedId} успешно забронирован!`);
+      setTables(tables.map(t => t.id === selectedId ? { ...t, status: 'reserved' } : t));
+      setSelectedId(null);
+    } else {
+      alert('Ошибка бронирования. Попробуйте позже.');
+    }
+    setIsBooking(false);
+  };
+
+  return (
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Выберите столик</h2>
+      <div className="grid grid-cols-2 gap-4">
+        {tables.map(table => (
+          <div
+            key={table.id}
+            onClick={() => handleSelect(table)}
+            className={`p-4 border rounded cursor-pointer text-center transition-transform transform hover:scale-105
+              ${table.status === 'free' ? 'bg-green-100' : table.status === 'occupied' ? 'bg-red-100' : 'bg-yellow-100'} 
+              ${selectedId === table.id && 'ring-4 ring-blue-500'}`}
+          >
+            <p>Столик {table.id}</p>
+            <p>
+              {table.status === 'free'
+                ? 'Свободен'
+                : table.status === 'occupied'
+                ? 'Занят'
+                : 'Забронирован'}
+            </p>
+          </div>
+        ))}
+      </div>
+      {selectedId && (
+        <div className="mt-4 p-2 bg-blue-100 rounded flex items-center justify-between">
+          <span>Вы выбрали столик {selectedId}. Подтвердите бронирование.</span>
+          <button
+            onClick={handleConfirm}
+            disabled={isBooking}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          >
+            {isBooking ? 'Бронируется...' : 'Подтвердить'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default BookingTable;

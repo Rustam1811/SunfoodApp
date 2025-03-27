@@ -2,6 +2,43 @@
 @import "tailwindcss/theme.css" layer(theme);
 /* @import "tailwindcss/preflight.css" layer(base); */
 @import "tailwindcss/utilities.css" layer(utilities);
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+@keyframes bounce-three {
+  0% { transform: translateY(-100px); }
+  20% { transform: translateY(0); }
+  40% { transform: translateY(-60px); }
+  60% { transform: translateY(0); }
+  80% { transform: translateY(-30px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes backgroundMove {
+  0% {
+    transform: scale(1.05);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1.05);
+  }
+}
+
+.bg-dynamic {
+  background-image: url('https://images.unsplash.com/photo-1509042239860-f550ce710b93?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(100%) blur(10px);
+  animation: backgroundMove 10s infinite alternate;
+}
+
+
+.animate-bounce-three {
+  animation: bounce-three 1.5s ease forwards;
+}
+
+
 
 ion-tab-button {
     display: flex !important;
@@ -9,3 +46,5 @@ ion-tab-button {
     align-items: center !important;
     justify-content: center !important;
   }
+
+

@@ -3,13 +3,13 @@ import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAv-NJI4lNoL4Kyb0v65BuxTmWW5tnhvIM",
-  authDomain: "sunfood-35bdd.firebaseapp.com",
-  projectId: "sunfood-35bdd",
-  storageBucket: "sunfood-35bdd.firebasestorage.app",
-  messagingSenderId: "1051160275492",
-  appId: "1:1051160275492:web:8697d3db4be969304186b1",
-  measurementId: "G-533B31P7BY"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 if (!firebase.apps.length) {
@@ -18,6 +18,7 @@ if (!firebase.apps.length) {
 
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
+export const FieldValue = firebase.firestore.FieldValue;
 
 export const bookTable = async (tableId: number, userId: string) => {
   try {

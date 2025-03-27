@@ -1,89 +1,99 @@
-// src/pages/Home.tsx
 import React from 'react';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/react';
 
 const Home: React.FC = () => {
+  const hero = {
+    src: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&h=400&q=80",
+    title: "COFFEE ADDICT",
+    subtitle: "Premium Coffee Moments"
+  };
+
+  const favorites = [
+    { src: "https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=500&h=300&q=80", name: "Холодный кофе" },
+    { src: "https://images.unsplash.com/photo-1521305916504-4a1121188589?auto=format&fit=crop&w=500&h=300&q=80", name: "Кофе с молоком" },
+    { src: "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=500&h=300&q=80", name: "Травяной чай" },
+    { src: "https://images.unsplash.com/photo-1515442261605-e5f58c1e3cde?auto=format&fit=crop&w=500&h=300&q=80", name: "Латте" },
+    { src: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=500&h=300&q=80", name: "Мокко" },
+  ];
+
+  const offers = [
+    {
+      src: "https://images.unsplash.com/photo-1511376777868-611b54f68947?auto=format&fit=crop&w=600&h=300&q=80",
+      title: "Signature Drink 1",
+      desc: "Rich, creamy and unforgettable."
+    },
+    {
+      src: "https://images.unsplash.com/photo-1510626176961-4bfb7b41e7d7?auto=format&fit=crop&w=600&h=300&q=80",
+      title: "Signature Drink 2",
+      desc: "Smooth taste with premium beans."
+
+    },
+  ];
+
   return (
     <IonPage>
-      <IonHeader className="bg-green-800">
+      <IonHeader className="bg-[#1a1a1a] shadow-lg">
         <IonToolbar>
-          <IonTitle className="text-white">Starbucks</IonTitle>
         </IonToolbar>
       </IonHeader>
-      <IonContent className="bg-gray-100">
-        
-        <div className="relative">
+
+      <IonContent className="bg-gradient-to-b from-[#F2E9DC] via-[#EADDC8] to-[#F7F1E8] text-[#3B322C] font-[Inter]">
+
+        {/* Hero Block */}
+        <div className="relative rounded-3xl overflow-hidden shadow-2xl mx-4 mt-6">
           <img
-            src="https://source.unsplash.com/featured/?coffee,starbucks"
-            alt="Coffee Banner"
-            className="w-full h-64 object-cover"
+            src={hero.src}
+            loading="eager"
+            className="w-full h-80 object-cover brightness-75"
+            alt={hero.title}
           />
-          <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-            <h1 className="text-2xl font-bold text-white">Добро пожаловать в Sunfood!</h1>
+          <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-center">
+            <h1 className="text-5xl font-extrabold text-white drop-shadow-2xl">{hero.title}</h1>
+            <p className="text-xl text-[#ECD8BB] mt-4">{hero.subtitle}</p>
           </div>
         </div>
-        <div className="bg-green-200 p-4">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Today's Special</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <img
-                src="https://imageproxy.wolt.com/menu/menu-images/611e47cdfd7110b1ffc868c6/181c4058-df73-11ed-82bd-9a5933180c6e______.jpeg"
-                alt="Caramel Latte"
-                className="w-full h-40 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="font-semibold text-xl">Caramel Latte</h3>
-                <p className="text-gray-600">A delicious blend of coffee and caramel.</p>
+
+        {/* Exclusive Offers */}
+        <div className="backdrop-blur-md bg-white/50 p-8 mt-10 mx-4 rounded-3xl shadow-xl">
+          <h2 className="text-3xl font-bold mb-8 text-[#3E3E3E]">🔥 Exclusive Offers</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {offers.map((offer, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden shadow-lg hover:scale-105 transition bg-white/60 backdrop-blur-sm">
+                <img
+                  src={offer.src}
+                  loading="eager"
+                  className="w-full h-60 object-cover"
+                  alt={offer.title}
+                />
+                <div className="p-6">
+                  <h3 className="text-2xl font-semibold">{offer.title}</h3>
+                  <p className="text-[#5A4632] mt-2">{offer.desc}</p>
+                </div>
               </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <img
-                src="https://source.unsplash.com/featured/?espresso"
-                alt="Rich Espresso"
-                className="w-full h-40 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="font-semibold text-xl">Rich Espresso</h3>
-                <p className="text-gray-600">Bold and intense, perfect for a quick boost.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
-        <div className="p-4">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Our Favorites</h2>
-          <div className="flex space-x-4 overflow-x-auto p-2">
-            <div className="min-w-[200px] bg-white rounded-lg shadow-md overflow-hidden">
-              <img
-                src="/images/photo_2025-03-12_16-13-00.jpg"
-                alt="Iced Coffee"
-                className="w-full h-32 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="font-semibold text-lg">Iced Coffee</h3>
+
+        {/* Favorites */}
+        <div className="mt-12 mx-4 pb-32">
+          <h2 className="text-3xl font-bold mb-8 text-[#3E3E3E]">🌿 Наши фавориты</h2>
+          <div className="flex space-x-6 overflow-x-auto no-scrollbar pb-4">
+            {favorites.map((item, idx) => (
+              <div key={idx} className="min-w-[240px] bg-white/80 backdrop-blur-lg rounded-3xl shadow-lg hover:scale-105 transition snap-start">
+                <img
+                  src={item.src}
+                  loading="eager"
+                  className="w-full h-48 object-cover rounded-t-3xl"
+                  alt={item.name}
+                />
+                <div className="p-5 min-h-[80px] flex items-center">
+                  <h3 className="font-semibold text-xl">{item.name}</h3>
+                </div>
               </div>
-            </div>
-            <div className="min-w-[200px] bg-white rounded-lg shadow-md overflow-hidden">
-              <img
-                src="https://source.unsplash.com/featured/?milk-coffee"
-                alt="Milk Coffee"
-                className="w-full h-32 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="font-semibold text-lg">Milk Coffee</h3>
-              </div>
-            </div>
-            <div className="min-w-[200px] bg-white rounded-lg shadow-md overflow-hidden">
-              <img
-                src="https://source.unsplash.com/featured/?tea"
-                alt="Herbal Tea"
-                className="w-full h-32 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="font-semibold text-lg">Herbal Tea</h3>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
+
       </IonContent>
     </IonPage>
   );

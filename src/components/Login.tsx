@@ -1,51 +1,124 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IonPage, IonContent } from '@ionic/react';
-import AuthGoogle from './AuthGoogle';
-import AuthPhone from './AuthPhone';
 
 const Login: React.FC = () => {
-  const [bgLoaded, setBgLoaded] = useState(false);
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Доброе утро ☕');
+    else if (hour < 18) setGreeting('Капаем кофе... 👌');
+    else setGreeting('Уютного вечера 🌙');
+  }, []);
 
   return (
     <IonPage>
-      <IonContent className="min-h-screen flex justify-center items-center px-4 relative">
-        
-        <div
-          className={`absolute inset-0 transition-opacity duration-1000 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`}
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1509042239860-f550ce710b93?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80')",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-          onLoad={() => setBgLoaded(true)}
-        ></div>
-        
-        
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-        
-        
-        <div className="bg-gradient-to-br from-amber-100 to-amber-50 bg-opacity-95 backdrop-blur-sm p-8 rounded-3xl shadow-2xl max-w-sm mx-auto border border-amber-200 overflow-hidden">
-          <div className="text-center mb-6">
-            <img
-              src="/assets/coffee-cup.png"
-              alt="Coffee Cup"
-              className="w-24 h-24 mx-auto mb-4 animate-bounce"
-            />
-            <h2 className="text-4xl font-extrabold text-amber-900">CoffeeTime</h2>
-            <p className="text-sm text-amber-700 mt-2">Войдите и насладитесь лучшим кофе!</p>
-          </div>
-          
-          
-          <div className="space-y-4">
-            <AuthGoogle />
-            <div className="flex items-center justify-center">
-              <span className="w-1/5 border-b border-amber-400"></span>
-              <span className="px-2 text-sm text-amber-700 uppercase">или</span>
-              <span className="w-1/5 border-b border-amber-400"></span>
+      <IonContent fullscreen className="relative bg-[#f5f3ef]">
+        {/* Фон */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1080&q=80"
+            alt="coffee bg"
+            className="w-full h-full object-cover object-center opacity-30"
+          />
+        </div>
+
+        {/* Контент */}
+        <div className="relative z-10 flex items-center justify-center min-h-screen px-6">
+          <div className="w-full max-w-sm bg-white/90 rounded-xl shadow-xl p-8 backdrop-blur-md animate-fadeInSlow">
+
+            {/* Лого */}
+            <div className="text-center mb-6">
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/924/924514.png"
+                alt="Coffee Logo"
+                className="w-16 h-16 mx-auto mb-3"
+              />
+              <h1 className="text-3xl font-bold text-[#3e2c1c] uppercase tracking-wider">Coffee Addict</h1>
+              <p className="text-sm text-gray-700 mt-1">{greeting}</p>
             </div>
-            <AuthPhone />
+
+            {/* Кофейная анимация: чашка, капли, налив */}
+            <div className="relative w-full h-48 flex items-end justify-center mb-8">
+              {/* Чашка */}
+              <div className="w-24 h-32 rounded-b-[50%] bg-white border-2 border-[#3e2c1c] overflow-hidden relative shadow-inner">
+                {/* Уровень кофе */}
+                <div className="absolute bottom-0 left-0 w-full bg-[#3e2c1c] animate-fillCoffee h-0"></div>
+              </div>              
+            </div>
+
+            {/* Кнопки */}
+            <div className="space-y-4">
+              <button className="w-full py-3 bg-[#3e2c1c] text-white rounded-lg font-medium hover:bg-[#5a3c2c] transition">
+                Войти с Google
+              </button>
+              <div className="flex items-center text-gray-400 text-xs uppercase">
+                <div className="flex-1 border-t border-gray-300"></div>
+                <span className="px-3">или</span>
+                <div className="flex-1 border-t border-gray-300"></div>
+              </div>
+              <button className="w-full py-3 border border-[#3e2c1c] text-[#3e2c1c] rounded-lg font-medium hover:bg-[#f3f1ef] transition">
+                Войти по номеру
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Стили */}
+        <style>{`
+          @keyframes drop {
+            0% {
+              top: 0;
+              opacity: 0;
+              transform: translateY(0);
+            }
+            10% {
+              opacity: 1;
+            }
+            100% {
+              top: 100px;
+              opacity: 0;
+              transform: translateY(20px);
+            }
+          }
+
+          @keyframes fillCoffee {
+            0% {
+              height: 0%;
+            }
+            100% {
+              height: 85%;
+            }
+          }
+
+          .animate-fillCoffee {
+            animation: fillCoffee 8s ease-out forwards;
+          }
+
+          .animate-drop {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: drop 2s ease-in infinite;
+          }
+
+          .drop1 {
+            animation-delay: 0s;
+          }
+
+          .drop2 {
+            animation-delay: 1s;
+          }
+
+          @keyframes fadeInSlow {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+
+          .animate-fadeInSlow {
+            animation: fadeInSlow 1.5s ease-out forwards;
+          }
+        `}</style>
       </IonContent>
     </IonPage>
   );

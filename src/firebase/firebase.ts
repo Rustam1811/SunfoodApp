@@ -1,3 +1,4 @@
+import { FirebaseFirestore } from '@firebase/firestore-types';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
@@ -18,6 +19,7 @@ if (!firebase.apps.length) {
 
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
+export const db = firebase.firestore();
 export const FieldValue = firebase.firestore.FieldValue;
 
 export const bookTable = async (tableId: number, userId: string) => {

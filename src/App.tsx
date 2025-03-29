@@ -22,7 +22,9 @@ import Order from "./pages/Order";
 import Booking from "./pages/Booking";
 import Bonus from "./pages/Bonus";
 import Menu from "./pages/menu/Menu";
-import Login from "./components/Login";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Profile from "./pages/Profile";
 import { CartProvider } from "./pages/CartContext";
 
 import "@ionic/react/css/core.css";
@@ -41,6 +43,8 @@ const App: React.FC = () => (
               <Route path="/bonus" component={Bonus} exact />
               <Route path="/menu" component={Menu} exact />
               <Route path="/login" component={Login} exact />
+              <Route path="/register" component={Register} exact />
+              <Route path="/profile" component={Profile} exact />
               <Redirect to="/login" />
             </Switch>
           </IonRouterOutlet>
@@ -60,7 +64,7 @@ const BottomNav: React.FC = () => (
     <NavItem to="/booking" icon={calendarOutline} label="Бронь" color="#000" />
     <NavItem to="/bonus" icon={trophyOutline} label="Бонусы" color="#000" />
     <NavItem to="/menu" icon={menuOutline} label="Меню" color="#000" />
-    <NavItem to="/login" icon={personCircleOutline} label="Аккаунт" color="#000" />
+    <NavItem to="/profile" icon={personCircleOutline} label="Аккаунт" color="#000" />
   </div>
 );
 

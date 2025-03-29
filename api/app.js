@@ -2,19 +2,45 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import admin from "firebase-admin";
-import cors from "cors";
+import dotenv from "dotenv";
+import { readFileSync } from "fs";
+import path from "path";
+
+dotenv.config();
+
+// Firebase init
+let serviceAccount;
+if (process.env.FIREBASE_KEY) {
+  serviceAccount = JSON.parse(process.env.FIREBASE_KEY);
+} else {
+  serviceAccount = JSON.parse(readFileSync(path.resolve("firebase-key.json"), "utf8"));
+}
 
 admin.initializeApp({
-  credential: admin.credential.applicationDefault(),
+  credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();
 const app = express();
 app.use(express.json());
-app.use(cors());
 
-const SECRET_KEY = "your_secret_key";
+// 💥 CORS middleware — обязательно
+app.use((req, res, next) => {
+  const origin = process.env.CLIENT_URL || "http://localhost:5173";
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  next();
+});
+
+const SECRET_KEY = process.env.SECRET_KEY || "default_secret_key";
+
+// ✅ Register
 app.post("/register", async (req, res) => {
   const { phone, name, password } = req.body;
   if (!phone || !name || !password) return res.status(400).json({ error: "Все поля обязательны" });
@@ -26,9 +52,10 @@ app.post("/register", async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   await userRef.set({ phone, name, password: hashedPassword, orders: [], bonuses: 0 });
 
-  res.json({ message: "Пользователь зарегистрирован" });
+  return res.json({ message: "Пользователь зарегистрирован" });
 });
 
+// ✅ Login
 app.post("/login", async (req, res) => {
   const { phone, password } = req.body;
   if (!phone || !password) return res.status(400).json({ error: "Все поля обязательны" });
@@ -42,7 +69,15 @@ app.post("/login", async (req, res) => {
   if (!passwordMatch) return res.status(400).json({ error: "Неверный номер или пароль" });
 
   const token = jwt.sign({ phone: userData.phone }, SECRET_KEY, { expiresIn: "7d" });
-  res.json({ token, user: { phone: userData.phone, name: userData.name, bonuses: userData.bonuses } });
+
+  return res.json({
+    token,
+    user: {
+      phone: userData.phone,
+      name: userData.name,
+      bonuses: userData.bonuses,
+    },
+  });
 });
 
 export default app;

@@ -1,57 +1,29 @@
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "../firebase/firebase";
+const API_URL = import.meta.env.VITE_BACKEND_URL; // ✅ Динамический URL
 
-export const emailAuth = {
-  register: async (email: string, password: string) => {
-    return auth.createUserWithEmailAndPassword(email, password);
-  },
-  signIn: async (email: string, password: string) => {
-    return auth.signInWithEmailAndPassword(email, password);
-  },
-};
-
-export const signInWithGoogle = async () => {
-  const auth = getAuth(); 
-  const provider = new GoogleAuthProvider(); 
-  try {
-    const result = await signInWithPopup(auth, provider); 
-    return result.user;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const setUpRecaptcha = (auth: any) => {
-  (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-    size: "invisible",
-    callback: (response: any) => {
-      console.log("reCAPTCHA успешно пройдена:", response);
-    },
-    "expired-callback": () => {
-      console.log("reCAPTCHA устарела, попробуйте снова.");
-    },
+export const registerUser = async (phone: string, name: string, password: string) => {
+  const res = await fetch(`${API_URL}/register`, { // ✅ Только API_URL
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone, name, password }),
   });
+
+  if (!res.ok) {
+    throw new Error((await res.json()).error);
+  }
+
+  return await res.json();
 };
 
+export const loginUser = async (phone: string, password: string) => {
+  const res = await fetch(`${API_URL}/login`, { // ✅ Только API_URL
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone, password }),
+  });
 
-export const signInWithPhone = async (phoneNumber: string) => {
-  try {
-    const auth = getAuth();
-    const appVerifier = (window as any).recaptchaVerifier;
-    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-    (window as any).confirmationResult = confirmationResult;
-    return confirmationResult;
-  } catch (error) {
-    throw error;
+  if (!res.ok) {
+    throw new Error((await res.json()).error);
   }
-};
 
-export const verifyPhoneCode = async (verificationCode: string) => {
-  try {
-    const confirmationResult = (window as any).confirmationResult;
-    const result = await confirmationResult.confirm(verificationCode);
-    return result.user;
-  } catch (error) {
-    throw error;
-  }
+  return await res.json();
 };

@@ -15,18 +15,40 @@ const Register: React.FC = () => {
     setError('');
     setLoading(true);
     try {
+      // Сначала регистрация
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, password })
+        body: JSON.stringify({ name, phone, password }),
       });
+
       if (!response.ok) {
         const data = await response.json();
         setError(data.error || 'Ошибка регистрации');
-      } else {
-        // Если регистрация успешна, можно перенаправить на страницу логина
-        history.push('/login');
+        setLoading(false);
+        return;
       }
+
+      // ✅ После регистрации — логиним сразу
+      const loginRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password }),
+      });
+
+      if (!loginRes.ok) {
+        const data = await loginRes.json();
+        setError(data.error || 'Не удалось войти после регистрации');
+        setLoading(false);
+        return;
+      }
+
+      const loginData = await loginRes.json();
+      localStorage.setItem('token', loginData.token);
+      localStorage.setItem('user', JSON.stringify(loginData.user));
+
+      // ✅ Переход в меню
+      history.push('/menu');
     } catch (e) {
       setError('Ошибка сети. Попробуйте позже.');
     }
@@ -35,26 +57,22 @@ const Register: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
-      {/* Фоновый градиент с анимацией */}
       <motion.div
         className="absolute inset-0 bg-gradient-to-r from-gray-800 via-gray-900 to-black"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.5 }}
       />
-      {/* Карточка формы регистрации */}
       <motion.div
         className="relative z-10 w-full max-w-md p-8 bg-white bg-opacity-95 rounded-xl shadow-2xl"
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
       >
         <div className="flex justify-center mb-6">
           <img src="/logo.png" alt="Logo" className="w-20 h-20" />
         </div>
-        <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-6">
-          Регистрация
-        </h2>
+        <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-6">Регистрация</h2>
         {error && <div className="mb-4 text-center text-red-600">{error}</div>}
         <form onSubmit={handleRegister}>
           <div className="mb-4">

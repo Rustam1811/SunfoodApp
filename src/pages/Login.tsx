@@ -19,6 +19,7 @@ const Login: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, password })
       });
+
       if (!response.ok) {
         const data = await response.json();
         setError(data.error || 'Ошибка входа');
@@ -26,7 +27,7 @@ const Login: React.FC = () => {
         const data = await response.json();
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        history.push('/profile');
+        history.push('/menu'); // ✅ редирект на меню
       }
     } catch (e) {
       setError('Ошибка сети. Попробуйте позже.');

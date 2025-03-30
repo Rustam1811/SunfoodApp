@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { auth, bookTable } from '../firebase/firebase';
+import { bookTable } from '../firebase/firebase';
 
 export type TableStatus = 'free' | 'occupied' | 'reserved';
 
@@ -20,6 +20,8 @@ const BookingTable: React.FC = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isBooking, setIsBooking] = useState(false);
 
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+
   const handleSelect = async (table: Table) => {
     if (table.status !== 'free') {
       alert('Столик занят или уже забронирован, выберите другой, пожалуйста.');
@@ -30,13 +32,14 @@ const BookingTable: React.FC = () => {
 
   const handleConfirm = async () => {
     if (!selectedId) return;
-    const user = auth.currentUser;
     if (!user) {
       alert('Для бронирования необходимо войти в систему.');
       return;
     }
+
     setIsBooking(true);
-    const success = await bookTable(selectedId, user.uid);
+
+    const success = await bookTable(selectedId, user.phone); // ✅ используем номер
     if (success) {
       alert(`Столик ${selectedId} успешно забронирован!`);
       setTables(tables.map(t => t.id === selectedId ? { ...t, status: 'reserved' } : t));
@@ -44,6 +47,7 @@ const BookingTable: React.FC = () => {
     } else {
       alert('Ошибка бронирования. Попробуйте позже.');
     }
+
     setIsBooking(false);
   };
 
@@ -57,7 +61,7 @@ const BookingTable: React.FC = () => {
             onClick={() => handleSelect(table)}
             className={`p-4 border rounded cursor-pointer text-center transition-transform transform hover:scale-105
               ${table.status === 'free' ? 'bg-green-100' : table.status === 'occupied' ? 'bg-red-100' : 'bg-yellow-100'} 
-              ${selectedId === table.id && 'ring-4 ring-blue-500'}`}
+              ${selectedId === table.id ? 'ring-4 ring-blue-500' : ''}`}
           >
             <p>Столик {table.id}</p>
             <p>

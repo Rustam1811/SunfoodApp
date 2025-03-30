@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useHistory } from 'react-router-dom'; // Импортируем useNavigate
-import { firestore, auth } from '../firebase/firebase';
+import { useHistory } from 'react-router-dom';
+import { firestore } from '../firebase/firebase';
 import { FaCoins, FaMedal, FaGift, FaChartLine, FaLock } from 'react-icons/fa';
 
 interface Order {
@@ -25,15 +25,15 @@ const Bonus: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
 
-  const user = auth.currentUser;
-  const navigate = useHistory(); // Хук для навигации
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const navigate = useHistory();
 
   useEffect(() => {
     if (!user) return;
 
     const unsubscribe = firestore
       .collection('orders')
-      .where('userId', '==', user.uid)
+      .where('userId', '==', user.phone) // 🔁 мы используем phone, а не uid
       .orderBy('createdAt', 'desc')
       .onSnapshot(snapshot => {
         let totalBonus = 0;
@@ -85,7 +85,7 @@ const Bonus: React.FC = () => {
       {
         id: 'secret_big_spender',
         name: 'Секретный: Большой чек',
-        description: 'Сделайте заказ больше 5000₽',
+        description: 'Сделайте заказ больше 5000₸',
         unlocked: ordersData.some(order => order.amount >= 5000),
         icon: <FaLock className="text-black text-4xl" />,
         secret: true
@@ -124,14 +124,13 @@ const Bonus: React.FC = () => {
           <p className="text-2xl">Ваши бонусы</p>
           <p className="text-6xl font-bold mt-4 drop-shadow-lg text-black">{bonusPoints} 💎</p>
           <button
-            onClick={() => navigate.push('/order')} // Переход на страницу заказа
+            onClick={() => navigate.push('/order')}
             className="mt-6 bg-black text-white font-bold px-6 py-3 rounded-full shadow-lg hover:bg-gray-700 transition-all"
           >
             🎁 Потратить бонусы
           </button>
         </div>
 
-        {/* Прогресс */}
         <div className="bg-white rounded-3xl shadow-xl p-8 mb-10">
           <h3 className="text-3xl font-semibold text-black mb-6">📈 Прогресс</h3>
           <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
@@ -142,7 +141,6 @@ const Bonus: React.FC = () => {
           </div>
         </div>
 
-        {/* Достижения */}
         <div className="bg-white rounded-3xl shadow-xl p-8 mb-10">
           <h3 className="text-3xl font-semibold text-black mb-6">🏆 Достижения</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
@@ -150,16 +148,16 @@ const Bonus: React.FC = () => {
               <div
                 key={ach.id}
                 className={`p-6 rounded-2xl shadow-lg flex flex-col items-center 
-          ${ach.unlocked
+                  ${ach.unlocked
                     ? 'bg-gradient-to-br from-green-100 to-green-200'
                     : 'bg-gradient-to-br from-gray-100 to-gray-200'} 
-          hover:scale-[1.02] transition-transform duration-300`}
+                  hover:scale-[1.02] transition-transform duration-300`}
               >
                 {ach.icon}
                 <p
                   className={`font-semibold text-center mt-3 
-            ${ach.unlocked ? 'text-green-800' : 'text-black'} 
-            ${ach.secret && !ach.unlocked ? 'text-gray-500' : ''}`}
+                    ${ach.unlocked ? 'text-green-800' : 'text-black'} 
+                    ${ach.secret && !ach.unlocked ? 'text-gray-500' : ''}`}
                 >
                   {ach.secret && !ach.unlocked ? '???' : ach.name}
                 </p>
@@ -168,7 +166,6 @@ const Bonus: React.FC = () => {
           </div>
         </div>
 
-        {/* История заказов */}
         <div className="bg-white rounded-3xl shadow-xl p-8">
           <h3 className="text-3xl font-semibold text-black mb-6">🧾 История заказов</h3>
           {loading ? (
@@ -184,7 +181,7 @@ const Bonus: React.FC = () => {
                     <span className="text-gray-500">{order.date}</span>
                   </div>
                   <div className="flex justify-between text-black">
-                    <div>💸 Сумма: <span className="font-bold">{order.amount}₽</span></div>
+                    <div>💸 Сумма: <span className="font-bold">{order.amount}₸</span></div>
                     <div>💎 Бонус: <span className="font-bold text-black">+{order.bonusEarned}</span></div>
                   </div>
                 </div>
@@ -192,7 +189,6 @@ const Bonus: React.FC = () => {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

@@ -6,7 +6,6 @@ import {
   IonTitle,
   IonToolbar,
   IonList,
-  IonButton,
   IonModal,
   IonCard,
   IonCardContent,
@@ -14,7 +13,7 @@ import {
   IonCardTitle,
 } from '@ionic/react';
 import firebase from 'firebase/compat/app';
-import { firestore, auth } from '../firebase/firebase';
+import { firestore } from '../firebase/firebase';
 import BonusSystem from '../components/BonusSystem';
 import { useHistory } from 'react-router-dom';
 
@@ -29,6 +28,8 @@ const Order: React.FC = () => {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [showModal, setShowModal] = useState(false);
   const history = useHistory();
+
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -50,7 +51,7 @@ const Order: React.FC = () => {
     orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   const handleOrder = async () => {
-    if (!auth.currentUser) {
+    if (!user) {
       history.push('/login');
       return;
     }
@@ -58,12 +59,12 @@ const Order: React.FC = () => {
       await firestore.collection('placedOrders').add({
         items: orderItems,
         total: getTotal(),
-        userId: auth.currentUser.uid,
+        userId: user.phone, // ✅ Используем номер
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
       setOrderItems([]);
       setShowModal(true);
-      setTimeout(() => setShowModal(false), 3000); // Закрыть через 3 сек
+      setTimeout(() => setShowModal(false), 3000);
     } catch (error) {
       console.error('Ошибка оформления заказа:', error);
     }
@@ -110,13 +111,11 @@ const Order: React.FC = () => {
             <span className="font-bold">{getTotal()}₸</span>
           </div>
 
-          {/* Улучшенная кнопка оплаты с градиентом и эффектом наведения */}
           <div className="mt-6">
             <div
               onClick={handleOrder}
               className="group relative cursor-pointer text-center bg-gradient-to-r from-gray-800 to-gray-900 text-white text-base font-semibold py-2 px-4 rounded-full shadow-md transition transform hover:scale-105 hover:shadow-lg overflow-hidden"
             >
-              {/* Эффект свечения – беловатое свечение при наведении */}
               <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.2),transparent)] opacity-0 group-hover:opacity-100 transition duration-300"></div>
               <span className="relative flex items-center justify-center">
                 <svg
@@ -135,6 +134,7 @@ const Order: React.FC = () => {
               </span>
             </div>
           </div>
+
           <BonusSystem />
 
           <IonModal isOpen={showModal} backdropDismiss={false}>

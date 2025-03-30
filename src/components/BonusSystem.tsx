@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { firestore, auth, FieldValue } from '../firebase/firebase';
+import { firestore, FieldValue } from '../firebase/firebase';
 
 interface Order {
   id: string;
@@ -11,17 +11,20 @@ interface Order {
 const BonusSystem: React.FC = () => {
   const [bonusPoints, setBonusPoints] = useState<number>(0);
   const [orders, setOrders] = useState<Order[]>([]);
-  const user = auth.currentUser;
+
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   useEffect(() => {
     if (!user) return;
+
     const unsubscribe = firestore
       .collection('orders')
-      .where('userId', '==', user.uid)
+      .where('userId', '==', user.phone) // 🔁 привязка к номеру
       .orderBy('createdAt', 'desc')
       .onSnapshot(snapshot => {
         let totalBonus = 0;
         const ordersData: Order[] = [];
+
         snapshot.forEach(doc => {
           const data = doc.data();
           totalBonus += data.bonusEarned;
@@ -32,9 +35,11 @@ const BonusSystem: React.FC = () => {
             bonusEarned: data.bonusEarned,
           });
         });
+
         setBonusPoints(totalBonus);
         setOrders(ordersData);
       });
+
     return () => unsubscribe();
   }, [user]);
 
@@ -71,9 +76,10 @@ const BonusSystem: React.FC = () => {
 
 export default BonusSystem;
 
-// Функция для добавления заказа и начисления бонусов
+// 🔄 Функция для добавления заказа с бонусами
 export const addOrderWithBonus = async (amount: number, userId: string) => {
-  const bonusEarned = Math.floor(amount * 0.05); // 5% от суммы заказа
+  const bonusEarned = Math.floor(amount * 0.05); // 5% бонуса
+
   try {
     await firestore.collection('orders').add({
       userId,

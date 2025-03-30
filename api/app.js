@@ -16,6 +16,9 @@ if (process.env.FIREBASE_KEY) {
   serviceAccount = JSON.parse(readFileSync(path.resolve("firebase-key.json"), "utf8"));
 }
 
+console.log("FIREBASE_KEY:", process.env.FIREBASE_KEY?.slice(0, 30)); // покажет первые символы
+
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });

@@ -1,5 +1,7 @@
 const API_URL = import.meta.env.VITE_BACKEND_URL; // ✅ Динамический URL
 
+console.log('🧪 VITE_BACKEND_URL =', API_URL);
+
 export const registerUser = async (phone: string, name: string, password: string) => {
   const res = await fetch(`${API_URL}/register`, { // ✅ Только API_URL
     method: "POST",

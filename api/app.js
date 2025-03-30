@@ -27,19 +27,27 @@ const db = admin.firestore();
 const app = express();
 app.use(express.json());
 
-// 💥 CORS middleware — обязательно
 app.use((req, res, next) => {
-  const origin = process.env.CLIENT_URL || "http://localhost:5173";
-  res.setHeader("Access-Control-Allow-Origin", origin);
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  next();
-});
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'https://sunfood-35bdd.web.app'
+    ];
+    const origin = req.headers.origin;
+  
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+  
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+  
+    next();
+  });
+  
 
 const SECRET_KEY = process.env.SECRET_KEY || "default_secret_key";
 

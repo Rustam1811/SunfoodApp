@@ -29,6 +29,7 @@ import { CartProvider } from "./pages/CartContext";
 
 import "@ionic/react/css/core.css";
 import "./index.css";
+import EnvCheck from './pages/EnvCheck';
 
 const App: React.FC = () => (
   <IonApp className="bg-white">
@@ -45,6 +46,7 @@ const App: React.FC = () => (
               <Route path="/login" component={Login} exact />
               <Route path="/register" component={Register} exact />
               <Route path="/profile" component={Profile} exact />
+              <Route path="/env" component={EnvCheck} exact />
               <Redirect to="/login" />
             </Switch>
           </IonRouterOutlet>

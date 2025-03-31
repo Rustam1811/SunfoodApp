@@ -78,8 +78,9 @@ const NavItem: React.FC<{ to: string; icon: string; label: string; color: string
   </Link>
 );
 
-alert("🔥 FRONT CONNECTED! ✅");
-console.log("🧪 VITE_BACKEND_URL =", import.meta.env.VITE_BACKEND_URL);
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+console.log("🧪 BACKEND_URL:", backendUrl); // должен быть не undefined
+
 
 
 export default App;

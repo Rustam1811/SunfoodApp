@@ -80,8 +80,8 @@ const NavItem: React.FC<{ to: string; icon: string; label: string; color: string
   </Link>
 );
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
-console.log("🧪 BACKEND_URL:", backendUrl); // должен быть не undefined
+console.log("🧪 BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
+
 
 
 

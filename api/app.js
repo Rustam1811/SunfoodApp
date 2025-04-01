@@ -17,11 +17,13 @@ if (process.env.FIREBASE_KEY) {
 }
 
 console.log("FIREBASE_KEY:", process.env.FIREBASE_KEY?.slice(0, 30)); // покажет первые символы
+console.log("🔥 FIREBASE_KEY (first 50 chars):", process.env.FIREBASE_KEY?.slice(0, 50));
 
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
+console.log("✅ Firebase initialized");
 
 const db = admin.firestore();
 const app = express();
@@ -87,5 +89,18 @@ app.post("/login", async (req, res) => {
     },
   });
 });
+
+app.get("/api/test-firebase", async (req, res) => {
+  try {
+    const snapshot = await db.collection("users").limit(1).get();
+    const users = [];
+    snapshot.forEach(doc => users.push(doc.id));
+    return res.json({ status: "ok", users });
+  } catch (err) {
+    console.error("❌ Firebase Test Error:", err);
+    return res.status(500).json({ error: "Firebase connection failed" });
+  }
+});
+
 
 export default app;

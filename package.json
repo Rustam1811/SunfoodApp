@@ -42,6 +42,9 @@
     "three": "^0.174.0",
     "vercel": "^41.4.1"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@capacitor/cli": "7.0.1",
     "@tailwindcss/postcss": "^4.0.12",

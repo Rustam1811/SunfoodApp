@@ -54,6 +54,7 @@ const SECRET_KEY = process.env.SECRET_KEY || "default_secret_key";
 
 // ✅ Register
 app.post("/register", async (req, res) => {
+  console.log("➡️ REGISTER BODY:", req.body); //
   const { phone, name, password } = req.body;
   if (!phone || !name || !password) return res.status(400).json({ error: "Все поля обязательны" });
 

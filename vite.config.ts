@@ -10,6 +10,9 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), legacy()],
     base: '/',
+    build: {
+      outDir: 'dist', // <--- вот это обязательно!
+    },
     test: {
       globals: true,
       environment: 'jsdom',

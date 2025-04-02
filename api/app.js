@@ -33,10 +33,16 @@ app.use((req, res, next) => {
 
 // ✅ Firebase Init
 let serviceAccount;
+
 if (process.env.FIREBASE_KEY) {
-  serviceAccount = JSON.parse(process.env.FIREBASE_KEY.replace(/\\n/g, '\n'));
+  try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_KEY.replace(/\\n/g, '\n'));
+    console.log("✅ Firebase key parsed успешно");
+  } catch (err) {
+    console.error("❌ Ошибка парсинга FIREBASE_KEY:", err.message);
+  }
 } else {
-  serviceAccount = JSON.parse(readFileSync(path.resolve("firebase-key.json"), "utf8"));
+  console.error("❌ FIREBASE_KEY is undefined");
 }
 
 admin.initializeApp({

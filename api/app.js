@@ -1,9 +1,13 @@
 import express from "express";
+console.log("📦 Express запускается");
 import cors from "cors";
 import admin from "firebase-admin";
 import dotenv from "dotenv";
+dotenv.config();
+console.log("🌍 .env загружен");
 import { readFileSync } from "fs";
 import path from "path";
+
 
 dotenv.config();
 
@@ -47,5 +51,8 @@ app.get("/test-firebase", async (req, res) => {
   snapshot.forEach(doc => users.push(doc.id));
   res.json({ ok: true, users });
 });
+
+console.log("🔑 FIREBASE_KEY:", process.env.FIREBASE_KEY?.slice(0, 30));
+console.log("🧪 SECRET_KEY:", process.env.SECRET_KEY);
 
 export default app;

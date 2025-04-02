@@ -34,7 +34,7 @@ app.use((req, res, next) => {
 // ✅ Firebase Init
 let serviceAccount;
 if (process.env.FIREBASE_KEY) {
-  serviceAccount = JSON.parse(process.env.FIREBASE_KEY);
+  serviceAccount = JSON.parse(process.env.FIREBASE_KEY.replace(/\\n/g, '\n'));
 } else {
   serviceAccount = JSON.parse(readFileSync(path.resolve("firebase-key.json"), "utf8"));
 }

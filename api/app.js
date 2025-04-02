@@ -40,10 +40,10 @@ if (process.env.FIREBASE_KEY) {
     console.log("✅ Firebase key parsed успешно");
   } catch (err) {
     console.error("❌ Ошибка парсинга FIREBASE_KEY:", err.message);
+    throw err;
   }
-} else {
-  console.error("❌ FIREBASE_KEY is undefined");
 }
+  
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),

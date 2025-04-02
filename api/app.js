@@ -1,25 +1,25 @@
 import express from "express";
-console.log("📦 Express запускается");
 import cors from "cors";
 import admin from "firebase-admin";
 import dotenv from "dotenv";
-dotenv.config();
-console.log("🌍 .env загружен");
 import { readFileSync } from "fs";
 import path from "path";
 
+console.log("📦 Express запускается");
 
 dotenv.config();
+console.log("🌍 .env загружен");
 
 const app = express();
 app.use(express.json());
 
-// ✅ CORS
+// CORS
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://sunfood-35bdd.web.app",
-  "https://sunfood-app.vercel.app"
+  "https://sunfood-app.vercel.app",
+  "https://sunfood-35bdd.web.app"
 ];
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
@@ -31,34 +31,31 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Firebase Init
+// Firebase Init
 let serviceAccount;
-
-if (process.env.FIREBASE_KEY) {
-  try {
-    serviceAccount = JSON.parse(process.env.FIREBASE_KEY.replace(/\\n/g, '\n'));
-    console.log("✅ Firebase key parsed успешно");
-  } catch (err) {
-    console.error("❌ Ошибка парсинга FIREBASE_KEY:", err.message);
-    throw err;
+try {
+  if (process.env.FIREBASE_KEY) {
+    serviceAccount = JSON.parse(process.env.FIREBASE_KEY.replace(/\\n/g, "\n"));
+    console.log("✅ FIREBASE_KEY успешно разобран");
+  } else {
+    console.log("⚠️ FIREBASE_KEY не найден, fallback на файл");
+    serviceAccount = JSON.parse(readFileSync(path.resolve("firebase-key.json"), "utf8"));
   }
-}
-  
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+} catch (err) {
+  console.error("❌ Ошибка парсинга FIREBASE_KEY:", err);
+}
+
 const db = admin.firestore();
 
-// ✅ Тестовый эндпоинт
 app.get("/test-firebase", async (req, res) => {
   const snapshot = await db.collection("users").limit(1).get();
   const users = [];
   snapshot.forEach(doc => users.push(doc.id));
   res.json({ ok: true, users });
 });
-
-console.log("🔑 FIREBASE_KEY:", process.env.FIREBASE_KEY?.slice(0, 30));
-console.log("🧪 SECRET_KEY:", process.env.SECRET_KEY);
 
 export default app;

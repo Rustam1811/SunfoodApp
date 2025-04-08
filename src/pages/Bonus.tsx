@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useHistory } from 'react-router-dom'; // Импортируем useNavigate
-import { firestore, auth } from '../firebase/firebase';
+import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
+import { firestore, auth } from '../firebase';
 import { FaCoins, FaMedal, FaGift, FaChartLine, FaLock } from 'react-icons/fa';
 
 interface Order {
@@ -20,29 +20,29 @@ interface Achievement {
 }
 
 const Bonus: React.FC = () => {
-  const [bonusPoints, setBonusPoints] = useState<number>(0);
+  const [bonusPoints, setBonusPoints] = useState(0);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const navigate = useHistory();
 
   const user = auth.currentUser;
-  const navigate = useHistory(); // Хук для навигации
 
   useEffect(() => {
     if (!user) return;
 
-    const unsubscribe = firestore
+    const unsub = firestore
       .collection('orders')
       .where('userId', '==', user.uid)
       .orderBy('createdAt', 'desc')
-      .onSnapshot(snapshot => {
+      .onSnapshot(async snapshot => {
         let totalBonus = 0;
-        const ordersData: Order[] = [];
+        const orderList: Order[] = [];
 
         snapshot.forEach(doc => {
           const data = doc.data();
           totalBonus += data.bonusEarned || 0;
-          ordersData.push({
+          orderList.push({
             id: doc.id,
             date: data.createdAt?.toDate().toLocaleDateString() || 'Неизвестно',
             amount: data.amount || 0,
@@ -50,13 +50,12 @@ const Bonus: React.FC = () => {
           });
         });
 
+        setOrders(orderList);
         setBonusPoints(totalBonus);
-        setOrders(ordersData);
-        checkAchievements(ordersData, totalBonus);
+        checkAchievements(orderList, totalBonus);
         setLoading(false);
       });
-
-    return () => unsubscribe();
+    return () => unsub();
   }, [user]);
 
   const checkAchievements = (ordersData: Order[], totalBonus: number) => {
@@ -85,7 +84,7 @@ const Bonus: React.FC = () => {
       {
         id: 'secret_big_spender',
         name: 'Секретный: Большой чек',
-        description: 'Сделайте заказ больше 5000₽',
+        description: 'Сделайте заказ больше 5000₸',
         unlocked: ordersData.some(order => order.amount >= 5000),
         icon: <FaLock className="text-black text-4xl" />,
         secret: true
@@ -106,12 +105,27 @@ const Bonus: React.FC = () => {
     setAchievements(unlocked);
   };
 
+  const handleSpendBonuses = async () => {
+    if (!user) return;
+    if (bonusPoints < 100) return alert("Минимум 100 бонусов для траты");
+
+    try {
+      const userDoc = firestore.collection('users').doc(user.uid);
+      await userDoc.update({
+        bonuses: bonusPoints - 100
+      });
+      alert('🎁 100 бонусов списано!');
+      setBonusPoints(prev => prev - 100);
+    } catch (error) {
+      console.error("Ошибка списания бонусов:", error);
+      alert("Произошла ошибка при трате бонусов.");
+    }
+  };
+
   if (!user) {
-    return (
-      <div className="p-6 bg-white rounded-xl shadow-lg text-center">
-        <p className="text-lg font-semibold">Войдите в аккаунт для просмотра бонусов ☕</p>
-      </div>
-    );
+    return <div className="p-6 bg-white rounded-xl shadow-lg text-center">
+      <p className="text-lg font-semibold">Войдите в аккаунт для просмотра бонусов ☕</p>
+    </div>
   }
 
   return (
@@ -124,10 +138,10 @@ const Bonus: React.FC = () => {
           <p className="text-2xl">Ваши бонусы</p>
           <p className="text-6xl font-bold mt-4 drop-shadow-lg text-black">{bonusPoints} 💎</p>
           <button
-            onClick={() => navigate.push('/order')} // Переход на страницу заказа
+            onClick={handleSpendBonuses}
             className="mt-6 bg-black text-white font-bold px-6 py-3 rounded-full shadow-lg hover:bg-gray-700 transition-all"
           >
-            🎁 Потратить бонусы
+            🎁 Потратить 100 бонусов
           </button>
         </div>
 
@@ -147,20 +161,13 @@ const Bonus: React.FC = () => {
           <h3 className="text-3xl font-semibold text-black mb-6">🏆 Достижения</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {achievements.map(ach => (
-              <div
-                key={ach.id}
-                className={`p-6 rounded-2xl shadow-lg flex flex-col items-center 
-          ${ach.unlocked
-                    ? 'bg-gradient-to-br from-green-100 to-green-200'
-                    : 'bg-gradient-to-br from-gray-100 to-gray-200'} 
-          hover:scale-[1.02] transition-transform duration-300`}
-              >
+              <div key={ach.id} className={`p-6 rounded-2xl shadow-lg flex flex-col items-center 
+              ${ach.unlocked ? 'bg-gradient-to-br from-green-100 to-green-200' : 'bg-gradient-to-br from-gray-100 to-gray-200'} 
+              hover:scale-[1.02] transition-transform duration-300`}>
                 {ach.icon}
-                <p
-                  className={`font-semibold text-center mt-3 
-            ${ach.unlocked ? 'text-green-800' : 'text-black'} 
-            ${ach.secret && !ach.unlocked ? 'text-gray-500' : ''}`}
-                >
+                <p className={`font-semibold text-center mt-3 
+                ${ach.unlocked ? 'text-green-800' : 'text-black'} 
+                ${ach.secret && !ach.unlocked ? 'text-gray-500' : ''}`}>
                   {ach.secret && !ach.unlocked ? '???' : ach.name}
                 </p>
               </div>
@@ -184,8 +191,8 @@ const Bonus: React.FC = () => {
                     <span className="text-gray-500">{order.date}</span>
                   </div>
                   <div className="flex justify-between text-black">
-                    <div>💸 Сумма: <span className="font-bold">{order.amount}₽</span></div>
-                    <div>💎 Бонус: <span className="font-bold text-black">+{order.bonusEarned}</span></div>
+                    <div>💸 Сумма: <span className="font-bold">{order.amount}₸</span></div>
+                    <div>💎 Бонус: <span className="font-bold">+{order.bonusEarned}</span></div>
                   </div>
                 </div>
               ))}

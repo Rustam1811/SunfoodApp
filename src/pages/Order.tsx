@@ -12,8 +12,7 @@ import {
   IonCardHeader,
   IonCardTitle,
 } from '@ionic/react';
-import firebase from 'firebase/compat/app';
-import { firestore } from '../firebase/firebase';
+import { firestore, auth } from '../firebase';
 import BonusSystem from '../components/BonusSystem';
 import { useHistory } from 'react-router-dom';
 
@@ -29,7 +28,7 @@ const Order: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const history = useHistory();
 
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const user = auth.currentUser;
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -37,7 +36,13 @@ const Order: React.FC = () => {
         const snapshot = await firestore.collection('orders').get();
         const items: OrderItem[] = [];
         snapshot.forEach((doc) => {
-          items.push({ id: doc.id, ...doc.data() } as OrderItem);
+          const data = doc.data();
+          items.push({
+            id: doc.id,
+            name: data.name,
+            quantity: data.quantity,
+            price: data.price,
+          });
         });
         setOrderItems(items);
       } catch (error) {
@@ -56,11 +61,12 @@ const Order: React.FC = () => {
       return;
     }
     try {
-      await firestore.collection('placedOrders').add({
+      await firestore.collection('orders').add({
+        userId: user.uid,
         items: orderItems,
-        total: getTotal(),
-        userId: user.phone, // ✅ Используем номер
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        amount: getTotal(),
+        bonusEarned: Math.floor(getTotal() * 0.05),
+        createdAt: new Date(),
       });
       setOrderItems([]);
       setShowModal(true);
@@ -141,7 +147,7 @@ const Order: React.FC = () => {
             <div className="flex items-center justify-center h-full bg-gray-900">
               <div className="bg-white text-gray-800 rounded-2xl p-10 shadow-2xl animate-bounce-slow text-center">
                 <h2 className="text-3xl font-bold mb-4">✅ Заказ оформлен</h2>
-                <p className="text-xl">Бонусы начислены на ваш счет</p>
+                <p className="text-xl">Бонусы начислены на ваш счёт</p>
               </div>
             </div>
           </IonModal>

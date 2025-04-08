@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonModal, IonButton } from '@ionic/react';
-import { firestore } from '../firebase/firebase';
+import { firestore } from '../firebase';
 
 const Booking: React.FC = () => {
   const [name, setName] = useState('');

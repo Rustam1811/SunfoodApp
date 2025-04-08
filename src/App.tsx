@@ -79,10 +79,6 @@ const NavItem: React.FC<{ to: string; icon: string; label: string; color: string
     <span className="mt-1 text-xs font-semibold text-black">{label}</span>
   </Link>
 );
-
 console.log("🧪 BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
-
-
-
 
 export default App;

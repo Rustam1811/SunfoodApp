@@ -16,7 +16,7 @@ const Register: React.FC = () => {
     setLoading(true);
     try {
       // Сначала регистрация
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/index/register`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, phone, password }),
@@ -30,7 +30,7 @@ const Register: React.FC = () => {
       }
 
       // ✅ После регистрации — логиним сразу
-      const loginRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}index/login`, {
+      const loginRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, password }),

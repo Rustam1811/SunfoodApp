@@ -2,12 +2,10 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import admin from 'firebase-admin';
 
-const allowedOrigins = ["http://localhost:5173", "https://sunfood-app.vercel.app"];
-
 if (!admin.apps.length) {
   const firebaseKey = process.env.FIREBASE_KEY;
   admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(firebaseKey!.replace(/\\n/g, '\n'))),
+    credential: admin.credential.cert(JSON.parse(firebaseKey!.replace(/\n/g, '\n'))),
   });
 }
 
@@ -15,7 +13,7 @@ const db = admin.firestore();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const origin = req.headers.origin || '';
-  if (allowedOrigins.includes(origin)) {
+  if (["http://localhost:5173", "https://sunfood-app.vercel.app"].includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
   res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");

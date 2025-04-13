@@ -19,4 +19,18 @@ const auth = firebase.auth();
 const firestore = firebase.firestore();
 const FieldValue = firebase.firestore.FieldValue;
 
-export { auth, firestore, FieldValue };
+const bookTable = async (tableId: number, phone: string): Promise<boolean> => {
+  try {
+    await firestore.collection('bookings').add({
+      tableId,
+      phone,
+      createdAt: FieldValue.serverTimestamp()
+    });
+    return true;
+  } catch (err) {
+    console.error('Ошибка бронирования:', err);
+    return false;
+  }
+};
+
+export { auth, firestore, FieldValue, bookTable };

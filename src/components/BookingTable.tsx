@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { bookTable } from '../firebase/firebase';
+import { bookTable } from '../firebase';
 
 export type TableStatus = 'free' | 'occupied' | 'reserved';
 

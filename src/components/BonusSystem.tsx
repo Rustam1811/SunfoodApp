@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { firestore } from '../firebase';
 import Firebase from 'firebase/compat/app';
+import { FieldValue } from '../firebase';
 
 interface Order {
   id: string;

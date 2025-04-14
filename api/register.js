@@ -1,42 +1,25 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
-import admin from 'firebase-admin';
+const admin = require("firebase-admin");
 
-// ✅ Разрешённые домены
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://coffee-addict.vercel.app"
-];
-
-// ✅ Firebase init
 if (!admin.apps.length) {
   const firebaseKey = process.env.FIREBASE_KEY;
   if (!firebaseKey) throw new Error("FIREBASE_KEY not set");
-  
   admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(firebaseKey.replace(/\\n/g, '\n')))
+    credential: admin.credential.cert(JSON.parse(firebaseKey.replace(/\\n/g, "\n"))),
   });
 }
 
 const db = admin.firestore();
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+module.exports = async function handler(req, res) {
   const origin = req.headers.origin || "";
-
-  // ✅ CORS-заголовки
-  if (allowedOrigins.includes(origin)) {
+  if (["http://localhost:5173", "https://coffee-addict.vercel.app"].includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // ✅ Обработка preflight-запроса
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method Not Allowed" });
-  }
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
     const { name, phone, password } = req.body;
@@ -56,6 +39,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ token: "mock-token", user: newUser });
   } catch (err) {
     console.error("🔥 Register Error:", err);
-    return res.status(500).json({ error: "Ошибка сервера" });
+    return res.status(500).json({ error: "Ошибка сервера", details: String(err) });
   }
-}
+};

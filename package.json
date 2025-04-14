@@ -8,6 +8,7 @@
     "preview": "vite preview",
     "test.e2e": "cypress run",
     "test.unit": "vitest",
+    "type":"module",
     "lint": "eslint"
   },
   "dependencies": {

@@ -1,30 +1,30 @@
-const API_URL = import.meta.env.VITE_BACKEND_URL; // ✅ Динамический URL
-
-console.log('🧪 VITE_BACKEND_URL =', API_URL);
+console.log('🧪 Using local /api/ endpoints (no CORS)');
 
 export const registerUser = async (phone: string, name: string, password: string) => {
-  const res = await fetch(`${API_URL}/register`, { // ✅ Только API_URL
+  const res = await fetch('/api/register', {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone, name, password }),
   });
 
   if (!res.ok) {
-    throw new Error((await res.json()).error);
+    const data = await res.json();
+    throw new Error(data.error || "Ошибка регистрации");
   }
 
   return await res.json();
 };
 
 export const loginUser = async (phone: string, password: string) => {
-  const res = await fetch(`${API_URL}/login`, { // ✅ Только API_URL
+  const res = await fetch('/api/login', {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone, password }),
   });
 
   if (!res.ok) {
-    throw new Error((await res.json()).error);
+    const data = await res.json();
+    throw new Error(data.error || "Ошибка входа");
   }
 
   return await res.json();

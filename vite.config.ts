@@ -8,7 +8,16 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     base: '/',
     define: {
-      'import.meta.env': env // ✅ Это важно для Vite
+      'import.meta.env': env
+    },
+    server: {
+      proxy: {
+        '/api': {
+          target: 'https://coffee-addict.vercel.app',
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/api/, '/api') // сохраняем путь
+        }
+      }
     }
   };
 });

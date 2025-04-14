@@ -14,11 +14,11 @@ const Login: React.FC = () => {
     setError('');
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/login`, {
+      const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password })
-      });
+        body: JSON.stringify({ phone, password }),
+      });      
 
       if (!response.ok) {
         const data = await response.json();

@@ -4,13 +4,11 @@ if (!admin.apps.length) {
   const firebaseKey = process.env.FIREBASE_KEY;
   if (!firebaseKey) throw new Error("FIREBASE_KEY not set");
 
-  // 🔥 Убираем двойные слэши и парсим JSON
-  const parsedKey = JSON.parse(firebaseKey.replace(/\\n/g, '\n'));
-
   admin.initializeApp({
-    credential: admin.credential.cert(parsedKey),
+    credential: admin.credential.cert(JSON.parse(firebaseKey))
   });
 }
+
 
 const db = admin.firestore();
 

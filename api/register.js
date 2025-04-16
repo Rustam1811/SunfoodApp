@@ -5,7 +5,9 @@ if (!admin.apps.length) {
   if (!firebaseKey) throw new Error("FIREBASE_KEY not set");
 
   admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(firebaseKey.replace(/\\n/g, '\n')))
+    credential: admin.credential.cert(
+      JSON.parse(firebaseKey.replace(/\\n/g, '\n'))
+    ),
   });
 }
 

@@ -12,7 +12,6 @@ import {
   IonCardHeader,
   IonCardTitle,
 } from '@ionic/react';
-import { firestore, auth } from '../firebase';
 import BonusSystem from '../components/BonusSystem';
 import { useHistory } from 'react-router-dom';
 
@@ -28,46 +27,33 @@ const Order: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const history = useHistory();
 
-  const user = auth.currentUser;
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const snapshot = await firestore.collection('orders').get();
-        const items: OrderItem[] = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          items.push({
-            id: doc.id,
-            name: data.name,
-            quantity: data.quantity,
-            price: data.price,
-          });
-        });
-        setOrderItems(items);
-      } catch (error) {
-        console.error('Ошибка загрузки заказов:', error);
-      }
-    };
-    fetchOrders();
-  }, []);
-
   const getTotal = () =>
     orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   const handleOrder = async () => {
+    const userJson = localStorage.getItem('user');
+    const user = userJson ? JSON.parse(userJson) : null;
+
     if (!user) {
       history.push('/login');
       return;
     }
+
     try {
-      await firestore.collection('orders').add({
-        userId: user.uid,
-        items: orderItems,
-        amount: getTotal(),
-        bonusEarned: Math.floor(getTotal() * 0.05),
-        createdAt: new Date(),
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.uid || user.phone,
+          items: orderItems,
+          amount: getTotal(),
+        }),
       });
+
+      if (!res.ok) throw new Error('Ошибка оформления');
+
       setOrderItems([]);
       setShowModal(true);
       setTimeout(() => setShowModal(false), 3000);
@@ -75,6 +61,21 @@ const Order: React.FC = () => {
       console.error('Ошибка оформления заказа:', error);
     }
   };
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const res = await fetch('/api/orders');
+        if (!res.ok) throw new Error('Ошибка загрузки');
+        const data = await res.json();
+        setOrderItems(data);
+      } catch (error) {
+        console.error('Ошибка загрузки заказов:', error);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   return (
     <IonPage>

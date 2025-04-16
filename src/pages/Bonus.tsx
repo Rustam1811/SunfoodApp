@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { firestore, auth } from '../firebase';
 import { FaCoins, FaMedal, FaGift, FaChartLine, FaLock } from 'react-icons/fa';
 
 interface Order {
@@ -24,39 +23,47 @@ const Bonus: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [userPhone, setUserPhone] = useState<string | null>(null);
   const navigate = useHistory();
 
-  const user = auth.currentUser;
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) return;
+    const parsedUser = JSON.parse(storedUser);
+    setUserPhone(parsedUser.phone);
+  }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!userPhone) return;
 
-    const unsub = firestore
-      .collection('orders')
-      .where('userId', '==', user.uid)
-      .orderBy('createdAt', 'desc')
-      .onSnapshot(async snapshot => {
-        let totalBonus = 0;
-        const orderList: Order[] = [];
+    const fetchBonuses = async () => {
+      try {
+        const res = await fetch(`/api/bonuses?phone=${userPhone}`);
+        if (!res.ok) throw new Error('Ошибка получения бонусов');
+        const data = await res.json();
+        setBonusPoints(data.bonus || 0);
+      } catch (err) {
+        console.error('Ошибка получения бонусов:', err);
+      }
+    };
 
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          totalBonus += data.bonusEarned || 0;
-          orderList.push({
-            id: doc.id,
-            date: data.createdAt?.toDate().toLocaleDateString() || 'Неизвестно',
-            amount: data.amount || 0,
-            bonusEarned: data.bonusEarned || 0,
-          });
-        });
-
-        setOrders(orderList);
-        setBonusPoints(totalBonus);
-        checkAchievements(orderList, totalBonus);
+    const fetchOrders = async () => {
+      try {
+        const res = await fetch(`/api/orders?phone=${userPhone}`);
+        if (!res.ok) throw new Error('Ошибка получения заказов');
+        const data = await res.json();
+        setOrders(data.orders || []);
+        checkAchievements(data.orders, bonusPoints);
+      } catch (err) {
+        console.error('Ошибка получения заказов:', err);
+      } finally {
         setLoading(false);
-      });
-    return () => unsub();
-  }, [user]);
+      }
+    };
+
+    fetchBonuses();
+    fetchOrders();
+  }, [userPhone]);
 
   const checkAchievements = (ordersData: Order[], totalBonus: number) => {
     const unlocked: Achievement[] = [
@@ -86,43 +93,42 @@ const Bonus: React.FC = () => {
         name: 'Секретный: Большой чек',
         description: 'Сделайте заказ больше 5000₸',
         unlocked: ordersData.some(order => order.amount >= 5000),
-        icon: <FaLock className="text-black text-4xl" />,
-        secret: true
+        icon: <FaLock className="text-black text-4xl" />, secret: true
       },
       {
         id: 'secret_night_order',
         name: 'Секретный: Ночной гость',
         description: 'Сделайте заказ между 00:00 и 05:00',
         unlocked: ordersData.some(order => {
-          const orderDate = new Date(order.date);
-          const hour = orderDate.getHours();
+          const hour = new Date(order.date).getHours();
           return hour >= 0 && hour < 5;
         }),
-        icon: <FaLock className="text-black text-4xl" />,
-        secret: true
+        icon: <FaLock className="text-black text-4xl" />, secret: true
       }
     ];
     setAchievements(unlocked);
   };
 
   const handleSpendBonuses = async () => {
-    if (!user) return;
+    if (!userPhone) return;
     if (bonusPoints < 100) return alert("Минимум 100 бонусов для траты");
 
     try {
-      const userDoc = firestore.collection('users').doc(user.uid);
-      await userDoc.update({
-        bonuses: bonusPoints - 100
+      const res = await fetch(`/api/spendBonuses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: userPhone, amount: 100 })
       });
+      if (!res.ok) throw new Error('Ошибка списания');
       alert('🎁 100 бонусов списано!');
       setBonusPoints(prev => prev - 100);
-    } catch (error) {
-      console.error("Ошибка списания бонусов:", error);
+    } catch (err) {
+      console.error("Ошибка списания бонусов:", err);
       alert("Произошла ошибка при трате бонусов.");
     }
   };
 
-  if (!user) {
+  if (!userPhone) {
     return <div className="p-6 bg-white rounded-xl shadow-lg text-center">
       <p className="text-lg font-semibold">Войдите в аккаунт для просмотра бонусов ☕</p>
     </div>

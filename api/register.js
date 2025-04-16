@@ -5,16 +5,14 @@ if (!admin.apps.length) {
   if (!firebaseKey) throw new Error("FIREBASE_KEY not set");
 
   admin.initializeApp({
-    credential: admin.credential.cert(
-      JSON.parse(firebaseKey.replace(/\\n/g, '\n'))
-    ),
+    credential: admin.credential.cert(JSON.parse(firebaseKey.replace(/\\n/g, '\n')))
   });
 }
 
 const db = admin.firestore();
 
 module.exports = async (req, res) => {
-  const origin = req.headers.origin || "";
+  const origin = req.headers.origin || '';
   if (["http://localhost:5173", "https://coffee-addict.vercel.app"].includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }

@@ -14,21 +14,21 @@ const Login: React.FC = () => {
     setError('');
     setLoading(true);
     try {
-      const response = await fetch('/api/login', {
+      const loginRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, password }),
-      });      
-
-      if (!response.ok) {
-        const data = await response.json();
+      });
+      
+      if (!loginRes.ok) {
+        const data = await loginRes.json();
         setError(data.error || 'Ошибка входа');
       } else {
-        const data = await response.json();
+        const data = await loginRes.json();
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         history.push('/menu'); // ✅ редирект на меню
-      }
+      }      
     } catch (e) {
       setError('Ошибка сети. Попробуйте позже.');
     }

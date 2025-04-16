@@ -1,7 +1,5 @@
-
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
-import 'firebase/compat/auth';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,8 +12,6 @@ const firebaseConfig = {
 };
 
 const app = firebase.initializeApp(firebaseConfig);
-
-const auth = firebase.auth();
 const firestore = firebase.firestore();
 const FieldValue = firebase.firestore.FieldValue;
 
@@ -33,4 +29,4 @@ const bookTable = async (tableId: number, phone: string): Promise<boolean> => {
   }
 };
 
-export { auth, firestore, FieldValue, bookTable };
+export { firestore, FieldValue, bookTable };

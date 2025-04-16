@@ -4,15 +4,18 @@ if (!admin.apps.length) {
   const firebaseKey = process.env.FIREBASE_KEY;
   if (!firebaseKey) throw new Error("FIREBASE_KEY not set");
 
+  // 🔥 Убираем двойные слэши и парсим JSON
+  const parsedKey = JSON.parse(firebaseKey.replace(/\\n/g, '\n'));
+
   admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse(firebaseKey.replace(/\\n/g, '\n')))
+    credential: admin.credential.cert(parsedKey),
   });
 }
 
 const db = admin.firestore();
 
-module.exports = async (req, res) => {
-  const origin = req.headers.origin || '';
+module.exports = async function handler(req, res) {
+  const origin = req.headers.origin || "";
   if (["http://localhost:5173", "https://coffee-addict.vercel.app"].includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
@@ -24,7 +27,6 @@ module.exports = async (req, res) => {
 
   try {
     const { name, phone, password } = req.body;
-
     if (!name || !phone || !password) {
       return res.status(400).json({ error: "Все поля обязательны" });
     }

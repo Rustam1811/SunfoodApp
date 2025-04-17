@@ -1,3 +1,4 @@
+// src/pages/CartContext.tsx
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
 export interface CartItem {
@@ -42,12 +43,10 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       }
       return { ...state, items: [...state.items, action.payload] };
     }
-    case 'REMOVE_ITEM': {
+    case 'REMOVE_ITEM':
       return { ...state, items: state.items.filter(item => item.id !== action.payload) };
-    }
-    case 'CLEAR_CART': {
+    case 'CLEAR_CART':
       return { ...state, items: [] };
-    }
     default:
       return state;
   }

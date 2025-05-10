@@ -1,102 +1,107 @@
 // src/components/BonusSystem.tsx
 import React, { useState, useEffect } from 'react';
+import {
+  IonCard, IonCardHeader, IonCardContent, IonLabel,
+  IonRange, IonButton, IonToast, IonProgressBar, useIonToast
+} from '@ionic/react';
 
-interface Order {
-  id: string;
-  date: string;
-  amount: number;
-  bonusEarned: number;
-}
+const API = import.meta.env.VITE_BACKEND_URL;
+
+interface Order { id: string; date: string; amount: number; bonusEarned: number; }
 
 const BonusSystem: React.FC = () => {
-  const [bonusPoints, setBonusPoints] = useState<number>(0);
+  const [bonusPoints, setBonusPoints] = useState(0);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bonusToUse, setBonusToUse] = useState(0);
+  const [presentToast] = useIonToast();
 
-  // Пользовательские данные из localStorage
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const userId = user?.uid || user?.phone;
 
   useEffect(() => {
     if (!userId) return;
+    setLoading(true);
 
-    const fetchData = async () => {
+    (async () => {
       try {
-        // 1) Получаем текущее кол-во бонусов
-        const bonusRes = await fetch(`/api/bonuses?phone=${encodeURIComponent(userId)}`);
-        if (!bonusRes.ok) throw new Error('Не удалось загрузить бонусы');
-        const { bonus } = await bonusRes.json();
+        // 1) баланс
+        const r1 = await fetch(`${API}/placeOrder?userId=${encodeURIComponent(userId)}`, { method: 'GET', mode: 'cors' });
+        if (!r1.ok) throw new Error();
+        const { bonus } = await r1.json();
         setBonusPoints(bonus);
+        setBonusToUse(Math.min(bonus, bonusToUse));
 
-        // 2) Получаем историю заказов
-        const ordersRes = await fetch(`/api/orders?userId=${encodeURIComponent(userId)}`);
-        if (!ordersRes.ok) throw new Error('Не удалось загрузить заказы');
-        const ordersData: Order[] = await ordersRes.json();
-        setOrders(ordersData);
-      } catch (e) {
-        console.error('🔥 Ошибка в BonusSystem:', e);
+        // 2) история (5 последних)
+        const r2 = await fetch(`${API}/orders?userId=${encodeURIComponent(userId)}`, { method: 'GET', mode: 'cors' });
+        const data: Order[] = r2.ok ? await r2.json() : [];
+        setOrders(data);
+      } catch {
+        // silent
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchData();
+    })();
   }, [userId]);
 
-  if (!userId) {
-    return (
-      <div className="p-6 bg-white rounded-xl shadow-lg text-center">
-        <p className="text-lg font-semibold">Войдите, чтобы видеть бонусы ☕</p>
-      </div>
-    );
-  }
+  const handleSpend = async () => {
+    if (!userId || bonusToUse < 1 || bonusToUse > bonusPoints) return;
+    try {
+      const res = await fetch(`${API}/placeOrder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, items: [], amount: 0, bonusToUse }),
+      });
+      const { newBonus } = await res.json();
+      setBonusPoints(newBonus);
+      setBonusToUse(Math.min(newBonus, bonusToUse));
+      presentToast({ message: `🎉 Списано ${bonusToUse} бонусов`, duration: 2000 });
+    } catch {
+      presentToast({ message: 'Ошибка списания', duration: 2000, color: 'danger' });
+    }
+  };
 
+  if (!userId) {
+    return <IonCard><IonCardContent>Войдите, чтобы увидеть бонусы.</IonCardContent></IonCard>;
+  }
   if (loading) {
-    return (
-      <div className="p-6 bg-white rounded-xl shadow-lg text-center">
-        <p className="text-lg text-gray-500">Загрузка бонусов...</p>
-      </div>
-    );
+    return <IonProgressBar type="indeterminate" />;
   }
 
   return (
-    <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Бонусная система</h2>
+    <IonCard>
+      <IonCardHeader>
+        <IonLabel>Ваши бонусы: <b>{bonusPoints}</b></IonLabel>
+      </IonCardHeader>
+      <IonCardContent>
+        <IonLabel>Тратить бонусов:</IonLabel>
+        <IonRange
+          min={1}
+          max={bonusPoints}
+          step={1}
+          value={bonusToUse}
+          onIonChange={e => setBonusToUse(e.detail.value as number)}
+        />
+        <div className="flex gap-2 mt-2">
+          <IonButton size="small" onClick={() => setBonusToUse(bonusPoints)}>Max</IonButton>
+          <IonButton expand="block" onClick={handleSpend} disabled={bonusToUse < 1}>
+            Потратить {bonusToUse}
+          </IonButton>
+        </div>
 
-      <div className="bg-gray-900 text-white p-4 rounded-lg text-center text-lg mb-6">
-        Ваши бонусные баллы:{' '}
-        <span className="font-bold text-yellow-400">{bonusPoints}</span>
-      </div>
-
-      <h3 className="text-xl font-semibold mb-3 text-gray-800">История заказов</h3>
-      {orders.length === 0 ? (
-        <p className="text-gray-500">Заказов пока нет.</p>
-      ) : (
-        <ul className="space-y-4 max-h-64 overflow-auto">
-          {orders.map(order => (
-            <li
-              key={order.id}
-              className="bg-gray-50 rounded-lg p-4 shadow transition-transform hover:scale-105"
-            >
-              <p className="text-gray-800 font-medium">Заказ #{order.id}</p>
-              <p className="text-sm text-gray-500">от {order.date}</p>
-              <p className="mt-2">
-                Сумма:{' '}
-                <span className="font-semibold text-gray-800">
-                  {order.amount}₸
-                </span>
-              </p>
-              <p>
-                Начислено бонусов:{' '}
-                <span className="font-semibold text-gray-800">
-                  {order.bonusEarned}
-                </span>
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+        <IonLabel className="mt-4">Последние заказы:</IonLabel>
+        {orders.length === 0
+          ? <p>Нет заказов</p>
+          : orders.map(o => (
+            <div key={o.id} className="mt-2">
+              <div>#{o.id.slice(0,6)} — {new Date(o.date).toLocaleDateString()}</div>
+              <div>💸 {o.amount}₸  💎 +{o.bonusEarned}</div>
+            </div>
+          ))
+        }
+      </IonCardContent>
+      <IonToast />
+    </IonCard>
   );
 };
 

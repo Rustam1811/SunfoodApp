@@ -25,7 +25,9 @@ import Menu from "./pages/menu/Menu";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import Admin from "../admin/App";
 import { CartProvider } from "./pages/CartContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 import "@ionic/react/css/core.css";
 import "./index.css";
@@ -33,11 +35,13 @@ import EnvCheck from './pages/EnvCheck';
 
 const App: React.FC = () => (
   <IonApp className="bg-white">
+    <LanguageProvider>
     <CartProvider>
       <IonReactRouter>
         <IonTabs>
           <IonRouterOutlet>
             <Switch>
+              <Route path="/admin" component={Admin} />
               <Route path="/home" component={Home} exact />
               <Route path="/order" component={Order} exact />
               <Route path="/booking" component={Booking} exact />
@@ -56,6 +60,7 @@ const App: React.FC = () => (
         <BottomNav />
       </IonReactRouter>
     </CartProvider>
+    </LanguageProvider>
   </IonApp>
 );
 

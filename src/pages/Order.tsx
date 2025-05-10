@@ -1,5 +1,5 @@
 // src/pages/Order.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import {
   IonPage,
@@ -16,26 +16,49 @@ import {
   IonButton
 } from '@ionic/react';
 import { useCart, CartItem } from './CartContext';
-import BonusSystem from '../components/BonusSystem';
 
-const API = import.meta.env.VITE_BACKEND_URL; // например "https://coffee-addict.vercel.app/api"
+const API = import.meta.env.VITE_BACKEND_URL; // https://coffee-addict.vercel.app/api
 
 const Order: React.FC = () => {
   const { state: { items }, dispatch } = useCart();
+  const [bonusPoints, setBonusPoints] = useState(0);
+  const [bonusToUse, setBonusToUse] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const history = useHistory();
 
-  // Получаем текущий userId
+  // Считаем сумму корзины
+  const amount = items.reduce((sum, x) => sum + x.price * x.quantity, 0);
+  const bonusEarned = Math.floor(amount * 0.05);
+
+  // Из localStorage вытягиваем userId
   const getUserId = () => {
     const userJson = localStorage.getItem('user');
     if (!userJson) return null;
-    const user = JSON.parse(userJson);
-    return user.uid || user.phone;
+    const u = JSON.parse(userJson);
+    return u.uid || u.phone;
   };
 
-  // Считаем общую сумму и бонус
-  const amount = items.reduce((sum, x) => sum + x.price * x.quantity, 0);
-  const bonusEarned = Math.floor(amount * 0.05);
+  // При монтировании подгружаем баланс
+  useEffect(() => {
+    const userId = getUserId();
+    if (!userId) return;
+
+    fetch(`${API}/placeOrder?userId=${encodeURIComponent(userId)}`, {
+      method: 'GET',
+      mode: 'cors'
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        return res.json();
+      })
+      .then(({ bonus }) => {
+        setBonusPoints(bonus);
+        setBonusToUse(Math.min(bonus, amount));
+      })
+      .catch(err => {
+        console.error('Не удалось загрузить бонусы:', err);
+      });
+  }, [amount]);
 
   const handleOrder = async () => {
     const userId = getUserId();
@@ -43,27 +66,35 @@ const Order: React.FC = () => {
       history.push('/login');
       return;
     }
-
     if (items.length === 0) {
       alert('Ваша корзина пуста');
       return;
     }
 
     try {
-      const res = await fetch(`${API}/orders`, {
+      const res = await fetch(`${API}/placeOrder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, items, amount }),
+        body: JSON.stringify({
+          userId,
+          items,
+          amount,
+          bonusToUse
+        }),
       });
-      if (!res.ok) throw new Error(`Status ${res.status}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Status ${res.status}`);
 
-      // Очищаем корзину и показываем модалку
+      // Обновляем локальный баланс
+      setBonusPoints(data.newBonus);
+
+      // Очищаем корзину, показываем модалку
       dispatch({ type: 'CLEAR_CART' });
       setShowModal(true);
       setTimeout(() => setShowModal(false), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка оформления заказа:', err);
-      alert('Не удалось оформить заказ. Попробуйте ещё раз.');
+      alert(err.message || 'Не удалось оформить заказ. Попробуйте ещё раз.');
     }
   };
 
@@ -76,9 +107,9 @@ const Order: React.FC = () => {
       </IonHeader>
 
       <IonContent className="bg-gray-100 ion-padding">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold mb-6 text-center">Ваша корзина</h2>
+        <div className="container mx-auto max-w-lg space-y-6">
 
+          <h2 className="text-3xl font-bold text-center">Ваша корзина</h2>
           {items.length === 0 ? (
             <p className="text-center text-gray-600">Корзина пуста</p>
           ) : (
@@ -99,43 +130,54 @@ const Order: React.FC = () => {
             </IonList>
           )}
 
-          {/* Сумма и бонус */}
-          <div className="mt-6 p-4 bg-white rounded-xl shadow-lg flex justify-between items-center">
-            <div>
-              <div className="text-xl">Всего к оплате:</div>
-              <div className="text-2xl font-bold">{amount}₸</div>
+          {/* Итоги и бонусы */}
+          <div className="p-4 bg-white rounded-xl shadow-lg space-y-4">
+            <div className="flex justify-between">
+              <div>
+                <div className="text-xl">Всего к оплате:</div>
+                <div className="text-2xl font-bold">{amount}₸</div>
+              </div>
+              <div className="text-right">
+                <div className="text-lg text-yellow-600">Начислено бонусов:</div>
+                <div className="text-xl font-semibold text-yellow-800">+{bonusEarned}</div>
+              </div>
             </div>
-            <div className="text-right">
-              <div className="text-lg text-yellow-600">Начислено бонусов:</div>
-              <div className="text-xl font-semibold text-yellow-800">+{bonusEarned}</div>
+
+            <div className="flex gap-2 items-center">
+              <div>
+                Ваши бонусы: <span className="font-bold text-yellow-600">{bonusPoints}</span>
+              </div>
+              <input
+                type="number"
+                min={0}
+                max={Math.min(bonusPoints, amount)}
+                value={bonusToUse}
+                onChange={e => setBonusToUse(Math.min(Math.max(0, +e.target.value), bonusPoints, amount))}
+                className="w-24 p-2 border rounded-lg"
+              />
+              <div>₸ тратить</div>
             </div>
           </div>
 
-          {/* Кнопка оплаты */}
-          <div className="mt-6">
-            <IonButton
-              expand="block"
-              onClick={handleOrder}
-              className="bg-gradient-to-r from-gray-800 to-gray-900 text-white"
-            >
-              Оплатить (Apple Pay / Kaspi Pay)
-            </IonButton>
-          </div>
+          <IonButton
+            expand="block"
+            onClick={handleOrder}
+            className="bg-gradient-to-r from-gray-800 to-gray-900 text-white"
+          >
+            Оплатить (Apple Pay / Kaspi Pay)
+          </IonButton>
 
-          {/* История и достижения */}
-          <div className="mt-10">
-            <BonusSystem />
-          </div>
-
-          {/* Модалка об успешном заказе */}
           <IonModal isOpen={showModal} backdropDismiss={false}>
             <div className="flex items-center justify-center h-full bg-gray-900">
               <div className="bg-white p-8 rounded-2xl shadow-2xl text-center">
                 <h2 className="text-3xl font-bold mb-2">✅ Заказ оформлен!</h2>
-                <p className="text-lg">Бонусы начислены на ваш счёт</p>
+                <p className="text-lg">
+                  Бонусы успешно учтены: теперь у вас {bonusPoints} баллов
+                </p>
               </div>
             </div>
           </IonModal>
+
         </div>
       </IonContent>
     </IonPage>

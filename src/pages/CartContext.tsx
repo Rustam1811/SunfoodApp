@@ -7,6 +7,9 @@ export interface CartItem {
   price: number;
   quantity: number;
   image: string;
+  size: string; // Optional size for drinks
+  customizations: string[]; // Optional customizations for food items
+  modifiers?: Record<string, any>;
 }
 
 type CartState = {

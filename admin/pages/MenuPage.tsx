@@ -10,6 +10,7 @@ import { DrinkCategoryLocal, Product } from "../types/types";
 import CategoryModal from "../components/CategoryModal";
 import ProductModal from "../components/ProductModal";
 import { UserContext } from "../contexts/UserContext";
+import CategoryViewer from "../../src/components/CategoryViewer";
 
 const MenuPage: React.FC = () => {
   const [cats, setCats] = useState<DrinkCategoryLocal[]>([]);
@@ -106,37 +107,7 @@ const MenuPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {c.products.map(p => (
-                  <div
-                    key={p.id}
-                    className="bg-gray-50 p-4 rounded-lg shadow flex flex-col"
-                  >
-                    {p.image && (
-                      <img
-                        src={p.image}
-                        alt={p.name.ru}
-                        className="w-full h-32 object-cover rounded-lg mb-2"
-                      />
-                    )}
-                    <h4 className="font-semibold">{p.name.ru}</h4>
-                    <p className="text-sm text-gray-500">
-                      {p.description?.ru}
-                    </p>
-                    <p className="mt-2 font-bold">{p.price} ₸</p>
-                    <button
-                      className="mt-auto text-blue-600 hover:underline text-sm"
-                      onClick={() => {
-                        setSelCat(c);
-                        setEditProd(p);
-                        setShowProdM(true);
-                      }}
-                    >
-                      Ред.
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <CategoryViewer title={c.title.ru} products={c.products} />
             </div>
           ))}
         </div>

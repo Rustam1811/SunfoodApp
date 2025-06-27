@@ -87,7 +87,7 @@ const Eats: React.FC = () => {
 
   return (
     <IonPage>
-      <IonContent className="bg-gradient-to-b from-gray-50 to-white overflow-y-auto">
+      <IonContent className="bg-gradient-to-b">
         {/* Сетка категорий */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

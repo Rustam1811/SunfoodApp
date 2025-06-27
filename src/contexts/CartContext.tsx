@@ -1,5 +1,4 @@
-import React, { createContext, useReducer, useContext, ReactNode } from 'react';
-import { LocalizedString } from '../../admin/types/types';
+import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
 
 export interface CartItem {
   id: number;
@@ -14,8 +13,6 @@ type Action =
   | { type: 'ADD_ITEM'; payload: CartItem }
   | { type: 'REMOVE_ITEM'; payload: { id: number } }
   | { type: 'CLEAR_CART' };
-
-const initial: CartItem[] = [];
 
 function reducer(state: CartItem[], action: Action): CartItem[] {
   switch (action.type) {
@@ -43,7 +40,19 @@ const StateCtx = createContext<CartItem[] | null>(null);
 const DispatchCtx = createContext<React.Dispatch<Action> | null>(null);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, initial);
+  const [state, dispatch] = useReducer(reducer, [], () => {
+    try {
+      const ls = localStorage.getItem('cart');
+      return ls ? JSON.parse(ls) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(state));
+  }, [state]);
+
   return (
     <StateCtx.Provider value={state}>
       <DispatchCtx.Provider value={dispatch}>

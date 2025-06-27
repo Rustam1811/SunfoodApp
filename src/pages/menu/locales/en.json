@@ -1,0 +1,568 @@
+{
+  "menu": {
+    "categories": {
+      "black_coffee": "Black Coffee",
+      "seasonal": "Seasonal",
+      "milk_coffee": "Coffee with Milk",
+      "childrens": "Kids Menu",
+      "cold_coffee": "Cold Coffee",
+      "non_coffee": "Non-Coffee",
+      "cold_drinks": "Cold Drinks",
+      "lemonades": "Lemonades",
+      "breakfasts": "Breakfasts",
+      "hearty_croissants": "Hearty Croissants",
+      "paninis": "Paninis",
+      "pastries": "Pastries"
+    },
+    "espresso": {
+      "name": "Espresso",
+      "description": "Classic espresso with rich flavor and dense crema",
+      "ingredients": [
+        "100% Arabica coffee",
+        "Filtered water"
+      ],
+      "recommendation": "Perfect for morning awakening"
+    },
+    "americano": {
+      "name": "Americano",
+      "description": "Espresso with hot water added for a milder taste",
+      "ingredients": [
+        "Espresso",
+        "Hot water"
+      ],
+      "recommendation": "Goes perfectly with breakfast"
+    },
+    "batch_brew": {
+      "name": "Batch Brew",
+      "description": "Slow extraction coffee to reveal all flavor notes",
+      "ingredients": [
+        "Filter grind coffee"
+      ],
+      "recommendation": "For true coffee connoisseurs"
+    },
+    "lungo_aeropress": {
+      "name": "Lungo/Aeropress",
+      "description": "Extended espresso or coffee brewed in an aeropress",
+      "ingredients": [
+        "Coffee beans",
+        "Aeropress brewing method"
+      ],
+      "recommendation": "For those who love to experiment"
+    },
+    "barista_set": {
+      "name": "Barista Set (espresso, cappuccino/flat white, batch brew + something else)",
+      "description": "Tasting set to explore different brewing methods",
+      "ingredients": [
+        "Espresso",
+        "Cappuccino or flat white",
+        "Batch brew",
+        "Additional treats"
+      ],
+      "recommendation": "Perfect for first-time visit to our coffee shop"
+    },
+    "cola_bro_strawberry_blueberry": {
+      "name": "Cola Bro Strawberry/Blueberry",
+      "description": "Refreshing drink with natural berry syrups",
+      "ingredients": [
+        "Cola",
+        "Strawberry syrup",
+        "Blueberry syrup"
+      ],
+      "recommendation": "Great addition to a summer day"
+    },
+    "cardamom_syrup": {
+      "name": "Cardamom Syrup",
+      "description": "Aromatic syrup with spicy cardamom flavor",
+      "ingredients": [
+        "Cardamom",
+        "Sugar syrup"
+      ],
+      "recommendation": "Add to any drink for an oriental aroma"
+    },
+    "lavender_mint": {
+      "name": "Lavender Mint",
+      "description": "Calming drink with lavender and fresh mint",
+      "ingredients": [
+        "Dried lavender",
+        "Fresh mint",
+        "Hot water"
+      ],
+      "recommendation": "Perfect for relaxing after a workday"
+    },
+    "tropical_mix": {
+      "name": "Tropical Mix",
+      "description": "Exotic cocktail with tropical fruits",
+      "ingredients": [
+        "Pineapple",
+        "Mango",
+        "Passion fruit"
+      ],
+      "recommendation": "Feel like you're on a tropical island"
+    },
+    "affogato": {
+      "name": "Affogato",
+      "description": "Italian dessert - vanilla ice cream with espresso",
+      "ingredients": [
+        "Vanilla ice cream",
+        "Espresso",
+        "Optional: amaretto"
+      ],
+      "recommendation": "Perfect dessert for a romantic evening"
+    },
+    "cappuccino": {
+      "name": "Cappuccino",
+      "description": "Classic Italian drink with milk foam",
+      "ingredients": [
+        "Espresso",
+        "Steamed milk"
+      ],
+      "recommendation": "Morning classic for a good mood"
+    },
+    "flat_white": {
+      "name": "Flat White",
+      "description": "Australian coffee with microfoam and rich flavor",
+      "ingredients": [
+        "Double espresso",
+        "Milk with microfoam"
+      ],
+      "recommendation": "For those who love strong coffee with milk"
+    },
+    "latte": {
+      "name": "Latte",
+      "description": "Gentle coffee with a large amount of milk",
+      "ingredients": [
+        "Espresso",
+        "Hot milk"
+      ],
+      "recommendation": "Mild taste for milk beverage lovers"
+    },
+    "raf_coffee": {
+      "name": "Raf Coffee",
+      "description": "Russian coffee drink with cream and vanilla syrup",
+      "ingredients": [
+        "Espresso",
+        "Cream",
+        "Vanilla syrup"
+      ],
+      "recommendation": "Tender and sweet, like a hug"
+    },
+    "coconut_milk": {
+      "name": "With Coconut Milk",
+      "description": "Alternative milk for vegans and exotic lovers",
+      "ingredients": [
+        "Espresso",
+        "Coconut milk",
+        "Natural coconut notes"
+      ],
+      "recommendation": "Tropical taste in every sip"
+    },
+    "oat_milk": {
+      "name": "+ Oat Milk",
+      "description": "Oat milk addition to any drink",
+      "ingredients": [
+        "Oat milk"
+      ],
+      "recommendation": "Eco-friendly alternative to regular milk"
+    },
+    "lactose_free": {
+      "name": "+ Lactose-Free",
+      "description": "Lactose-free milk for people with lactose intolerance",
+      "ingredients": [
+        "Lactose-free milk"
+      ],
+      "recommendation": "We care about your comfort"
+    },
+    "syrup": {
+      "name": "+ Syrup",
+      "description": "Additional syrup of your choice",
+      "ingredients": [
+        "Syrup of choice"
+      ],
+      "recommendation": "Personalize your drink"
+    },
+    "milkshake_vanilla_strawberry": {
+      "name": "Milkshake Vanilla/Strawberry",
+      "description": "Kids' milkshake with natural flavors",
+      "ingredients": [
+        "Milk",
+        "Vanilla ice cream",
+        "Strawberry syrup"
+      ],
+      "recommendation": "Favorite drink of our little guests"
+    },
+    "espresso_tonic": {
+      "name": "Espresso Tonic",
+      "description": "Refreshing mix of espresso with tonic and citrus",
+      "ingredients": [
+        "Chilled espresso",
+        "Tonic",
+        "Lemon"
+      ],
+      "recommendation": "Energizing drink for a hot day"
+    },
+    "bumble_coffee": {
+      "name": "Bumble Coffee",
+      "description": "Cold coffee with honey notes",
+      "ingredients": [
+        "Cold coffee",
+        "Natural honey",
+        "Milk"
+      ],
+      "recommendation": "Sweet energy for the whole day"
+    },
+    "finnish_latte": {
+      "name": "Finnish Latte",
+      "description": "Scandinavian recipe of cold coffee with milk",
+      "ingredients": [
+        "Cold espresso",
+        "Milk",
+        "Scandinavian spices"
+      ],
+      "recommendation": "Nordic freshness in every sip"
+    },
+    "aff_latte": {
+      "name": "Aff Latte",
+      "description": "Cold latte with special blend",
+      "ingredients": [
+        "Cold espresso",
+        "Cold milk"
+      ],
+      "recommendation": "Simplicity and perfection of taste"
+    },
+    "mint_latte": {
+      "name": "Mint Latte",
+      "description": "Refreshing caffeine-free drink with mint",
+      "ingredients": [
+        "Hot milk",
+        "Mint syrup"
+      ],
+      "recommendation": "Refreshing alternative to coffee"
+    },
+    "cocoa_classic_chocolate": {
+      "name": "Cocoa (Hot Chocolate)",
+      "description": "Classic hot chocolate made from natural cocoa",
+      "ingredients": [
+        "Cocoa powder",
+        "Milk"
+      ],
+      "recommendation": "Warming drink for cold days"
+    },
+    "black_tea_green_tea": {
+      "name": "Black/Green Leaf Tea",
+      "description": "Premium leaf tea of your choice",
+      "ingredients": [
+        "Highest grade tea leaves"
+      ],
+      "recommendation": "Classic tea ceremony"
+    },
+    "ginger_sea_buckthorn": {
+      "name": "Ginger Sea Buckthorn Tea",
+      "description": "Warming vitamin tea",
+      "ingredients": [
+        "Fresh ginger",
+        "Sea buckthorn",
+        "Honey"
+      ],
+      "recommendation": "Immune support during cold season"
+    },
+    "mint_tea_with_honey": {
+      "name": "Mint Tea with Honey",
+      "description": "Calming herbal drink",
+      "ingredients": [
+        "Fresh mint",
+        "Natural honey",
+        "Hot water"
+      ],
+      "recommendation": "Relaxation after a stressful day"
+    },
+    "masala_chai": {
+      "name": "Masala Chai",
+      "description": "Indian spiced tea with milk and spices",
+      "ingredients": [
+        "Black tea",
+        "Milk",
+        "Indian spices"
+      ],
+      "recommendation": "Journey to India through taste"
+    },
+    "raspberry_tea_with_ginger_lemon": {
+      "name": "Raspberry Tea with Ginger and Lemon",
+      "description": "Berry tea with warming additions",
+      "ingredients": [
+        "Raspberry",
+        "Ginger",
+        "Lemon"
+      ],
+      "recommendation": "Vitamin boost and great mood"
+    },
+    "cranberry_tea": {
+      "name": "Cranberry Tea",
+      "description": "Sweet and sour drink with northern berries",
+      "ingredients": [
+        "Cranberry",
+        "Hot water"
+      ],
+      "recommendation": "Healthy and very tasty"
+    },
+    "jasmine_raspberry_elderflower": {
+      "name": "Jasmine Raspberry Elderflower",
+      "description": "Floral-berry cold tea",
+      "ingredients": [
+        "Jasmine tea",
+        "Raspberry",
+        "Elderflower"
+      ],
+      "recommendation": "Exquisite taste for special moments"
+    },
+    "sencha_elderflower": {
+      "name": "Sencha Elderflower",
+      "description": "Japanese green tea with floral notes",
+      "ingredients": [
+        "Sencha",
+        "Elderflower"
+      ],
+      "recommendation": "Refinement of Japanese traditions"
+    },
+    "mint_strawberry_basil": {
+      "name": "Mint Strawberry Tonic",
+      "description": "Refreshing cocktail with herbs and berries",
+      "ingredients": [
+        "Mint",
+        "Strawberry",
+        "Basil"
+      ],
+      "recommendation": "Summer freshness in a glass"
+    },
+    "mint_watermelon": {
+      "name": "Mint Basil",
+      "description": "Minimalist drink with herbal notes",
+      "ingredients": [
+        "Mint",
+        "Basil"
+      ],
+      "recommendation": "Simplicity and freshness"
+    },
+    "orange_elderflower": {
+      "name": "Classic Orange",
+      "description": "Citrus lemonade with floral notes",
+      "ingredients": [
+        "Orange",
+        "Elderflower"
+      ],
+      "recommendation": "Bright taste of a sunny day"
+    },
+    "classic_lemonade": {
+      "name": "Classic Lemonade",
+      "description": "Traditional refreshing lemonade",
+      "ingredients": [
+        "Lemon",
+        "Sugar syrup"
+      ],
+      "recommendation": "Classic that never gets old"
+    },
+    "kiwi_lime": {
+      "name": "Kiwi Lime",
+      "description": "Exotic lemonade with tropical notes",
+      "ingredients": [
+        "Kiwi",
+        "Lime"
+      ],
+      "recommendation": "Exotic freshness"
+    },
+    "apple_apple": {
+      "name": "Apple Apple",
+      "description": "Double concentration apple fresh",
+      "ingredients": [
+        "Apple"
+      ],
+      "recommendation": "Double portion of apple goodness"
+    },
+    "granola_with_yogurt": {
+      "name": "+ Granola with Yogurt",
+      "description": "Healthy breakfast with homemade granola",
+      "ingredients": [
+        "Homemade granola",
+        "Natural yogurt",
+        "Fresh berries"
+      ],
+      "recommendation": "Energy for the whole day"
+    },
+    "pashtet_with_chicken_apple": {
+      "name": "Chicken Apple Pâté",
+      "description": "Tender pâté with fruity notes",
+      "ingredients": [
+        "Chicken fillet",
+        "Apple",
+        "Spices"
+      ],
+      "recommendation": "Hearty and healthy breakfast"
+    },
+    "toast_with_mascarpone_smoked_salmon": {
+      "name": "Toast with Mascarpone and Smoked Salmon",
+      "description": "Exquisite toast with premium ingredients",
+      "ingredients": [
+        "Artisan bread",
+        "Mascarpone",
+        "Smoked salmon"
+      ],
+      "recommendation": "Breakfast for gourmets"
+    },
+    "cottage_cheese_salad_with_chicken_avocado_cheese": {
+      "name": "Hearty Salad with Chicken, Avocado and Cheese",
+      "description": "Nutritious salad with protein and healthy fats",
+      "ingredients": [
+        "Chicken breast",
+        "Avocado",
+        "Cheese",
+        "Mixed greens"
+      ],
+      "recommendation": "Complete meal in one plate"
+    },
+    "croissant_classic": {
+      "name": "Classic Croissant",
+      "description": "French croissant made with traditional recipe",
+      "ingredients": [
+        "Puff pastry"
+      ],
+      "recommendation": "Parisian morning in every bite"
+    },
+    "croissant_with_cheese": {
+      "name": "Croissant with Cheese",
+      "description": "Warm croissant with melted cheese",
+      "ingredients": [
+        "Croissant",
+        "Cheese"
+      ],
+      "recommendation": "Simple and tasty solution for a snack"
+    },
+    "croissant_with_chicken": {
+      "name": "Croissant with Chicken",
+      "description": "Hearty croissant with tender chicken",
+      "ingredients": [
+        "Croissant",
+        "Chicken fillet"
+      ],
+      "recommendation": "Filling lunch on the go"
+    },
+    "croissant_with_beef": {
+      "name": "Croissant with Beef",
+      "description": "Croissant with juicy beef",
+      "ingredients": [
+        "Croissant",
+        "Beef"
+      ],
+      "recommendation": "Meat energy boost"
+    },
+    "croissant_with_salmon_gourmet": {
+      "name": "Croissant Salmon Gourmet",
+      "description": "Premium croissant with smoked salmon and sauces",
+      "ingredients": [
+        "Artisan croissant",
+        "Smoked salmon",
+        "Gourmet sauce"
+      ],
+      "recommendation": "Fine dining in croissant format"
+    },
+    "panini_mozzarella_pesto": {
+      "name": "Panini Mozzarella Pesto",
+      "description": "Italian panini with mozzarella and pesto",
+      "ingredients": [
+        "Focaccia bread",
+        "Mozzarella",
+        "Pesto sauce"
+      ],
+      "recommendation": "Taste of sunny Italy"
+    },
+    "panini_bolgognese_tea": {
+      "name": "Panini Bolognese",
+      "description": "Hearty panini with bolognese meat sauce",
+      "ingredients": [
+        "Bread",
+        "Bolognese sauce"
+      ],
+      "recommendation": "Classic Italian combination"
+    },
+    "panini_roast_beef": {
+      "name": "Panini Roast Beef",
+      "description": "Panini with juicy roast beef",
+      "ingredients": [
+        "Bread",
+        "Roast beef"
+      ],
+      "recommendation": "English classic in Italian execution"
+    },
+    "panini_salmon_gourmet": {
+      "name": "Panini Salmon Gourmet",
+      "description": "Exquisite panini with salmon and signature sauces",
+      "ingredients": [
+        "Artisan bread",
+        "Salmon",
+        "Signature sauces"
+      ],
+      "recommendation": "Masterpiece of culinary art"
+    },
+    "cookies_slims": {
+      "name": "Cookies Slims",
+      "description": "Crispy cookies with exquisite taste",
+      "ingredients": [
+        "Premium flour"
+      ],
+      "recommendation": "Perfect addition to coffee"
+    },
+    "almond_croissant": {
+      "name": "Almond Croissant",
+      "description": "French croissant with almond cream",
+      "ingredients": [
+        "Croissant",
+        "Almond cream"
+      ],
+      "recommendation": "Parisian patisserie at your home"
+    },
+    "pistachio_croissant": {
+      "name": "Pistachio Croissant",
+      "description": "Tender croissant with pistachio filling",
+      "ingredients": [
+        "Croissant",
+        "Pistachio cream"
+      ],
+      "recommendation": "Nutty-creamy delight"
+    },
+    "chocolate_croissant": {
+      "name": "Chocolate Croissant",
+      "description": "Classic pain au chocolat with dark chocolate",
+      "ingredients": [
+        "Croissant",
+        "Dark chocolate"
+      ],
+      "recommendation": "Sweet pleasure with coffee"
+    },
+    "cinnamon_pie": {
+      "name": "Chocolate Choux Pastry",
+      "description": "Airy pastry with chocolate cream",
+      "ingredients": [
+        "Choux pastry",
+        "Chocolate cream"
+      ],
+      "recommendation": "French classic of pastry art"
+    },
+    "eclair_de_nata": {
+      "name": "Pastel de Nata",
+      "description": "Portuguese custard tarts",
+      "ingredients": [
+        "Puff pastry",
+        "Custard cream"
+      ],
+      "recommendation": "Piece of Portugal on your table"
+    },
+    "trifle": {
+      "name": "Trifle",
+      "description": "English layered dessert",
+      "ingredients": [
+        "Sponge cake",
+        "Cream",
+        "Berries"
+      ],
+      "recommendation": "Traditional English dessert"
+    }
+  }
+}

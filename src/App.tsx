@@ -1,12 +1,10 @@
 import React from "react";
 import {
   IonApp,
-  IonRouterOutlet,
-  IonTabs,
-  IonIcon
+  IonContent,
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
-import { Switch, Route, Redirect } from "react-router-dom";
+import { Switch, Route, Redirect, Link } from "react-router-dom";
 import {
   homeOutline,
   bagOutline,
@@ -15,8 +13,7 @@ import {
   menuOutline,
   personCircleOutline,
 } from "ionicons/icons";
-import { Link } from "react-router-dom";
-
+import LanguageSwitcher from "./Languagebutton";
 import Home from "./pages/Home";
 import Order from "./pages/Order";
 import Booking from "./pages/Booking";
@@ -26,64 +23,83 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Admin from "../admin/App";
-import { CartProvider } from "./pages/CartContext";
+import { CartProvider } from "./contexts/CartContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
-
 import "@ionic/react/css/core.css";
 import "./index.css";
 import EnvCheck from './pages/EnvCheck';
 
-const App: React.FC = () => (
-  <IonApp className="bg-white">
-    <LanguageProvider>
-    <CartProvider>
-      <IonReactRouter>
-        <IonTabs>
-          <IonRouterOutlet>
-            <Switch>
-              <Route path="/admin" component={Admin} />
-              <Route path="/home" component={Home} exact />
-              <Route path="/order" component={Order} exact />
-              <Route path="/booking" component={Booking} exact />
-              <Route path="/bonus" component={Bonus} exact />
-              <Route path="/menu" component={Menu} exact />
-              <Route path="/login" component={Login} exact />
-              <Route path="/register" component={Register} exact />
-              <Route path="/profile" component={Profile} exact />
-              <Route path="/env" component={EnvCheck} exact />
-              <Redirect to="/login" />
-            </Switch>
-          </IonRouterOutlet>
-        </IonTabs>
-
-        {/* Фиксированная нижняя навигация */}
-        <BottomNav />
-      </IonReactRouter>
-    </CartProvider>
-    </LanguageProvider>
-  </IonApp>
+const AppHeader: React.FC = () => (
+  <div className="bg-[#182447] rounded-b-3xl pb-2 pt-7 px-6 shadow-md">
+    <div className="flex items-center justify-between">
+        <span className=" flex items-center font-bold text-white">Coffee Addict</span>
+      </div>
+      <LanguageSwitcher />
+    </div>
 );
 
-const BottomNav: React.FC = () => (
-  <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-md py-2 px-2 flex justify-around items-center z-[1000]">
-    <NavItem to="/home" icon={homeOutline} label="Главная" color="#000" />
-    <NavItem to="/order" icon={bagOutline} label="Заказ" color="#000" />
-    <NavItem to="/booking" icon={calendarOutline} label="Бронь" color="#000" />
-    <NavItem to="/bonus" icon={trophyOutline} label="Бонусы" color="#000" />
-    <NavItem to="/menu" icon={menuOutline} label="Меню" color="#000" />
-    <NavItem to="/profile" icon={personCircleOutline} label="Аккаунт" color="#000" />
+const CleanBottomNav: React.FC = () => (
+  <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center">
+    <div className="bg-[#182447] rounded-2xl shadow-xl mx-4 mb-4 px-2 py-2 flex justify-around w-full max-w-md">
+      <CleanNavItem to="/home" icon={homeOutline} label="Home" />
+      <CleanNavItem to="/order" icon={bagOutline} label="Order" />
+      <CleanNavItem to="/booking" icon={calendarOutline} label="Booking" />
+      <CleanNavItem to="/bonus" icon={trophyOutline} label="Rewards" />
+      <CleanNavItem to="/menu" icon={menuOutline} label="Menu" />
+      <CleanNavItem to="/profile" icon={personCircleOutline} label="Profile" />
+    </div>
   </div>
 );
 
-const NavItem: React.FC<{ to: string; icon: string; label: string; color: string }> = ({ to, icon, label, color }) => (
+const CleanNavItem: React.FC<{ to: string; icon: string; label: string }> = ({
+  to,
+  icon,
+  label
+}) => (
   <Link
     to={to}
-    className="no-underline flex flex-col items-center flex-1 text-center transition transform hover:scale-105 active:scale-95"
+    className="flex flex-col items-center justify-center py-1 px-2 rounded-xl hover:bg-[#2c2119] transition-all duration-200 min-w-0 flex-1 group"
   >
-    <IonIcon icon={icon} style={{ color }} className="text-2xl" />
-    <span className="mt-1 text-xs font-semibold text-black">{label}</span>
+    <span
+      className="iconify w-6 h-6 text-[#ffe9b2] group-hover:text-[#fbbf24] transition-colors duration-200 mb-1"
+      data-icon={icon}
+    />
+    <span className="text-xs text-[#ffe9b2] group-hover:text-[#fbbf24] font-medium transition-colors duration-200">
+      {label}
+    </span>
   </Link>
 );
-console.log("🧪 BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
+
+const App: React.FC = () => (
+
+  <CartProvider>
+    <LanguageProvider>
+      <IonApp>
+        <IonReactRouter>
+          <AppHeader />
+          <IonContent>
+            <Switch>
+              <Route exact path="/home" component={Home} />
+              <Route exact path="/order" component={Order} />
+              <Route exact path="/booking" component={Booking} />
+              <Route exact path="/bonus" component={Bonus} />
+              <Route exact path="/menu" component={Menu} />
+              <Route exact path="/login" component={Login} />
+              <Route exact path="/register" component={Register} />
+              <Route exact path="/profile" component={Profile} />
+              <Route exact path="/admin" component={Admin} />
+              <Route exact path="/env-check" component={EnvCheck} />
+              <Route exact path="/">
+                <Redirect to="/home" />
+              </Route>
+            </Switch>
+          </IonContent>
+          <CleanBottomNav />
+        </IonReactRouter>
+      </IonApp>
+    </LanguageProvider>
+  </CartProvider>
+
+);
 
 export default App;

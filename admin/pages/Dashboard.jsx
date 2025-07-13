@@ -1,37 +1,22 @@
 import React, { useContext } from 'react';
 import { UserContext } from '../contexts/UserContext';
-
-interface Stat {
-  label: string;
-  value: string | number;
-  roles: Array<'owner' | 'admin'>;
-}
-
-const Dashboard: React.FC = () => {
-  const { user } = useContext(UserContext);
-
-  const stats: Stat[] = [
-    { label: 'Новые заказы сегодня', value: 24, roles: ['owner', 'admin'] },
-    { label: 'Продажи сегодня', value: '₸34,000', roles: ['owner'] },
-    { label: 'Общая выручка', value: '₸1,200,000', roles: ['owner'] },
-  ];
-
-  return (
-    <div className="p-4">
+const Dashboard = () => {
+    const { user } = useContext(UserContext);
+    const stats = [
+        { label: 'Новые заказы сегодня', value: 24, roles: ['owner', 'admin'] },
+        { label: 'Продажи сегодня', value: '₸34,000', roles: ['owner'] },
+        { label: 'Общая выручка', value: '₸1,200,000', roles: ['owner'] },
+    ];
+    return (<div className="p-4">
       <h1 className="text-2xl font-semibold mb-6">Панель управления</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {stats
-          .filter(
-            (stat) =>
-              stat.roles.includes(user.role as 'owner' | 'admin')
-          )
-          .map((stat) => (
-            <div key={stat.label} className="bg-white rounded-2xl p-4 shadow">
+            .filter((stat) => stat.roles.includes(user.role))
+            .map((stat) => (<div key={stat.label} className="bg-white rounded-2xl p-4 shadow">
               <p className="text-sm font-medium">{stat.label}</p>
               <p className="mt-2 text-xl font-bold">{stat.value}</p>
-            </div>
-          ))}
+            </div>))}
       </div>
 
       <div className="mt-8">
@@ -48,13 +33,9 @@ const Dashboard: React.FC = () => {
           </li>
         </ul>
       </div>
-    </div>
-  );
+    </div>);
 };
-
 export default Dashboard;
-
-
 // Как сделать ещё круче:
 // 1. Извлечь карточку статистики в переиспользуемый компонент Card для консистентного стиля.
 // 2. Подключить библиотеку Recharts или Chart.js для визуализации динамических графиков выручки.

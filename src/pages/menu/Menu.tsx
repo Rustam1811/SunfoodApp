@@ -10,7 +10,19 @@ const Menu: React.FC = () => {
   return (
     <div className="min-h-screen bg-coffee-cream">
       {/* Header + Language Switch */}
-      
+      <header className="bg-coffee-dark p-4 shadow flex justify-between items-center">
+        <h1 className="text-2xl font-display text-white">Меню</h1>
+        <select
+          value={language}
+          onChange={e => setLanguage(e.target.value as any)}
+          className="bg-white text-coffee-dark rounded-full px-3 py-1"
+        >
+          <option value="ru">RU</option>
+          <option value="kz">KZ</option>
+          <option value="en">EN</option>
+        </select>
+      </header>
+
       {/* Tabs */}
       <nav className="bg-coffee-charcoal flex gap-6 px-4 py-3">
         <button

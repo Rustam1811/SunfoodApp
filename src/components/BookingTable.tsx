@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { bookTable } from '../firebase';
+// import { bookTable } from '../firebase';
 
 export type TableStatus = 'free' | 'occupied' | 'reserved';
 
@@ -91,3 +91,18 @@ const BookingTable: React.FC = () => {
 };
 
 export default BookingTable;
+
+// your firebase functions here
+
+export async function bookTable(tableId: number, phone: string): Promise<boolean> {
+  // Implement your booking logic here, e.g., update Firestore or Realtime Database
+  // Return true if booking is successful, false otherwise
+  try {
+    // Example: await db.collection('tables').doc(tableId.toString()).update({ status: 'reserved', reservedBy: phone });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+// other exports

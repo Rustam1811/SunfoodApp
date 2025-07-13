@@ -40,11 +40,16 @@
 
 
 
-ion-tab-button {
+.ion-tab-button {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
   }
 
-
+.product-modal-fullscreen {
+    --width: 100%;
+    --height: 100%;
+    --border-radius: 0;
+    --box-shadow: none;
+}

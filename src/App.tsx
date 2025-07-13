@@ -1,84 +1,97 @@
-import React from "react";
-import {
-  IonApp,
-  IonRouterOutlet,
-  IonTabs,
-  IonIcon
-} from "@ionic/react";
-import { IonReactRouter } from "@ionic/react-router";
-import { Switch, Route, Redirect } from "react-router-dom";
-import {
-  homeOutline,
-  bagOutline,
-  calendarOutline,
-  trophyOutline,
-  menuOutline,
-  personCircleOutline,
-} from "ionicons/icons";
-import { Link } from "react-router-dom";
+import React from 'react';
+// ✨ ИСПРАВЛЕНО: Используем стандартные импорты из react-router-dom v5
+import { BrowserRouter, Switch, Route, Redirect, NavLink, useRouteMatch } from "react-router-dom";
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiHome, FiCoffee, FiCalendar, FiGrid, FiUser } from 'react-icons/fi';
 
-import Home from "./pages/Home";
-import Order from "./pages/Order";
-import Booking from "./pages/Booking";
-import Bonus from "./pages/Bonus";
-import Menu from "./pages/menu/Menu";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Profile from "./pages/Profile";
-import { CartProvider } from "./pages/CartContext";
+// ✨ ИСПРАВЛЕНО: Имена импортов приведены в соответствие с вашими файлами
+import Home from './pages/Home';
+import Profile from './pages/Profile';
+import Menu from './pages/menu/Drinks'; // Предполагая, что из Drinks.tsx экспортируется Menu
+import Order from './pages/Order';
+import Booking from './pages/Booking';
 
-import "@ionic/react/css/core.css";
+// Контексты
+import { CartProvider } from './contexts/CartContext';
+import { LanguageProvider } from './contexts/LanguageContext';
+
+// Глобальные стили
 import "./index.css";
-import EnvCheck from './pages/EnvCheck';
+
+// ===================================================================
+//  КОМПОНЕНТЫ НАВИГАЦИИ (без изменений)
+// ===================================================================
+
+const navItems = [
+    { to: "/home", icon: FiHome, label: "Главная" },
+    { to: "/menu", icon: FiGrid, label: "Меню" },
+    { to: "/order", icon: FiCoffee, label: "Заказ" },
+    { to: "/booking", icon: FiCalendar, label: "Бронь" },
+    { to: "/profile", icon: FiUser, label: "Профиль" },
+];
+
+const NavItem = ({ to, icon: Icon, label }: { to: string, icon: React.ElementType, label: string }) => {
+    const match = useRouteMatch({ path: to, exact: true });
+    const isActive = !!match;
+
+    return (
+        <NavLink to={to} className="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl text-slate-500 hover:text-orange-500 transition-colors duration-200 min-w-0 flex-1 group">
+            <>
+                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} className={isActive ? 'text-orange-500' : ''} />
+                <span className={`text-xs mt-1 transition-all ${isActive ? 'font-bold text-orange-500' : 'font-medium'}`}>
+                    {label}
+                </span>
+                {isActive && (
+                    <motion.div
+                        layoutId="active-nav-indicator"
+                        className="absolute bottom-[-8px] h-1 w-6 bg-orange-500 rounded-full"
+                        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                    />
+                )}
+            </>
+        </NavLink>
+    );
+};
+
+const BottomNavBar = () => (
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-3">
+        <div className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-xl mx-auto px-2 py-1 flex justify-around w-full max-w-md border border-white/50">
+            {navItems.map(item => <NavItem key={item.to} {...item} />)}
+        </div>
+    </div>
+);
+
+// ===================================================================
+//  ГЛАВНЫЙ КОМПОНЕНТ ПРИЛОЖЕНИЯ
+// ===================================================================
 
 const App: React.FC = () => (
-  <IonApp className="bg-white">
     <CartProvider>
-      <IonReactRouter>
-        <IonTabs>
-          <IonRouterOutlet>
-            <Switch>
-              <Route path="/home" component={Home} exact />
-              <Route path="/order" component={Order} exact />
-              <Route path="/booking" component={Booking} exact />
-              <Route path="/bonus" component={Bonus} exact />
-              <Route path="/menu" component={Menu} exact />
-              <Route path="/login" component={Login} exact />
-              <Route path="/register" component={Register} exact />
-              <Route path="/profile" component={Profile} exact />
-              <Route path="/env" component={EnvCheck} exact />
-              <Redirect to="/login" />
-            </Switch>
-          </IonRouterOutlet>
-        </IonTabs>
+        <LanguageProvider>
+            <BrowserRouter>
+                <div className="font-sans">
+                    <main>
+                        <Switch>
+                            {/* Убедитесь, что имена компонентов соответствуют тем, что экспортируются из файлов */}
+                            <Route exact path="/home" component={Home} />
+                            <Route exact path="/menu" component={Menu} />
+                            <Route exact path="/profile" component={Profile} />
+                            <Route exact path="/booking" component={Booking} />
+                            
+                            {/* ✨ ИСПРАВЛЕНО: Заглушка заменена на реальный компонент Order */}
+                            <Route exact path="/order" component={Order} />
 
-        {/* Фиксированная нижняя навигация */}
-        <BottomNav />
-      </IonReactRouter>
+                            {/* Редирект с главной страницы */}
+                            <Route exact path="/">
+                                <Redirect to="/home" />
+                            </Route>
+                        </Switch>
+                    </main>
+                    <BottomNavBar />
+                </div>
+            </BrowserRouter>
+        </LanguageProvider>
     </CartProvider>
-  </IonApp>
 );
-
-const BottomNav: React.FC = () => (
-  <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-md py-2 px-2 flex justify-around items-center z-[1000]">
-    <NavItem to="/home" icon={homeOutline} label="Главная" color="#000" />
-    <NavItem to="/order" icon={bagOutline} label="Заказ" color="#000" />
-    <NavItem to="/booking" icon={calendarOutline} label="Бронь" color="#000" />
-    <NavItem to="/bonus" icon={trophyOutline} label="Бонусы" color="#000" />
-    <NavItem to="/menu" icon={menuOutline} label="Меню" color="#000" />
-    <NavItem to="/profile" icon={personCircleOutline} label="Аккаунт" color="#000" />
-  </div>
-);
-
-const NavItem: React.FC<{ to: string; icon: string; label: string; color: string }> = ({ to, icon, label, color }) => (
-  <Link
-    to={to}
-    className="no-underline flex flex-col items-center flex-1 text-center transition transform hover:scale-105 active:scale-95"
-  >
-    <IonIcon icon={icon} style={{ color }} className="text-2xl" />
-    <span className="mt-1 text-xs font-semibold text-black">{label}</span>
-  </Link>
-);
-console.log("🧪 BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
 
 export default App;

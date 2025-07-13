@@ -1,42 +1,32 @@
 module.exports = {
-  mode: 'jit',
-  content: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
-  safelist: [
-    'bg-gradient-to-r',
-    'from-[#C58940]',
-    'to-[#A67C52]',
-    'bg-[#FAF3E0]',
-    'shadow-lg',
-    'hover:scale-105',
-    'transition-transform',
-    'rounded-2xl',
-    'bg-gradient-to-b',
-    
-  ],
-  
+  content: ['./src/**/*.{js,jsx,ts,tsx}'],
   theme: {
-    container: {
-      center: true,
-      padding: "1rem",
-    },
     extend: {
-      transitionTimingFunction: {
-        "in-out-smooth": "cubic-bezier(0.4, 0, 0.2, 1)",
-      },
       colors: {
-        primary: "#C58940",  // Тёплый кофейный
-        secondary: "#ECD8BB", // Кремовый
-        accent: "#8D6E63",    // Орехово-шоколадный
-        background: "#FAF3E0", // Светлый бежевый
-        text: "#4A3F35",       // Глубокий кофейный
-        success: "#A3C48D",   // Фисташковый
-        warning: "#E9B44C",   // Горчичный
-        danger: "#D16B5D",
+        'premium-dark': '#0F172A', // Deep black
+        'premium-blue': '#1E3A8A', // Dark blue
+        'premium-white': '#FFFFFF', // Pure white
+        'premium-gray': '#E2E8F0', // Light gray
+        'premium-gray-dark': '#64748B', // Darker gray
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
-      
+      borderRadius: {
+        'lg': '0.75rem', // 12px for buttons and cards
+        'xl': '1rem', // 16px for modals
+      },
+      padding: {
+        'btn': '1rem', // 16px for buttons
+        'section': '1.5rem', // 24px for sections
+      },
+      boxShadow: {
+        'premium': '0 4px 12px rgba(0, 0, 0, 0.1)', // Subtle shadow
+        'premium-hover': '0 6px 20px rgba(0, 0, 0, 0.15)', // Hover shadow
+      },
+      backdropBlur: {
+        'sm': '4px',
+      },
     },
   },
   plugins: [],

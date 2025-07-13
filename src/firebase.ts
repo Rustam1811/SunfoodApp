@@ -1,5 +1,7 @@
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/firestore';
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+import { getAuth }           from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,22 +13,9 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-const app = firebase.initializeApp(firebaseConfig);
-const firestore = firebase.firestore();
-const FieldValue = firebase.firestore.FieldValue;
+const app = initializeApp(firebaseConfig);
+export { app };
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+export const auth  = getAuth(app);
 
-const bookTable = async (tableId: number, phone: string): Promise<boolean> => {
-  try {
-    await firestore.collection('bookings').add({
-      tableId,
-      phone,
-      createdAt: FieldValue.serverTimestamp()
-    });
-    return true;
-  } catch (err) {
-    console.error('Ошибка бронирования:', err);
-    return false;
-  }
-};
-
-export { firestore, FieldValue, bookTable };

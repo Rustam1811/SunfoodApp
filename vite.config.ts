@@ -10,6 +10,9 @@ export default defineConfig(({ mode }) => {
     define: {
       'import.meta.env': env
     },
+    resolve: {
+      dedupe: ['swiper'],
+    },    
     server: {
       proxy: {
         '/api': {

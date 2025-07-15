@@ -13,6 +13,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeartIcon } from "@heroicons/react/24/solid";
 import { drinkCategories } from "../menu/data/drinksData";
+import { useSwipe } from "../../hooks/useSwipe";
+import { SwipeHint } from "../../components/SwipeHint";
 
 // Импорт переводов из папки locales
 import ruTranslations from "./locales/ru.json";
@@ -324,6 +326,23 @@ export default function Drinks() {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [favorites, setFavorites] = useState<Set<number>>(new Set());
     const [cart, setCart] = useState<any[]>([]);
+    const [showSwipeHint, setShowSwipeHint] = useState(true);
+
+    // Свайп навигация по категориям
+    const swipeHandlers = useSwipe({
+        onSwipeLeft: () => {
+            if (selectedCategoryIdx < drinkCategories.length - 1) {
+                setSelectedCategoryIdx(selectedCategoryIdx + 1);
+                setShowSwipeHint(false);
+            }
+        },
+        onSwipeRight: () => {
+            if (selectedCategoryIdx > 0) {
+                setSelectedCategoryIdx(selectedCategoryIdx - 1);
+                setShowSwipeHint(false);
+            }
+        },
+    }, { threshold: 75 });
 
     // Функция перевода с использованием JSON файлов
     const t = useCallback((key: string): string => {
@@ -378,7 +397,7 @@ export default function Drinks() {
     };
 
     return (
-        <div className="bg-slate-100 min-h-screen font-sans text-slate-900">
+        <div {...swipeHandlers} className="bg-slate-100 min-h-screen font-sans text-slate-900 touch-pan-y">
             <header className="p-5">
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-extrabold">{t('ui.hello') || 'Привет'}, {mockUser.name}!</h1>
@@ -449,6 +468,13 @@ export default function Drinks() {
                     />
                 )}
             </AnimatePresence>
+            
+            {/* Подсказка о свайпах */}
+            <SwipeHint 
+                show={showSwipeHint} 
+                direction="horizontal" 
+                text="Свайпните для смены категории" 
+            />
         </div>
     );
 }

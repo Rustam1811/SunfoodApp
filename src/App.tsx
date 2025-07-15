@@ -1,9 +1,10 @@
 // src/App.tsx
 
 import React from 'react';
-import { BrowserRouter, Switch, Route, Redirect, NavLink, useRouteMatch } from "react-router-dom";
+import { BrowserRouter, Switch, Route, Redirect, NavLink, useRouteMatch, useHistory, useLocation } from "react-router-dom";
 import { motion } from 'framer-motion';
 import { HomeIcon, Squares2X2Icon, ShoppingBagIcon, CalendarDaysIcon, UserCircleIcon } from '@heroicons/react/24/solid';
+import { useSwipe } from './hooks/useSwipe';
 
 // Импорты страниц с правильными именами
 import Home from './pages/Home';
@@ -29,6 +30,47 @@ const navItems = [
     { to: "/profile", icon: UserCircleIcon, label: "Профиль" },
 ];
 
+// Компонент с поддержкой свайпов
+const SwipeableMain = () => {
+    const history = useHistory();
+    const location = useLocation();
+    
+    const getCurrentIndex = () => {
+        const currentPath = location.pathname;
+        return navItems.findIndex(item => item.to === currentPath);
+    };
+    
+    const navigateToIndex = (index: number) => {
+        if (index >= 0 && index < navItems.length) {
+            history.push(navItems[index].to);
+        }
+    };
+    
+    const swipeHandlers = useSwipe({
+        onSwipeLeft: () => {
+            const currentIndex = getCurrentIndex();
+            navigateToIndex(currentIndex + 1);
+        },
+        onSwipeRight: () => {
+            const currentIndex = getCurrentIndex();
+            navigateToIndex(currentIndex - 1);
+        },
+    }, { threshold: 100 });
+    
+    return (
+        <main {...swipeHandlers} className="touch-pan-y">
+            <Switch>
+                <Route exact path="/home" component={Home} />
+                <Route exact path="/menu" component={Menu} />
+                <Route exact path="/profile" component={Profile} />
+                <Route exact path="/booking" component={Booking} />
+                <Route exact path="/order" component={Order} />
+                <Route exact path="/"><Redirect to="/home" /></Route>
+            </Switch>
+        </main>
+    );
+};
+
 const NavItem = ({ to, icon: Icon, label }: { to: string, icon: React.ElementType, label: string }) => {
     const match = useRouteMatch({ path: to, exact: true });
     const isActive = !!match;
@@ -52,13 +94,39 @@ const NavItem = ({ to, icon: Icon, label }: { to: string, icon: React.ElementTyp
     );
 };
 
-const BottomNavBar = () => (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-3">
-        <div className="bg-zinc-800/70 backdrop-blur-lg rounded-2xl shadow-xl mx-auto px-2 py-1 flex justify-around w-full max-w-md border border-zinc-700/80">
-            {navItems.map(item => <NavItem key={item.to} {...item} />)}
+const BottomNavBar = () => {
+    const location = useLocation();
+    const getCurrentIndex = () => {
+        const currentPath = location.pathname;
+        return navItems.findIndex(item => item.to === currentPath);
+    };
+
+    const currentIndex = getCurrentIndex();
+    
+    return (
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-3">
+            {/* Swipe Indicator */}
+            <div className="flex justify-center mb-2">
+                <div className="flex gap-1">
+                    {navItems.map((_, index) => (
+                        <div
+                            key={index}
+                            className={`w-2 h-1 rounded-full transition-all duration-300 ${
+                                index === currentIndex 
+                                    ? 'bg-amber-400 w-6' 
+                                    : 'bg-zinc-600'
+                            }`}
+                        />
+                    ))}
+                </div>
+            </div>
+            
+            <div className="bg-zinc-800/70 backdrop-blur-lg rounded-2xl shadow-xl mx-auto px-2 py-1 flex justify-around w-full max-w-md border border-zinc-700/80">
+                {navItems.map(item => <NavItem key={item.to} {...item} />)}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 // ===================================================================
 //  ГЛАВНЫЙ КОМПОНЕНТ ПРИЛОЖЕНИЯ
@@ -68,16 +136,7 @@ const App: React.FC = () => (
         <LanguageProvider>
             <BrowserRouter>
                 <>
-                    <main>
-                        <Switch>
-                            <Route exact path="/home" component={Home} />
-                            <Route exact path="/menu" component={Menu} />
-                            <Route exact path="/profile" component={Profile} />
-                            <Route exact path="/booking" component={Booking} />
-                            <Route exact path="/order" component={Order} />
-                            <Route exact path="/"><Redirect to="/home" /></Route>
-                        </Switch>
-                    </main>
+                    <SwipeableMain />
                     <BottomNavBar />
                 </>
             </BrowserRouter>

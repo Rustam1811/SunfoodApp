@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Splide, SplideSlide } from '@splidejs/react-splide';
 import '@splidejs/react-splide/css';
+import { useSwipe } from '../hooks/useSwipe';
 
 interface MenuItem {
   id: number;
@@ -16,10 +17,35 @@ const menuItems: MenuItem[] = [
 ];
 
 const MenuCarousel: React.FC = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [splideRef, setSplideRef] = useState<any>(null);
+
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: () => {
+      if (splideRef && currentSlide < menuItems.length - 1) {
+        splideRef.go(currentSlide + 1);
+      }
+    },
+    onSwipeRight: () => {
+      if (splideRef && currentSlide > 0) {
+        splideRef.go(currentSlide - 1);
+      }
+    },
+  }, { threshold: 75 });
+
   return (
-    <div className="p-4">
+    <div className="p-4" {...swipeHandlers}>
       <h2 className="text-xl font-bold mb-4">Меню кофейни</h2>
-      <Splide options={{ perPage: 1, rewind: true }}>
+      <Splide 
+        ref={setSplideRef}
+        options={{ 
+          perPage: 1, 
+          rewind: true,
+          pagination: true,
+          arrows: false 
+        }}
+        onMove={(_splide, newIndex) => setCurrentSlide(newIndex)}
+      >
         {menuItems.map(item => (
           <SplideSlide key={item.id}>
             <div className="flex flex-col items-center">

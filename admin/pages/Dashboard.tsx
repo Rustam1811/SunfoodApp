@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { UserContext } from '../contexts/UserContext';
+import { ChartBarIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 
 interface Stat {
   label: string;
@@ -14,6 +15,27 @@ const Dashboard: React.FC = () => {
     { label: 'Новые заказы сегодня', value: 24, roles: ['owner', 'admin'] },
     { label: 'Продажи сегодня', value: '₸34,000', roles: ['owner'] },
     { label: 'Общая выручка', value: '₸1,200,000', roles: ['owner'] },
+  ];
+
+  const shortcuts = [
+    {
+      id: 'analytics',
+      title: 'Аналитика',
+      description: 'Продажи, популярные товары, отчеты',
+      icon: ChartBarIcon,
+      color: 'from-blue-500 to-cyan-500',
+      route: '/admin/analytics',
+      features: ['Продажи', 'Популярные товары', 'Отчеты'],
+    },
+    {
+      id: 'orders',
+      title: 'Управление заказами',
+      description: 'Принятие заказов, обновление статусов',
+      icon: ClipboardDocumentListIcon,
+      color: 'from-green-500 to-emerald-500',
+      route: '/admin/orders',
+      features: ['Новые заказы', 'Статусы', 'QR-коды'],
+    },
   ];
 
   return (
@@ -47,6 +69,38 @@ const Dashboard: React.FC = () => {
             <span>₸1,200</span>
           </li>
         </ul>
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Ссылки для быстрого доступа</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {shortcuts.map((shortcut) => (
+            <div
+              key={shortcut.id}
+              className={`bg-gradient-to-r ${shortcut.color} rounded-2xl p-4 shadow`}
+            >
+              <div className="flex items-center">
+                <shortcut.icon className="h-6 w-6 text-white" />
+                <span className="ml-2 text-white font-semibold">
+                  {shortcut.title}
+                </span>
+              </div>
+              <p className="mt-2 text-white text-sm">
+                {shortcut.description}
+              </p>
+              <div className="mt-2">
+                {shortcut.features.map((feature) => (
+                  <span
+                    key={feature}
+                    className="inline-block bg-white bg-opacity-20 rounded-full px-3 py-1 text-xs font-medium text-white mr-2"
+                  >
+                    {feature}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -13,8 +13,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeartIcon } from "@heroicons/react/24/solid";
 import { drinkCategories } from "../menu/data/drinksData";
+import { listenMenu } from "../../services/menuService";
+import { DrinkCategoryLocal } from "../../../admin/types/types";
 import { useSwipe } from "../../hooks/useSwipe";
 import { SwipeHint } from "../../components/SwipeHint";
+import { useCart } from "../../contexts/CartContext";
 
 // Импорт переводов из папки locales
 import ruTranslations from "./locales/ru.json";
@@ -325,10 +328,15 @@ export default function Drinks() {
     const [selectedCategoryIdx, setSelectedCategoryIdx] = useState(0);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [favorites, setFavorites] = useState<Set<number>>(new Set());
-    const [cart, setCart] = useState<any[]>([]);
+    // Используем глобальный CartContext
+    const { items: cart, dispatch } = useCart();
+    const [showCartModal, setShowCartModal] = useState(false);
+    const [orderSuccess, setOrderSuccess] = useState(false);
+    // Имитация авторизации: userId, phone, name
+    const user = { id: 'user123', name: 'Алекс', phone: '+77071234567' };
     const [showSwipeHint, setShowSwipeHint] = useState(true);
 
-    // Свайп навигация по категориям
+    // Плавная Apple-style навигация по категориям
     const swipeHandlers = useSwipe({
         onSwipeLeft: () => {
             if (selectedCategoryIdx < drinkCategories.length - 1) {
@@ -342,7 +350,7 @@ export default function Drinks() {
                 setShowSwipeHint(false);
             }
         },
-    }, { threshold: 75 });
+    }, { threshold: 50, preventDefaultTouchmoveEvent: false });
 
     // Функция перевода с использованием JSON файлов
     const t = useCallback((key: string): string => {
@@ -388,7 +396,16 @@ export default function Drinks() {
     }, []);
 
     const handleAddToCart = (item: any) => {
-        setCart(prevCart => [...prevCart, item]);
+        dispatch({ type: 'ADD_ITEM', payload: {
+            id: item.productId,
+            name: item.name,
+            price: item.totalPrice,
+            quantity: item.quantity || 1,
+            image: item.image,
+            sizeKey: item.sizeKey,
+            milkKey: item.milkKey,
+            syrupKey: item.syrupKey
+        }});
     };
 
     const handleLanguageChange = (langCode: string) => {
@@ -406,7 +423,7 @@ export default function Drinks() {
                             currentLanguage={currentLanguage}
                             onLanguageChange={handleLanguageChange}
                         />
-                        <button className="relative p-2">
+                        <button className="relative p-2" onClick={() => setShowCartModal(true)}>
                             <ShoppingCartIcon className="h-6 w-6 text-slate-500" />
                             <AnimatePresence>
                                 {cart.length > 0 && (
@@ -422,8 +439,19 @@ export default function Drinks() {
             </header>
 
             <main>
-                <nav className="sticky top-0 bg-slate-100/80 backdrop-blur-md z-10 px-5 py-3">
+                <nav className="sticky top-0 bg-slate-100/80 backdrop-blur-md z-10 px-2 py-2">
                     <div className="p-1 bg-slate-200/70 rounded-xl flex items-center justify-start gap-1 overflow-x-auto">
+                        {/* Навигационные кнопки для мобильных устройств */}
+                        <button
+                            className="md:hidden px-3 py-2 rounded-lg bg-white text-slate-700 shadow mr-2"
+                            disabled={selectedCategoryIdx === 0}
+                            onClick={() => {
+                                if (selectedCategoryIdx > 0) setSelectedCategoryIdx(selectedCategoryIdx - 1);
+                                setShowSwipeHint(false);
+                            }}
+                        >
+                            ←
+                        </button>
                         {drinkCategories.map((cat, idx) => (
                             <CategoryTab
                                 key={cat.id}
@@ -433,15 +461,50 @@ export default function Drinks() {
                                 t={t}
                             />
                         ))}
+                        <button
+                            className="md:hidden px-3 py-2 rounded-lg bg-white text-slate-700 shadow ml-2"
+                            disabled={selectedCategoryIdx === drinkCategories.length - 1}
+                            onClick={() => {
+                                if (selectedCategoryIdx < drinkCategories.length - 1) setSelectedCategoryIdx(selectedCategoryIdx + 1);
+                                setShowSwipeHint(false);
+                            }}
+                        >
+                            →
+                        </button>
                     </div>
                 </nav>
 
-                <motion.section
-                    className="p-5 grid grid-cols-2 gap-x-5 gap-y-16 mt-2"
-                    variants={{ visible: { transition: { staggerChildren: 0.07 } } }}
-                    initial="hidden"
-                    animate="visible"
-                >
+                <AnimatePresence mode="wait">
+                    <motion.section
+                        key={selectedCategoryIdx}
+                        className="p-2 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-x-3 sm:gap-x-5 gap-y-8 sm:gap-y-16 mt-2"
+                        variants={{ 
+                            visible: { 
+                                opacity: 1,
+                                x: 0,
+                                transition: { 
+                                    staggerChildren: 0.05,
+                                    type: "spring",
+                                    stiffness: 300,
+                                    damping: 25
+                                } 
+                            },
+                            hidden: { 
+                                opacity: 0,
+                                x: 50
+                            },
+                            exit: {
+                                opacity: 0,
+                                x: -50,
+                                transition: {
+                                    duration: 0.2
+                                }
+                            }
+                        }}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                    >
                     {isLoading
                         ? Array(4).fill(0).map((_, i) => <ProductSkeleton key={i} />)
                         : products.map(p => (
@@ -456,6 +519,7 @@ export default function Drinks() {
                         ))
                     }
                 </motion.section>
+                </AnimatePresence>
             </main>
 
             <AnimatePresence>
@@ -468,7 +532,26 @@ export default function Drinks() {
                     />
                 )}
             </AnimatePresence>
-            
+            {/* Модальное окно корзины */}
+            <AnimatePresence>
+                {showCartModal && (
+                    <CartModal
+                        cart={cart}
+                        onClose={() => setShowCartModal(false)}
+                        onOrderSuccess={() => { setOrderSuccess(true); dispatch({ type: 'CLEAR_CART' }); setShowCartModal(false); }}
+                    />
+                )}
+            </AnimatePresence>
+            {/* Сообщение об успешном заказе */}
+            {orderSuccess && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+                        <h2 className="text-2xl font-bold mb-4 text-amber-700">Заказ принят!</h2>
+                        <p className="text-slate-700 mb-2">Оплатите заказ при получении в кофейне.</p>
+                        <button className="mt-4 px-6 py-2 bg-amber-500 text-white rounded-xl font-semibold" onClick={() => setOrderSuccess(false)}>Ок</button>
+                    </div>
+                </div>
+            )}
             {/* Подсказка о свайпах */}
             <SwipeHint 
                 show={showSwipeHint} 
@@ -477,4 +560,87 @@ export default function Drinks() {
             />
         </div>
     );
+// Модальное окно корзины
+function CartModal({ cart, onClose, onOrderSuccess }) {
+    // Получаем данные пользователя из пропсов или глобального контекста
+    const user = { id: 'user123', name: 'Алекс', phone: '+77071234567' };
+    const [comment, setComment] = React.useState("");
+    const [sending, setSending] = React.useState(false);
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const last4 = user.phone.slice(-4);
+
+    const handleOrder = async () => {
+        if (cart.length === 0) return;
+        setSending(true);
+        try {
+            // Отправляем заказ на правильный API endpoint
+            const res = await fetch("/api/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: user.phone, // используем телефон как ID
+                    items: cart.map(item => ({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        sizeKey: item.sizeKey,
+                        milkKey: item.milkKey,
+                        syrupKey: item.syrupKey
+                    })),
+                    amount: total
+                })
+            });
+            
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || "Ошибка при оформлении заказа");
+            }
+            
+            onOrderSuccess();
+        } catch (e) {
+            console.error(e);
+            alert(e.message || "Ошибка при оформлении заказа");
+        } finally {
+            setSending(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+                <h2 className="text-xl font-bold mb-4 text-amber-700">Ваша корзина</h2>
+                {cart.length === 0 ? (
+                    <p className="text-slate-500 mb-4">Корзина пуста</p>
+                ) : (
+                    <>
+                        <ul className="mb-4 max-h-48 overflow-y-auto">
+                            {cart.map((item, idx) => (
+                                <li key={idx} className="flex justify-between items-center py-2 border-b border-slate-100">
+                                    <span className="font-medium text-slate-800">{item.name}</span>
+                                    <span className="text-slate-600">{item.totalPrice} ₸</span>
+                                </li>
+                            ))}
+                        </ul>
+                        <div className="font-bold text-lg mb-4 text-slate-900">Итого: {total} ₸</div>
+                        <div className="mb-2 px-3 py-2 border rounded-lg bg-slate-50">
+                            <div className="text-xs text-slate-500 mb-1">Имя</div>
+                            <div className="font-semibold text-slate-800">{user.name}</div>
+                        </div>
+                        <div className="mb-2 px-3 py-2 border rounded-lg bg-slate-50">
+                            <div className="text-xs text-slate-500 mb-1">Телефон</div>
+                            <div className="font-semibold text-slate-800">{user.phone} <span className="text-xs text-slate-500">(последние 4 цифры: <b>{last4}</b>)</span></div>
+                        </div>
+                        <textarea className="w-full mb-2 px-3 py-2 border rounded-lg" placeholder="Комментарий (необязательно)" value={comment} onChange={e => setComment(e.target.value)} />
+                        <button className="w-full py-3 bg-amber-500 text-white rounded-xl font-semibold mt-2 disabled:bg-slate-300" disabled={sending} onClick={handleOrder}>
+                            {sending ? "Отправка..." : "Оформить заказ"}
+                        </button>
+                        <div className="text-xs text-slate-500 mt-2">На кассе назовите последние 4 цифры номера для подтверждения заказа</div>
+                    </>
+                )}
+                <button className="mt-4 px-6 py-2 bg-slate-200 text-slate-700 rounded-xl font-semibold w-full" onClick={onClose}>Закрыть</button>
+            </motion.div>
+        </div>
+    );
+}
 }

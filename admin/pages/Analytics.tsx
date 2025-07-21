@@ -53,7 +53,7 @@ const Analytics: React.FC = () => {
               <span className="text-lg font-bold text-white">Пиковые часы</span>
             </div>
             <div className="text-white">{getPeakHours(aggregated.byHour)}</div>
-            <div className="text-gray-300 mt-2">Заказов по часам: {Object.values(aggregated.byHour).reduce((a, b) => (a as number) + (b as number), 0)}</div>
+            <div className="text-gray-300 mt-2">Заказов по часам: {(Object.values(aggregated.byHour) as number[]).reduce((a, b) => a + b, 0)}</div>
           </div>
           <div className="bg-white/10 rounded-2xl p-6 border border-white/20">
             <div className="flex items-center gap-2 mb-2">

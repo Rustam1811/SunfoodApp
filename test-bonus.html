@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест бонусной системы</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { background: #2a2a2a; padding: 20px; margin: 20px 0; border-radius: 10px; }
+        button { background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #45a049; }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        pre { background: #333; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        input { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎁 Тест бонусной системы SunfoodApp</h1>
+        
+        <div class="section">
+            <h2>Проверка данных пользователя</h2>
+            <input type="text" id="userId" placeholder="User ID" value="+77071234567" style="width: 200px;">
+            <button onclick="checkUserData()">Проверить данные</button>
+            <div id="userData"></div>
+        </div>
+
+        <div class="section">
+            <h2>Тестовое начисление бонусов</h2>
+            <input type="number" id="bonusAmount" placeholder="Количество бонусов" value="50" style="width: 150px;">
+            <button onclick="addTestBonus()">Добавить бонусы</button>
+            <div id="addResult"></div>
+        </div>
+
+        <div class="section">
+            <h2>Проверка API user-bonus</h2>
+            <button onclick="checkUserBonusAPI()">Проверить /api/user-bonus</button>
+            <div id="userBonusResult"></div>
+        </div>
+
+        <div class="section">
+            <h2>Симуляция заказа (простой API)</h2>
+            <input type="number" id="orderAmount" placeholder="Сумма заказа" value="1000" style="width: 150px;">
+            <button onclick="simulateOrder()">Симулировать заказ</button>
+            <button onclick="simulateSimpleOrder()">Простой API заказ</button>
+            <div id="orderResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const apiBase = window.location.origin;
+
+        async function checkUserData() {
+            const userId = document.getElementById('userId').value;
+            const resultDiv = document.getElementById('userData');
+            
+            try {
+                resultDiv.innerHTML = '<p>Загрузка...</p>';
+                
+                const response = await fetch(`${apiBase}/api/test-bonus?userId=${encodeURIComponent(userId)}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Данные получены</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Ошибка: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Ошибка сети: ${error.message}</div>`;
+            }
+        }
+
+        async function addTestBonus() {
+            const userId = document.getElementById('userId').value;
+            const amount = parseInt(document.getElementById('bonusAmount').value);
+            const resultDiv = document.getElementById('addResult');
+            
+            try {
+                resultDiv.innerHTML = '<p>Добавление бонусов...</p>';
+                
+                const response = await fetch(`${apiBase}/api/test-bonus?userId=${encodeURIComponent(userId)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ ${data.message}</h3>
+                            <p>Старый баланс: ${data.oldBalance}</p>
+                            <p>Новый баланс: ${data.newBalance}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Ошибка: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Ошибка сети: ${error.message}</div>`;
+            }
+        }
+
+        async function checkUserBonusAPI() {
+            const userId = document.getElementById('userId').value;
+            const resultDiv = document.getElementById('userBonusResult');
+            
+            try {
+                resultDiv.innerHTML = '<p>Проверка API...</p>';
+                
+                const response = await fetch(`${apiBase}/api/user-bonus?userId=${encodeURIComponent(userId)}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ API user-bonus работает</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Ошибка API: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Ошибка сети: ${error.message}</div>`;
+            }
+        }
+
+        async function simulateOrder() {
+            const userId = document.getElementById('userId').value;
+            const amount = parseInt(document.getElementById('orderAmount').value);
+            const resultDiv = document.getElementById('orderResult');
+            
+            try {
+                resultDiv.innerHTML = '<p>Симуляция заказа...</p>';
+                
+                const response = await fetch(`${apiBase}/api/orders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId,
+                        items: [{ name: 'Тестовый напиток', price: amount, quantity: 1, id: 1 }],
+                        amount,
+                        bonusUsed: 0
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Заказ создан</h3>
+                            <p>Начислено бонусов: ${data.bonusEarned}</p>
+                            <p>Множитель: x${data.multiplier}</p>
+                            <p>Уровень: ${data.level}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Ошибка заказа: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Ошибка сети: ${error.message}</div>`;
+            }
+        }
+
+        async function simulateSimpleOrder() {
+            const userId = document.getElementById('userId').value;
+            const amount = parseInt(document.getElementById('orderAmount').value);
+            const resultDiv = document.getElementById('orderResult');
+            
+            try {
+                resultDiv.innerHTML = '<p>Симуляция простого заказа...</p>';
+                
+                const response = await fetch(`${apiBase}/api/simple-order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId,
+                        items: [{ name: 'Тестовый напиток', price: amount, quantity: 1, id: 1 }],
+                        amount,
+                        bonusUsed: 0
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Простой заказ создан</h3>
+                            <p>Начислено бонусов: ${data.bonusEarned}</p>
+                            <p>Старый баланс: ${data.oldBalance}</p>
+                            <p>Новый баланс: ${data.newBalance}</p>
+                            <p>ID заказа: ${data.orderId}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Ошибка простого заказа: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Ошибка сети: ${error.message}</div>`;
+            }
+        }
+
+        // Автоматически загружаем данные при открытии страницы
+        window.onload = function() {
+            checkUserData();
+        };
+    </script>
+</body>
+</html>

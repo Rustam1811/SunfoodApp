@@ -85,32 +85,67 @@ module.exports = async function handler(req, res) {
       if (!userId || !Array.isArray(items) || typeof amount !== "number") {
         return res.status(400).json({ error: "Invalid body" });
       }
-      const bonusEarned = Math.floor(amount * 0.05);
 
-      // 1) создаём заказ
-      await db.collection("orders").add({
-        userId,
-        items,
-        amount,
-        bonusUsed,
-        bonusEarned,
-        status: 'pending',
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      try {
+        // Простая логика начисления бонусов 5%
+        const bonusEarned = Math.floor(amount * 0.05);
 
-      // 2) инкрементим баланс пользователя
-      const userSnap = await db
-        .collection("users")
-        .where("phone", "==", userId)
-        .limit(1)
-        .get();
-      if (!userSnap.empty) {
-        await userSnap.docs[0].ref.update({
-          bonus: admin.firestore.FieldValue.increment(bonusEarned),
+        // 1) Создаём заказ
+        const orderRef = await db.collection("orders").add({
+          userId,
+          items,
+          amount,
+          bonusUsed,
+          bonusEarned,
+          status: 'pending',
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
-      }
 
-      return res.status(200).json({ success: true, bonusEarned });
+        // 2) Обновляем баланс пользователя
+        const userRef = db.collection('users').doc(userId);
+        const userDoc = await userRef.get();
+        const currentBalance = userDoc.exists ? (userDoc.data().bonusBalance || 0) : 0;
+        const newBalance = currentBalance + bonusEarned - bonusUsed;
+
+        await userRef.set({
+          bonusBalance: newBalance,
+          totalOrders: userDoc.exists ? (userDoc.data().totalOrders || 0) + 1 : 1,
+          lastOrderAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        // 3) Записываем в историю бонусов
+        if (bonusEarned > 0) {
+          await db.collection('bonusHistory').add({
+            userId: userId,
+            type: 'earned',
+            amount: bonusEarned,
+            description: `Заказ #${orderRef.id.slice(-6)}`,
+            date: new Date().toISOString(),
+            orderId: orderRef.id
+          });
+        }
+
+        if (bonusUsed > 0) {
+          await db.collection('bonusHistory').add({
+            userId: userId,
+            type: 'spent',
+            amount: bonusUsed,
+            description: `Оплата заказа #${orderRef.id.slice(-6)}`,
+            date: new Date().toISOString(),
+            orderId: orderRef.id
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          bonusEarned,
+          message: `Заказ оформлен! Начислено ${bonusEarned} бонусов`
+        });
+
+      } catch (error) {
+        console.error('Ошибка создания заказа:', error);
+        return res.status(500).json({ error: 'Ошибка при создании заказа' });
+      }
     }
 
     if (req.method === "PUT") {

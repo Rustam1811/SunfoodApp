@@ -16,9 +16,9 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: 'https://coffee-addict.vercel.app',
+          target: mode === 'development' ? 'http://localhost:3000' : 'https://coffee-addict.vercel.app',
           changeOrigin: true,
-          rewrite: path => path.replace(/^\/api/, '/api') // сохраняем путь
+          rewrite: path => path.replace(/^\/api/, '/api')
         }
       }
     }

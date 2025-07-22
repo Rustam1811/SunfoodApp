@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { UserIcon, TrophyIcon, TicketIcon, FireIcon, StarIcon, ChevronRightIcon, ArrowLeftOnRectangleIcon } from '@heroicons/react/24/solid';
+import { UserIcon, TrophyIcon, TicketIcon, FireIcon, StarIcon, ChevronRightIcon, ArrowLeftOnRectangleIcon, GiftIcon, CurrencyDollarIcon } from '@heroicons/react/24/solid';
+import BonusSystemNew from '../components/BonusSystemNew';
 
 // ===================================================================
 //  ДАННЫЕ И ТИПЫ
@@ -35,20 +36,37 @@ const initialUserProfile = {
     personalQuests: [
         { id: 1, title: "Попробуйте наш новый Раф", description: "Сделайте заказ на авторский напиток и получите +50 баллов." },
         { id: 2, title: "Скидка на ваш любимый напиток", description: "На этой неделе ваш Латте со скидкой 20%." },
-    ]
+    ],
+    bonusData: {
+        balance: 0,
+        level: 'Новичок',
+        nextLevel: 'Любитель',
+        ordersToNextLevel: 10,
+        totalOrders: 0,
+        multiplier: 1.0,
+        earnedThisMonth: 0,
+        spentThisMonth: 0
+    }
 };
 
 // ===================================================================
 //  КОМПОНЕНТЫ
 // ===================================================================
 
-const BalanceBar = ({ points, streak, lastVisitToday }) => (
-    <div className="grid grid-cols-2 gap-4">
+const BalanceBar = ({ points, streak, lastVisitToday, bonusData }) => (
+    <div className="grid grid-cols-3 gap-3">
         <div className="bg-white p-4 rounded-2xl shadow-lg flex items-center gap-3 border border-slate-200/60">
             <StarIcon className="w-8 h-8 text-yellow-400 flex-shrink-0"/>
             <div>
                 <p className="text-2xl font-bold text-slate-900">{points}</p>
-                <p className="text-xs text-slate-500">Бонусных баллов</p>
+                <p className="text-xs text-slate-500">Очки</p>
+            </div>
+        </div>
+        <div className="bg-white p-4 rounded-2xl shadow-lg flex items-center gap-3 border border-slate-200/60">
+            <CurrencyDollarIcon className="w-8 h-8 text-green-400 flex-shrink-0"/>
+            <div>
+                <p className="text-2xl font-bold text-slate-900">{bonusData.balance}</p>
+                <p className="text-xs text-slate-500">Бонусы</p>
             </div>
         </div>
          <div className="bg-white p-4 rounded-2xl shadow-lg flex items-center gap-3 border border-slate-200/60">
@@ -157,6 +175,37 @@ const ConfettiExplosion = () => (
 const UltimateProfilePage: React.FC = () => {
     const [profile, setProfile] = useState(initialUserProfile);
     const [isCelebrating, setIsCelebrating] = useState(false);
+    const [showBonusSystem, setShowBonusSystem] = useState(false);
+
+    useEffect(() => {
+        fetchBonusData();
+    }, []);
+
+    const fetchBonusData = async () => {
+        try {
+            const userId = getUserId();
+            const response = await fetch(`/api/user-bonus?userId=${userId}`);
+            if (response.ok) {
+                const bonusData = await response.json();
+                setProfile(prev => ({ ...prev, bonusData }));
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки бонусных данных:', error);
+        }
+    };
+
+    const getUserId = () => {
+        try {
+            const userData = localStorage.getItem('user');
+            if (userData) {
+                const user = JSON.parse(userData);
+                return user.phone || user.id || '+77071234567';
+            }
+        } catch (e) {
+            console.error('Ошибка парсинга user из localStorage:', e);
+        }
+        return '+77071234567';
+    };
 
     const handleClaimReward = useCallback(() => {
         setIsCelebrating(true);
@@ -184,6 +233,30 @@ const UltimateProfilePage: React.FC = () => {
     return (
         <div className="bg-slate-50 min-h-screen font-sans text-slate-900">
             {isCelebrating && <ConfettiExplosion />}
+            
+            {/* Модальное окно бонусной системы */}
+            <AnimatePresence>
+                {showBonusSystem && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4"
+                        onClick={() => setShowBonusSystem(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            className="w-full max-w-4xl max-h-[90vh] overflow-auto"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <BonusSystemNew />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <header className="p-4 flex items-center justify-between sticky top-0 bg-slate-50/80 backdrop-blur-lg z-20 border-b border-slate-900/10">
                 <div className="w-10"></div>
                 <h1 className="text-xl font-bold text-slate-900">Профиль</h1>
@@ -194,21 +267,63 @@ const UltimateProfilePage: React.FC = () => {
                 <motion.section custom={0} initial="hidden" animate="visible" variants={sectionVariants}>
                     <div className="flex items-center gap-4">
                         <img src={profile.avatar} className="w-20 h-20 rounded-full object-cover shadow-lg" />
-                        <div>
+                        <div className="flex-1">
                             <h2 className="text-3xl font-extrabold">{profile.name}</h2>
-                            <div className="inline-flex items-center gap-2 mt-1 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold">
-                                <TrophyIcon className="w-5 h-5 text-amber-500" />
-                                {profile.level}
+                            <div className="flex items-center gap-2 mt-1">
+                                <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold">
+                                    <TrophyIcon className="w-5 h-5 text-amber-500" />
+                                    {profile.level}
+                                </div>
+                                <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+                                    <GiftIcon className="w-5 h-5 text-purple-500" />
+                                    {profile.bonusData.level}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </motion.section>
 
                 <motion.section custom={1} initial="hidden" animate="visible" variants={sectionVariants}>
-                    <BalanceBar points={profile.points} streak={profile.streak} lastVisitToday={profile.lastVisitToday} />
+                    <BalanceBar 
+                        points={profile.points} 
+                        streak={profile.streak} 
+                        lastVisitToday={profile.lastVisitToday} 
+                        bonusData={profile.bonusData}
+                    />
                 </motion.section>
 
+                {/* Новая секция бонусов */}
                 <motion.section custom={2} initial="hidden" animate="visible" variants={sectionVariants}>
+                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-white shadow-xl">
+                        <div className="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 className="text-xl font-bold">Бонусная система</h3>
+                                <p className="text-purple-100">Зарабатывайте и тратьте бонусы</p>
+                            </div>
+                            <GiftIcon className="w-10 h-10 text-white" />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <p className="text-3xl font-bold">{profile.bonusData.balance}</p>
+                                <p className="text-purple-100 text-sm">Доступно бонусов</p>
+                            </div>
+                            <div>
+                                <p className="text-xl font-bold">x{profile.bonusData.multiplier}</p>
+                                <p className="text-purple-100 text-sm">Множитель</p>
+                            </div>
+                        </div>
+                        
+                        <button 
+                            onClick={() => setShowBonusSystem(true)}
+                            className="w-full bg-white text-purple-600 font-bold py-3 rounded-xl hover:bg-gray-50 transition-colors"
+                        >
+                            Управление бонусами
+                        </button>
+                    </div>
+                </motion.section>
+
+                <motion.section custom={3} initial="hidden" animate="visible" variants={sectionVariants}>
                     <NextRewardCard 
                         reward={profile.currentReward} 
                         stamps={profile.stamps}
@@ -218,7 +333,7 @@ const UltimateProfilePage: React.FC = () => {
                     />
                 </motion.section>
                 
-                <motion.section custom={3} initial="hidden" animate="visible" variants={sectionVariants}>
+                <motion.section custom={4} initial="hidden" animate="visible" variants={sectionVariants}>
                      <div className="flex justify-between items-center mb-3">
                         <h2 className="text-2xl font-bold text-slate-900">Достижения</h2>
                         <button className="font-semibold text-sm text-orange-600 flex items-center gap-1">
@@ -232,7 +347,7 @@ const UltimateProfilePage: React.FC = () => {
                     </div>
                 </motion.section>
 
-                <motion.section custom={4} initial="hidden" animate="visible" variants={sectionVariants}>
+                <motion.section custom={5} initial="hidden" animate="visible" variants={sectionVariants}>
                     <h2 className="text-2xl font-bold text-slate-900 mb-3">Персональные квесты</h2>
                      <div className="space-y-3">
                         {profile.personalQuests.map(quest => (

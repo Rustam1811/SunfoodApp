@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useHistory } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCartIcon, CheckCircleIcon, PlusIcon, MinusIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
+import { ShoppingCartIcon, CheckCircleIcon, PlusIcon, MinusIcon, ArrowPathIcon, GiftIcon, CurrencyDollarIcon } from '@heroicons/react/24/solid';
 import { SparklesIcon } from '@heroicons/react/24/outline';
 import { useCart, CartItem } from "../contexts/CartContext";
 import QRCode from "../components/QRCode";
@@ -40,17 +40,22 @@ const EmptyCartState = ({ onGoToMenu }: { onGoToMenu: () => void; }) => (
 );
 
 const Order: React.FC = () => {
-    // Вся логика без изменений
     const { items, dispatch } = useCart();
-    const [bonusPoints, setBonusPoints] = useState(0);
+    const [bonusData, setBonusData] = useState({
+        balance: 0,
+        level: 'Новичок',
+        multiplier: 1.0
+    });
     const [bonusToUse, setBonusToUse] = useState(0);
+    const [promoCodes, setPromoCodes] = useState([]);
+    const [showPromoCodes, setShowPromoCodes] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const [orders, setOrders] = useState([]);
     const history = useHistory();
     const amount = items.reduce((sum, x) => sum + x.price * x.quantity, 0);
-    const bonusEarned = Math.floor(amount * 0.05);
+    const bonusEarned = Math.floor(amount * 0.05 * bonusData.multiplier); // Учитываем множитель
     
     // Получаем userId из localStorage
     const getUserId = () => {
@@ -82,12 +87,44 @@ const Order: React.FC = () => {
         }
     }, [userId]);
 
+    // Загрузка бонусных данных
+    const fetchBonusData = useCallback(async () => {
+        try {
+            const response = await fetch(`/api/user-bonus?userId=${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                setBonusData(data);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки бонусных данных:', error);
+        }
+    }, [userId]);
+
+    // Загрузка активных промокодов
+    const fetchPromoCodes = useCallback(async () => {
+        try {
+            const response = await fetch(`/api/promo-codes?userId=${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                setPromoCodes(data.filter(code => !code.isUsed && new Date(code.expiresAt) > new Date()));
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки промокодов:', error);
+        }
+    }, [userId]);
+
     useEffect(() => {
         fetchOrders();
+        fetchBonusData();
+        fetchPromoCodes();
         // Автообновление каждые 10 секунд
-        const interval = setInterval(fetchOrders, 5000); // Обновляем каждые 5 секунд для быстрого отображения статусов
+        const interval = setInterval(() => {
+            fetchOrders();
+            fetchBonusData();
+            fetchPromoCodes();
+        }, 5000);
         return () => clearInterval(interval);
-    }, [fetchOrders]);
+    }, [fetchOrders, fetchBonusData, fetchPromoCodes]);
 
     // ...остальная логика бонусов и оформления заказа...
     const handleUpdateQuantity = useCallback((id: number, delta: number) => {
@@ -108,7 +145,7 @@ const Order: React.FC = () => {
                     quantity: item.quantity,
                     id: item.id
                 })),
-                amount: amount - bonusToUse,
+                amount: amount,
                 bonusUsed: bonusToUse
             };
 
@@ -126,16 +163,27 @@ const Order: React.FC = () => {
             if (response.ok) {
                 // Очищаем корзину после успешного заказа
                 dispatch({ type: 'CLEAR_CART' });
-                // Обновляем список заказов
+                setBonusToUse(0);
+                // Обновляем данные
                 await fetchOrders();
-                alert('Заказ успешно оформлен!');
+                await fetchBonusData();
+                await fetchPromoCodes();
+                
+                const message = result.message || `Заказ оформлен! Начислено ${result.bonusEarned} бонусов`;
+                setToastMessage(message);
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 4000);
             } else {
                 console.error('Ошибка API:', result);
-                alert('Ошибка при оформлении заказа: ' + (result.error || 'Неизвестная ошибка'));
+                setToastMessage('Ошибка при оформлении заказа: ' + (result.error || 'Неизвестная ошибка'));
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 3000);
             }
         } catch (error) {
             console.error('Ошибка заказа:', error);
-            alert('Ошибка при оформлении заказа');
+            setToastMessage('Ошибка при оформлении заказа');
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 3000);
         } finally {
             setLoading(false);
         }
@@ -189,6 +237,88 @@ const Order: React.FC = () => {
                                         <CartItemCard key={it.id} item={it} onUpdateQuantity={handleUpdateQuantity} />
                                     ))}
                                 </motion.ul>
+
+                                {/* Бонусная система */}
+                                <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-4 border border-purple-500/30">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                            <CurrencyDollarIcon className="w-6 h-6 text-purple-400" />
+                                            <span className="font-bold text-white">Ваши бонусы</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-xl font-bold text-purple-400">{bonusData.balance}</div>
+                                            <div className="text-xs text-purple-300">{bonusData.level}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    {bonusData.balance > 0 && (
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-zinc-300">Использовать бонусы:</span>
+                                                <span className="text-orange-400 font-bold">{bonusToUse} ₸</span>
+                                            </div>
+                                            <input 
+                                                type="range" 
+                                                min={0} 
+                                                max={Math.min(bonusData.balance, amount)} 
+                                                value={bonusToUse} 
+                                                disabled={loading}
+                                                onChange={(e) => setBonusToUse(Number(e.target.value))}
+                                                className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-purple-500" 
+                                            />
+                                            <div className="flex justify-between text-xs text-zinc-400">
+                                                <span>0</span>
+                                                <span>Макс: {Math.min(bonusData.balance, amount)} ₸</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Промокоды */}
+                                {promoCodes.length > 0 && (
+                                    <div className="bg-zinc-800/50 rounded-2xl p-4 border border-zinc-700/50">
+                                        <button 
+                                            onClick={() => setShowPromoCodes(!showPromoCodes)}
+                                            className="w-full flex items-center justify-between text-left"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <GiftIcon className="w-6 h-6 text-amber-400" />
+                                                <span className="font-bold text-white">Ваши промокоды ({promoCodes.length})</span>
+                                            </div>
+                                            <span className="text-zinc-400">{showPromoCodes ? '▼' : '▶'}</span>
+                                        </button>
+                                        
+                                        <AnimatePresence>
+                                            {showPromoCodes && (
+                                                <motion.div
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    className="mt-3 space-y-2"
+                                                >
+                                                    {promoCodes.map(code => (
+                                                        <div key={code.code} className="bg-zinc-700/50 rounded-lg p-3 flex justify-between items-center">
+                                                            <div>
+                                                                <div className="font-bold text-amber-400">{code.code}</div>
+                                                                <div className="text-sm text-zinc-300">{code.description}</div>
+                                                                <div className="text-xs text-zinc-400">
+                                                                    До {new Date(code.expiresAt).toLocaleDateString()}
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="text-lg font-bold text-green-400">
+                                                                    {code.type === 'fixed' ? `${code.discount}₸` : `${code.discount}%`}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                )}
+
+                                {/* Итого */}
                                 <div className="bg-zinc-800/50 rounded-2xl shadow-lg border border-zinc-700/50 p-6 space-y-4">
                                     <div className="flex justify-between items-center text-zinc-400">
                                         <span>Сумма</span>
@@ -196,16 +326,20 @@ const Order: React.FC = () => {
                                     </div>
                                     <div className="flex justify-between items-center text-zinc-400">
                                         <span>Бонусы к начислению</span>
-                                        <span className="font-medium text-emerald-400 flex items-center gap-1"><SparklesIcon className="w-4 h-4" /> +{bonusEarned}</span>
+                                        <span className="font-medium text-emerald-400 flex items-center gap-1">
+                                            <SparklesIcon className="w-4 h-4" /> 
+                                            +{bonusEarned} (x{bonusData.multiplier})
+                                        </span>
                                     </div>
-                                    <div className="border-t border-zinc-700 my-2" />
-                                    <div className="flex justify-between items-center text-zinc-400">
-                                        <span>Списать бонусы</span>
-                                        <span className="font-medium text-orange-400">-{bonusToUse} ₸</span>
-                                    </div>
-                                    <input type="range" min={0} max={Math.min(bonusPoints, amount)} value={bonusToUse} disabled={loading}
-                                        onChange={(e) => setBonusToUse(Number(e.target.value))}
-                                        className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-orange-500" />
+                                    {bonusToUse > 0 && (
+                                        <>
+                                            <div className="border-t border-zinc-700 my-2" />
+                                            <div className="flex justify-between items-center text-zinc-400">
+                                                <span>Списать бонусы</span>
+                                                <span className="font-medium text-orange-400">-{bonusToUse} ₸</span>
+                                            </div>
+                                        </>
+                                    )}
                                     <div className="border-t border-zinc-700 my-2" />
                                     <div className="flex justify-between items-center font-bold text-xl text-white">
                                         <span>Итого к оплате</span>
@@ -224,8 +358,8 @@ const Order: React.FC = () => {
             <AnimatePresence>
                 {showToast && (
                     <motion.div initial={{ opacity: 0, y: 20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.9 }}
-                        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-slate-800 text-white font-semibold px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3">
-                        <CheckCircleIcon className="w-6 h-6 text-emerald-400" />
+                        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white font-semibold px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+                        <CheckCircleIcon className="w-6 h-6 text-white" />
                         {toastMessage}
                     </motion.div>
                 )}

@@ -79,7 +79,7 @@ export const Stories: React.FC<StoriesProps> = ({ className = '', onStoryClick }
       const response = await fetch(`https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/stories?userId=${currentUser}&action=getViewed`);
       if (response.ok) {
         const data = await response.json();
-        const viewed = new Set((data.viewedStories || []).map((v: StoryViewer) => v.storyId));
+        const viewed = new Set<string>((data.viewedStories || []).map((v: StoryViewer) => v.storyId));
         setViewedStories(viewed);
       }
     } catch (error) {

@@ -29,6 +29,15 @@ interface PromotionBannerProps {
   maxItems?: number;
 }
 
+// Функция для форматирования скидки (вынесена наружу)
+const getDiscountText = (discount: Promotion['discount']) => {
+  if (discount.type === 'percentage') {
+    return `${discount.value}%`;
+  } else {
+    return `${discount.value}₽`;
+  }
+};
+
 export const PromotionBanner: React.FC<PromotionBannerProps> = ({ 
   className = '', 
   showAll = false, 
@@ -89,14 +98,6 @@ export const PromotionBanner: React.FC<PromotionBannerProps> = ({
     const diffTime = end.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(0, diffDays);
-  };
-
-  const getDiscountText = (discount: Promotion['discount']) => {
-    if (discount.type === 'percentage') {
-      return `${discount.value}%`;
-    } else {
-      return `${discount.value}₽`;
-    }
   };
 
   const getPromotionGradient = (index: number) => {

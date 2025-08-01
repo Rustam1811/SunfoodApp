@@ -342,7 +342,7 @@ const StoryManagement: React.FC = () => {
                                         <button
                                             key={type.value}
                                             type="button"
-                                            onClick={() => setFormData({...formData, type: type.value})}
+                                            onClick={() => setFormData({...formData, type: type.value as "image" | "video" | "text"})}
                                             className={`p-3 rounded-lg border-2 transition-colors flex flex-col items-center space-y-2 ${
                                                 formData.type === type.value
                                                     ? 'border-purple-500 bg-purple-50 text-purple-700'

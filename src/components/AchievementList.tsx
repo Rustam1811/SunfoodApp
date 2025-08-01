@@ -158,8 +158,13 @@ export const AchievementList: React.FC<AchievementListProps> = ({ className = ''
     const userAchievement = userAchievements.find(ua => ua.achievementId === achievement.id);
     
     // Безопасно получаем условие достижения
-    const conditionType = achievement.condition?.type || 'orders_count';
-    const conditionValue = achievement.condition?.value || 1;
+    let conditionType = 'orders_count';
+    let conditionValue = 1;
+    
+    if (typeof achievement.condition === 'object' && achievement.condition !== null) {
+      conditionType = achievement.condition.type || 'orders_count';
+      conditionValue = achievement.condition.value || 1;
+    }
     
     const progress = userProgress[conditionType] || 0;
     const required = conditionValue;

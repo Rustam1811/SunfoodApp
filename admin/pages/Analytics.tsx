@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAnalytics } from '../hooks/useAnalytics';
-import { ChartBarIcon, ClockIcon, FireIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ChartBarIcon, ClockIcon, FireIcon, ArrowPathIcon, CurrencyDollarIcon, ShoppingBagIcon } from '@heroicons/react/24/outline';
 import { OrdersLineChart, TopProductsBarChart, OrdersByHourBarChart } from '../components/AnalyticsCharts';
+import { motion } from 'framer-motion';
 
 const periodOptions = [
   { key: 'day', label: 'День' },
@@ -9,126 +10,249 @@ const periodOptions = [
   { key: 'month', label: 'Месяц' }
 ];
 
+/**
+ * Мобильная версия аналитики для продакшна
+ * Полностью рабочая с красивым интерфейсом
+ */
 const Analytics: React.FC = () => {
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('day');
   const { aggregated, loading, error, refresh } = useAnalytics(period);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refresh();
+    setTimeout(() => setRefreshing(false), 500);
+  };
+
+  const getPeakHours = (byHour: Record<string, number>) => {
+    if (!byHour) return 'Нет данных';
+    const entries = Object.entries(byHour);
+    if (entries.length === 0) return 'Нет данных';
+    const peak = entries.reduce((a, b) => byHour[a[0]] > byHour[b[0]] ? a : b);
+    return `${peak[0]}:00 (${peak[1]} заказов)`;
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 px-6 py-8">
-      <div className="flex items-center gap-4 mb-8">
-        <ChartBarIcon className="h-8 w-8 text-amber-400" />
-        <h1 className="text-2xl font-bold text-white">Аналитика продаж</h1>
-        <div className="ml-auto flex gap-2">
+    <div className="min-h-screen bg-gray-50 pb-20"> {/* pb-20 для навигации */}
+      <div className="px-4 py-6">
+        {/* Заголовок */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <ChartBarIcon className="h-8 w-8 text-blue-600" />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Аналитика</h1>
+              <p className="text-sm text-gray-500">Статистика продаж</p>
+            </div>
+          </div>
+          <motion.button 
+            onClick={handleRefresh}
+            disabled={refreshing || loading}
+            className="p-3 bg-blue-500 text-white rounded-xl shadow-lg disabled:opacity-50"
+            whileTap={{ scale: 0.95 }}
+          >
+            <ArrowPathIcon className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
+          </motion.button>
+        </div>
+
+        {/* Переключатель периода */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {periodOptions.map(opt => (
-            <button
+            <motion.button
               key={opt.key}
               onClick={() => setPeriod(opt.key as any)}
-              className={`px-4 py-2 rounded-xl font-semibold transition-all ${period === opt.key ? 'bg-amber-500 text-black shadow-lg' : 'bg-white/10 text-white hover:bg-white/20'}`}
+              className={`flex-shrink-0 px-4 py-3 rounded-xl font-medium transition-all ${
+                period === opt.key 
+                  ? 'bg-blue-500 text-white shadow-lg' 
+                  : 'bg-white text-gray-600 shadow border hover:bg-gray-50'
+              }`}
+              whileTap={{ scale: 0.95 }}
             >
               {opt.label}
-            </button>
+            </motion.button>
           ))}
-          <button onClick={refresh} className="px-4 py-2 rounded-xl bg-blue-500 text-white font-semibold flex items-center gap-2">
-            <ArrowPathIcon className="h-5 w-5" />
-            Обновить
-          </button>
         </div>
+
+        {/* Состояния загрузки и ошибки */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+            <p className="mt-4 text-gray-600">Загрузка данных...</p>
+          </div>
+        )}
+
+        {error && (
+          <motion.div 
+            className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <p className="text-red-600 font-medium">Ошибка загрузки: {error}</p>
+          </motion.div>
+        )}
+
+        {/* Основной контент */}
+        {!loading && !error && aggregated && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            {/* Информация о периоде */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+              <div className="flex items-center gap-2">
+                <ClockIcon className="h-5 w-5 text-blue-600" />
+                <p className="text-blue-800 font-medium">
+                  Данные за период: {aggregated.periodLabel || periodOptions.find(p => p.key === period)?.label}
+                </p>
+              </div>
+              {aggregated.chartData && (
+                <p className="text-blue-600 text-sm mt-1">
+                  Показано {aggregated.chartData.length} {period === 'day' ? 'дней' : period === 'week' ? 'недель' : 'месяцев'} с данными
+                </p>
+              )}
+            </div>
+
+            {/* Карточки со статистикой */}
+            <div className="grid grid-cols-2 gap-4">
+              <motion.div 
+                className="bg-white rounded-xl p-4 shadow-lg border"
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <CurrencyDollarIcon className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Общий доход</p>
+                    <p className="text-lg font-bold text-gray-900">{aggregated.revenue?.toLocaleString() || 0} ₽</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="bg-white rounded-xl p-4 shadow-lg border"
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <ShoppingBagIcon className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Всего заказов</p>
+                    <p className="text-lg font-bold text-gray-900">{aggregated.totalOrders || 0}</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="bg-white rounded-xl p-4 shadow-lg border"
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-amber-100 rounded-lg">
+                    <CurrencyDollarIcon className="h-6 w-6 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Средний чек</p>
+                    <p className="text-lg font-bold text-gray-900">{Math.round(aggregated.avgOrderValue || 0)} ₽</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="bg-white rounded-xl p-4 shadow-lg border"
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <FireIcon className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Лучший товар</p>
+                    <p className="text-sm font-bold text-gray-900 truncate">
+                      {aggregated.topProducts?.[0]?.productName || 'Нет данных'}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Топ товаров */}
+            <motion.div 
+              className="bg-white rounded-xl p-6 shadow-lg border"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <FireIcon className="h-6 w-6 text-orange-500" />
+                <h2 className="text-lg font-bold text-gray-900">Топ товаров</h2>
+              </div>
+              <div className="space-y-3">
+                {aggregated.topProducts?.slice(0, 5).map((product, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <span className="text-orange-600 font-bold text-sm">{index + 1}</span>
+                      </div>
+                      <span className="font-medium text-gray-900">{product.productName}</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-gray-900">{product.quantity} шт</p>
+                      <p className="text-xs text-gray-500">{(product.totalRevenue || 0).toLocaleString()} ₽</p>
+                    </div>
+                  </div>
+                )) || (
+                  <p className="text-gray-500 text-center py-4">Нет данных о продажах</p>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Активность по часам */}
+            <motion.div 
+              className="bg-white rounded-xl p-6 shadow-lg border"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <ClockIcon className="h-6 w-6 text-blue-500" />
+                <h2 className="text-lg font-bold text-gray-900">Активность по часам</h2>
+              </div>
+              <div className="mb-4">
+                <p className="text-sm text-gray-600">
+                  Пиковое время: <span className="font-medium">{getPeakHours(aggregated.byHour || {})}</span>
+                </p>
+              </div>
+              {aggregated.byHour && <OrdersByHourBarChart data={aggregated.byHour} />}
+            </motion.div>
+
+            {/* Графики */}
+            {aggregated.byDay && (
+              <motion.div 
+                className="bg-white rounded-xl p-6 shadow-lg border"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <ChartBarIcon className="h-6 w-6 text-green-500" />
+                  <h2 className="text-lg font-bold text-gray-900">
+                    Динамика заказов по {period === 'day' ? 'дням' : period === 'week' ? 'неделям' : 'месяцам'}
+                  </h2>
+                </div>
+                <OrdersLineChart 
+                  data={aggregated.chartData || aggregated.byDay} 
+                  periodLabel={aggregated.periodLabel}
+                />
+              </motion.div>
+            )}
+          </motion.div>
+        )}
       </div>
-
-      {loading && <div className="text-white">Загрузка...</div>}
-      {error && <div className="text-red-400">{error}</div>}
-      {aggregated && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-          <div className="bg-white/10 rounded-2xl p-6 border border-white/20">
-            <div className="flex items-center gap-2 mb-2">
-              <FireIcon className="h-6 w-6 text-amber-400" />
-              <span className="text-lg font-bold text-white">Выручка</span>
-            </div>
-            <div className="text-3xl font-extrabold text-white">{aggregated.totalRevenue.toLocaleString('ru-RU')} ₸</div>
-            <div className="text-gray-300 mt-2">Всего заказов: {aggregated.totalOrders}</div>
-          </div>
-          <div className="bg-white/10 rounded-2xl p-6 border border-white/20">
-            <div className="flex items-center gap-2 mb-2">
-              <ClockIcon className="h-6 w-6 text-blue-400" />
-              <span className="text-lg font-bold text-white">Пиковые часы</span>
-            </div>
-            <div className="text-white">{getPeakHours(aggregated.byHour)}</div>
-            <div className="text-gray-300 mt-2">Заказов по часам: {(Object.values(aggregated.byHour) as number[]).reduce((a, b) => a + b, 0)}</div>
-          </div>
-          <div className="bg-white/10 rounded-2xl p-6 border border-white/20">
-            <div className="flex items-center gap-2 mb-2">
-              <ChartBarIcon className="h-6 w-6 text-green-400" />
-              <span className="text-lg font-bold text-white">Топ товаров</span>
-            </div>
-            <ul className="mt-2 space-y-1">
-              {aggregated.topProducts.slice(0, 5).map((p, idx) => (
-                <li key={idx} className="text-white flex justify-between">
-                  <span>{p.name}</span>
-                  <span className="text-amber-400 font-bold">{p.qty} шт</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {aggregated && (
-        <div className="bg-white/10 rounded-2xl p-6 border border-white/20 mb-8">
-          <h2 className="text-xl font-bold text-white mb-4">Динамика заказов по дням</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-white">
-              <thead>
-                <tr>
-                  <th className="text-left py-2 px-4">Дата</th>
-                  <th className="text-left py-2 px-4">Заказов</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(aggregated.byDay).map(([day, count]) => (
-                  <tr key={day}>
-                    <td className="py-2 px-4">{day}</td>
-                    <td className="py-2 px-4">{String(count)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {aggregated && (
-        <div className="bg-white/10 rounded-2xl p-6 border border-white/20 mb-8">
-          <h2 className="text-xl font-bold text-white mb-4">Топ категорий</h2>
-          <ul className="space-y-2">
-            {aggregated.topCategories.map((cat, idx) => (
-              <li key={idx} className="flex justify-between text-white">
-                <span>{cat.category}</span>
-                <span className="text-green-400 font-bold">{cat.qty} шт</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {aggregated && (
-        <OrdersLineChart data={aggregated.byDay} />
-      )}
-      {aggregated && (
-        <TopProductsBarChart data={aggregated.topProducts} />
-      )}
-      {aggregated && (
-        <OrdersByHourBarChart data={aggregated.byHour} />
-      )}
-
-      {/* TODO: добавить фильтры, экспорт */}
     </div>
   );
 };
-
-function getPeakHours(byHour: Record<string, number>) {
-  const sorted = Object.entries(byHour).sort((a, b) => b[1] - a[1]);
-  if (sorted.length === 0) return 'Нет данных';
-  return sorted.slice(0, 3).map(([hour, count]) => `${hour}:00 (${count})`).join(', ');
-}
 
 export default Analytics;

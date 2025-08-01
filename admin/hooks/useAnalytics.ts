@@ -10,51 +10,146 @@ export function useAnalytics(period: 'day' | 'week' | 'month') {
   const getPeriodRange = useCallback(() => {
     const now = new Date();
     let from: Date;
+    
     switch (period) {
       case 'day':
-        from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        // Берем данные за последние 30 дней для дневной статистики
+        from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
       case 'week':
-        from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+        // Берем данные за последние 12 недель
+        from = new Date(now.getTime() - 84 * 24 * 60 * 60 * 1000);
         break;
       case 'month':
-        from = new Date(now.getFullYear(), now.getMonth(), 1);
+        // Берем данные за последние 12 месяцев
+        from = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
         break;
       default:
-        from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     }
+    
+    console.log('📊 Analytics: период', period, 'от', from, 'до', now);
     return { from, to: now };
   }, [period]);
 
+  const processDataForPeriod = useCallback((rawData: any) => {
+    if (!rawData) return null;
+    
+    // Выбираем нужные данные в зависимости от периода
+    let chartData = [];
+    let periodLabel = '';
+    
+    switch (period) {
+      case 'day':
+        chartData = rawData.byDay.map((item: any) => ({
+          name: new Date(item.date).toLocaleDateString('ru-RU', { 
+            day: '2-digit', 
+            month: '2-digit' 
+          }),
+          orders: item.orders,
+          revenue: item.revenue,
+          date: item.date
+        }));
+        periodLabel = 'День';
+        break;
+        
+      case 'week':
+        chartData = rawData.byWeek.map((item: any) => ({
+          name: `Неделя ${new Date(item.weekStart).toLocaleDateString('ru-RU', { 
+            day: '2-digit', 
+            month: '2-digit' 
+          })}`,
+          orders: item.orders,
+          revenue: item.revenue,
+          weekStart: item.weekStart
+        }));
+        periodLabel = 'Неделя';
+        break;
+        
+      case 'month':
+        chartData = rawData.byMonth.map((item: any) => ({
+          name: new Date(item.monthStart + '-01').toLocaleDateString('ru-RU', { 
+            month: 'long', 
+            year: 'numeric' 
+          }),
+          orders: item.orders,
+          revenue: item.revenue,
+          monthStart: item.monthStart
+        }));
+        periodLabel = 'Месяц';
+        break;
+    }
+    
+    return {
+      ...rawData,
+      chartData,
+      periodLabel,
+      currentPeriod: period
+    };
+  }, [period]);
+
   useEffect(() => {
+    let isMounted = true;
+    
     async function fetchData() {
+      if (!isMounted) return;
+      
       setLoading(true);
       setError(null);
       try {
         const { from, to } = getPeriodRange();
         const orders = await getOrders(from, to);
+        
+        if (!isMounted) return;
+        
         setOrders(orders);
-        setAggregated(aggregateOrders(orders));
+        const rawAggregated = aggregateOrders(orders);
+        const processedData = processDataForPeriod(rawAggregated);
+        setAggregated(processedData);
+        
+        console.log('📊 Analytics: обработано для периода', period, 'данных:', processedData?.chartData?.length);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Ошибка загрузки');
+        if (!isMounted) return;
+        
+        console.error('Analytics fetch error:', err);
+        setError(err instanceof Error ? err.message : 'Ошибка загрузки данных');
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
+    
     fetchData();
-  }, [period, getPeriodRange]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [period, getPeriodRange, processDataForPeriod]);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { from, to } = getPeriodRange();
+      const orders = await getOrders(from, to);
+      setOrders(orders);
+      const rawAggregated = aggregateOrders(orders);
+      const processedData = processDataForPeriod(rawAggregated);
+      setAggregated(processedData);
+    } catch (err) {
+      console.error('Analytics refresh error:', err);
+      setError(err instanceof Error ? err.message : 'Ошибка обновления данных');
+    } finally {
+      setLoading(false);
+    }
+  }, [getPeriodRange, processDataForPeriod]);
 
   return {
     orders,
     loading,
     error,
     aggregated,
-    refresh: () => {
-      const { from, to } = getPeriodRange();
-      getOrders(from, to).then(orders => {
-        setOrders(orders);
-        setAggregated(aggregateOrders(orders));
-      });
-    }
+    refresh
   };
 }

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест системы контента</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тестирование системы достижений, акций и историй</h1>
+    
+    <div class="section">
+        <h2>Достижения</h2>
+        <button class="button" onclick="createTestAchievement()">Создать тестовое достижение</button>
+        <button class="button" onclick="getAchievements()">Получить все достижения</button>
+        <div id="achievementResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="section">
+        <h2>Акции</h2>
+        <button class="button" onclick="createTestPromotion()">Создать тестовую акцию</button>
+        <button class="button" onclick="getPromotions()">Получить все акции</button>
+        <div id="promotionResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="section">
+        <h2>Истории</h2>
+        <button class="button" onclick="createTestStory()">Создать тестовую историю</button>
+        <button class="button" onclick="getStories()">Получить все истории</button>
+        <div id="storyResult" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const baseUrl = 'https://us-central1-coffeeaddict-c9d70.cloudfunctions.net';
+
+        function showResult(elementId, data) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+
+        function showError(elementId, error) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.innerHTML = '<div style="color: red;">Ошибка: ' + error.message + '</div>';
+        }
+
+        // Достижения
+        async function createTestAchievement() {
+            try {
+                const response = await fetch(`${baseUrl}/achievements`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'create',
+                        achievement: {
+                            title: 'Первый заказ',
+                            description: 'Сделайте свой первый заказ в нашем кафе',
+                            category: 'orders',
+                            condition: {
+                                type: 'orders_count',
+                                value: 1
+                            },
+                            reward: {
+                                type: 'points',
+                                value: 50
+                            },
+                            icon: '☕',
+                            isActive: true
+                        }
+                    }),
+                });
+                const data = await response.json();
+                showResult('achievementResult', data);
+            } catch (error) {
+                showError('achievementResult', error);
+            }
+        }
+
+        async function getAchievements() {
+            try {
+                const response = await fetch(`${baseUrl}/achievements`);
+                const data = await response.json();
+                showResult('achievementResult', data);
+            } catch (error) {
+                showError('achievementResult', error);
+            }
+        }
+
+        // Акции
+        async function createTestPromotion() {
+            try {
+                const startDate = new Date();
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() + 7); // Акция на неделю
+
+                const response = await fetch(`${baseUrl}/promotions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'create',
+                        promotion: {
+                            title: 'Скидка на кофе',
+                            description: 'Получите 20% скидку на любой кофейный напиток',
+                            discount: {
+                                type: 'percentage',
+                                value: 20
+                            },
+                            category: 'coffee',
+                            minOrderAmount: 300,
+                            startDate: startDate.toISOString(),
+                            endDate: endDate.toISOString(),
+                            usageLimit: 100,
+                            isActive: true
+                        }
+                    }),
+                });
+                const data = await response.json();
+                showResult('promotionResult', data);
+            } catch (error) {
+                showError('promotionResult', error);
+            }
+        }
+
+        async function getPromotions() {
+            try {
+                const response = await fetch(`${baseUrl}/promotions`);
+                const data = await response.json();
+                showResult('promotionResult', data);
+            } catch (error) {
+                showError('promotionResult', error);
+            }
+        }
+
+        // Истории
+        async function createTestStory() {
+            try {
+                const expiresAt = new Date();
+                expiresAt.setHours(expiresAt.getHours() + 24); // История на 24 часа
+
+                const response = await fetch(`${baseUrl}/stories`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'create',
+                        story: {
+                            title: 'Новое меню!',
+                            content: {
+                                type: 'text',
+                                text: 'Попробуйте наши новые летние напитки! 🌞',
+                                backgroundColor: '#FF6B6B'
+                            },
+                            duration: 5,
+                            isActive: true,
+                            expiresAt: expiresAt.toISOString()
+                        }
+                    }),
+                });
+                const data = await response.json();
+                showResult('storyResult', data);
+            } catch (error) {
+                showError('storyResult', error);
+            }
+        }
+
+        async function getStories() {
+            try {
+                const response = await fetch(`${baseUrl}/stories`);
+                const data = await response.json();
+                showResult('storyResult', data);
+            } catch (error) {
+                showError('storyResult', error);
+            }
+        }
+    </script>
+</body>
+</html>

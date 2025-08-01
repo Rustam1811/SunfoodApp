@@ -69,7 +69,7 @@ const BonusSystemNew: React.FC = () => {
     const fetchBonusData = async () => {
         try {
             const userId = getUserId();
-            const response = await fetch(`/api/user-bonus?userId=${userId}`);
+            const response = await fetch(`https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/userBonus?userId=${userId}`);
             if (response.ok) {
                 const data = await response.json();
                 setBonusData(data);
@@ -81,7 +81,7 @@ const BonusSystemNew: React.FC = () => {
 
     const fetchRewards = async () => {
         try {
-            const response = await fetch('/api/bonus-settings');
+            const response = await fetch('https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/bonusSettings');
             if (response.ok) {
                 const data = await response.json();
                 setRewards(data.rewards?.filter((r: Reward) => r.isActive) || []);
@@ -96,19 +96,19 @@ const BonusSystemNew: React.FC = () => {
             const userData = localStorage.getItem('user');
             if (userData) {
                 const user = JSON.parse(userData);
-                return user.phone || user.id || '+77071234567';
+                return user.phone || user.id || '87053096206';
             }
         } catch (e) {
             console.error('Ошибка парсинга user из localStorage:', e);
         }
-        return '+77071234567';
+        return '87053096206'; // fallback для реального пользователя
     };
 
     const useReward = async (rewardId: string) => {
         setLoading(true);
         try {
             const userId = getUserId();
-            const response = await fetch('/api/use-bonus', {
+            const response = await fetch('https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/useBonus', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId, rewardId })

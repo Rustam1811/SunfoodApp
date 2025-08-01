@@ -4,9 +4,11 @@ import {
     ClockIcon, 
     BellIcon,
     QrCodeIcon,
-    EyeIcon 
+    EyeIcon,
+    ArrowPathIcon 
 } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getUserRole, getCurrentUserId, UserRole } from '../../src/utils/userRoles';
 
 interface Order {
     id: string;
@@ -18,10 +20,18 @@ interface Order {
     bonusUsed?: number;
 }
 
+/**
+ * Мобильная версия управления заказами
+ * Оптимизировано для работы на телефонах и планшетах
+ */
 const OrderManagement: React.FC = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'pending' | 'accepted' | 'ready'>('pending');
+    const [refreshing, setRefreshing] = useState(false);
+    
+    const currentUserId = getCurrentUserId();
+    const userRole = getUserRole(currentUserId);
 
     useEffect(() => {
         fetchOrders();
@@ -32,7 +42,7 @@ const OrderManagement: React.FC = () => {
 
     const fetchOrders = async () => {
         try {
-            const response = await fetch('/api/orders?admin=true');
+            const response = await fetch('https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/orders?admin=true');
             if (response.ok) {
                 const data = await response.json();
                 setOrders(data.orders || []);
@@ -45,7 +55,7 @@ const OrderManagement: React.FC = () => {
     const updateOrderStatus = async (orderId: string, newStatus: string) => {
         setLoading(true);
         try {
-            const response = await fetch('/api/orders', {
+            const response = await fetch('https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/orders', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ orderId, status: newStatus })
@@ -61,6 +71,15 @@ const OrderManagement: React.FC = () => {
         }
     };
 
+    /**
+     * Ручное обновление списка заказов
+     */
+    const handleManualRefresh = async () => {
+        setRefreshing(true);
+        await fetchOrders();
+        setTimeout(() => setRefreshing(false), 500);
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'pending': return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30';
@@ -68,6 +87,15 @@ const OrderManagement: React.FC = () => {
             case 'ready': return 'bg-green-500/20 text-green-500 border-green-500/30';
             case 'completed': return 'bg-gray-500/20 text-gray-500 border-gray-500/30';
             default: return 'bg-zinc-700 text-zinc-300';
+        }
+    };
+
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'pending': return <ClockIcon className="w-4 h-4" />;
+            case 'accepted': return <CheckCircleIcon className="w-4 h-4" />;
+            case 'ready': return <BellIcon className="w-4 h-4" />;
+            default: return <ClockIcon className="w-4 h-4" />;
         }
     };
 
@@ -84,32 +112,51 @@ const OrderManagement: React.FC = () => {
     const filteredOrders = orders.filter(order => order.status === activeTab);
 
     return (
-        <div className="p-6 bg-zinc-900 min-h-screen text-white">
-            <div className="max-w-6xl mx-auto">
+        <div className="bg-white min-h-screen">
+            <div className="px-4 py-6">
+                {/* Заголовок с кнопкой обновления */}
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold">Управление заказами</h1>
-                    <div className="flex items-center gap-2 text-sm text-zinc-400">
-                        <ClockIcon className="w-4 h-4" />
-                        Автообновление каждые 5 сек
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Заказы</h1>
+                        <p className="text-sm text-gray-500">
+                            {userRole === UserRole.ADMIN ? 'Администратор' : 'Бариста'} • Автообновление
+                        </p>
                     </div>
+                    <motion.button
+                        onClick={handleManualRefresh}
+                        disabled={refreshing}
+                        className="p-3 bg-blue-500 text-white rounded-xl shadow-lg"
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        <ArrowPathIcon className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+                    </motion.button>
                 </div>
 
-                {/* Вкладки статусов */}
-                <div className="flex gap-4 mb-6">
+                {/* Мобильные вкладки статусов */}
+                <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
                     {(['pending', 'accepted', 'ready'] as const).map(status => {
                         const count = orders.filter(o => o.status === status).length;
                         return (
-                            <button
+                            <motion.button
                                 key={status}
                                 onClick={() => setActiveTab(status)}
-                                className={`px-4 py-2 rounded-lg border transition-all ${
+                                className={`flex-shrink-0 px-4 py-3 rounded-xl border-2 transition-all font-medium ${
                                     activeTab === status 
-                                        ? 'bg-amber-500/20 text-amber-500 border-amber-500/50' 
-                                        : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700'
+                                        ? 'bg-blue-500 text-white border-blue-500 shadow-lg' 
+                                        : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
                                 }`}
+                                whileTap={{ scale: 0.95 }}
                             >
-                                {getStatusText(status)} ({count})
-                            </button>
+                                <div className="flex items-center gap-2">
+                                    {getStatusIcon(status)}
+                                    <span>{getStatusText(status)}</span>
+                                    <span className={`px-2 py-1 rounded-full text-xs ${
+                                        activeTab === status ? 'bg-white/20' : 'bg-gray-200'
+                                    }`}>
+                                        {count}
+                                    </span>
+                                </div>
+                            </motion.button>
                         );
                     })}
                 </div>

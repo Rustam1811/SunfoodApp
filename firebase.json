@@ -7,9 +7,18 @@
       "**/node_modules/**"
     ],
     "rewrites": [
-      { "source": "/api/**",   "function": "app"    },
-      { "source": "/admin/**", "destination": "/admin/index.html" },
-      { "source": "**",        "destination": "/index.html"      }
+      {
+        "source": "/api/**",
+        "function": "app"
+      },
+      {
+        "source": "/admin/**",
+        "destination": "/admin/index.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
     ],
     "headers": [
       {
@@ -33,6 +42,10 @@
         "firebase-debug.log",
         "firebase-debug.*.log",
         "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
       ]
     }
   ]

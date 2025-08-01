@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест историй</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 10px; }
+        .result { background: #f8f9fa; padding: 10px; border-radius: 4px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Тест системы историй</h1>
+    
+    <button class="button" onclick="createStory()">Создать тестовую историю</button>
+    <button class="button" onclick="getStories()">Получить все истории</button>
+    
+    <div id="result" class="result" style="display: none;"></div>
+
+    <script>
+        const baseUrl = 'https://us-central1-coffeeaddict-c9d70.cloudfunctions.net';
+
+        function showResult(data) {
+            const element = document.getElementById('result');
+            element.style.display = 'block';
+            element.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+
+        async function createStory() {
+            try {
+                const expiresAt = new Date();
+                expiresAt.setHours(expiresAt.getHours() + 24);
+
+                const response = await fetch(`${baseUrl}/stories`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'create',
+                        story: {
+                            title: 'Тестовая история',
+                            content: {
+                                type: 'text',
+                                text: 'Это тестовая история! 🎉',
+                                backgroundColor: '#FF6B6B'
+                            },
+                            duration: 5,
+                            isActive: true,
+                            expiresAt: expiresAt.toISOString()
+                        }
+                    }),
+                });
+                const data = await response.json();
+                showResult(data);
+            } catch (error) {
+                showResult({ error: error.message });
+            }
+        }
+
+        async function getStories() {
+            try {
+                const response = await fetch(`${baseUrl}/stories`);
+                const data = await response.json();
+                showResult(data);
+            } catch (error) {
+                showResult({ error: error.message });
+            }
+        }
+    </script>
+</body>
+</html>

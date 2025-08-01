@@ -1,7 +1,40 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { UserIcon, TrophyIcon, TicketIcon, FireIcon, StarIcon, ChevronRightIcon, ArrowLeftOnRectangleIcon, GiftIcon, CurrencyDollarIcon } from '@heroicons/react/24/solid';
+import { UserIcon, TrophyIcon, TicketIcon, FireIcon, StarIcon, ChevronRightIcon, ArrowLeftOnRectangleIcon, GiftIcon, CurrencyDollarIcon, ShoppingBagIcon, PencilIcon } from '@heroicons/react/24/solid';
 import BonusSystemNew from '../components/BonusSystemNew';
+import { AchievementList } from '../components/AchievementList';
+import { PromotionBanner } from '../components/PromotionBanner';
+
+// ===================================================================
+//  УТИЛИТЫ
+// ===================================================================
+
+// Получаем данные пользователя из localStorage
+const getUserData = () => {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            return JSON.parse(userData);
+        }
+    } catch (e) {
+        console.error('Ошибка получения данных пользователя:', e);
+    }
+    return { 
+        id: '87053096206', 
+        name: 'Пользователь', 
+        phone: '87053096206',
+        avatar: "https://images.unsplash.com/photo-1531123414780-f74242c2b052?auto=format&fit=crop&w=300&h=300&q=80"
+    };
+};
+
+// Сохраняем данные пользователя в localStorage
+const saveUserData = (userData: any) => {
+    try {
+        localStorage.setItem('user', JSON.stringify(userData));
+    } catch (e) {
+        console.error('Ошибка сохранения данных пользователя:', e);
+    }
+};
 
 // ===================================================================
 //  ДАННЫЕ И ТИПЫ
@@ -9,11 +42,7 @@ import BonusSystemNew from '../components/BonusSystemNew';
 
 const initialUserProfile = {
     name: "Манарбек",
-    level: "Ценитель Кофе",
     avatar: "https://images.unsplash.com/photo-1531123414780-f74242c2b052?auto=format&fit=crop&w=300&h=300&q=80",
-    points: 185,
-    lastVisitToday: true,
-    streak: 7,
     stamps: 10,
     rarity: "common",
     stampsToReward: 10,
@@ -46,6 +75,12 @@ const initialUserProfile = {
         multiplier: 1.0,
         earnedThisMonth: 0,
         spentThisMonth: 0
+    },
+    recentOrders: [],
+    orderStats: {
+        totalSpent: 0,
+        favoriteItem: 'Капучино',
+        averageOrderValue: 0
     }
 };
 
@@ -53,15 +88,8 @@ const initialUserProfile = {
 //  КОМПОНЕНТЫ
 // ===================================================================
 
-const BalanceBar = ({ points, streak, lastVisitToday, bonusData }) => (
+const StatsBar = ({ bonusData, orderStats }) => (
     <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white p-4 rounded-2xl shadow-lg flex items-center gap-3 border border-slate-200/60">
-            <StarIcon className="w-8 h-8 text-yellow-400 flex-shrink-0"/>
-            <div>
-                <p className="text-2xl font-bold text-slate-900">{points}</p>
-                <p className="text-xs text-slate-500">Очки</p>
-            </div>
-        </div>
         <div className="bg-white p-4 rounded-2xl shadow-lg flex items-center gap-3 border border-slate-200/60">
             <CurrencyDollarIcon className="w-8 h-8 text-green-400 flex-shrink-0"/>
             <div>
@@ -69,11 +97,18 @@ const BalanceBar = ({ points, streak, lastVisitToday, bonusData }) => (
                 <p className="text-xs text-slate-500">Бонусы</p>
             </div>
         </div>
-         <div className="bg-white p-4 rounded-2xl shadow-lg flex items-center gap-3 border border-slate-200/60">
-            <FireIcon className={`w-8 h-8 flex-shrink-0 transition-colors ${lastVisitToday ? 'text-red-500' : 'text-slate-400'}`}/>
+        <div className="bg-white p-4 rounded-2xl shadow-lg flex items-center gap-3 border border-slate-200/60">
+            <ShoppingBagIcon className="w-8 h-8 text-blue-400 flex-shrink-0"/>
             <div>
-                <p className="text-2xl font-bold text-slate-900">{streak}</p>
-                <p className="text-xs text-slate-500">{lastVisitToday ? 'Дней стрик 🔥' : 'Стрик под угрозой!'}</p>
+                <p className="text-2xl font-bold text-slate-900">{bonusData.totalOrders}</p>
+                <p className="text-xs text-slate-500">Заказов</p>
+            </div>
+        </div>
+         <div className="bg-white p-4 rounded-2xl shadow-lg flex items-center gap-3 border border-slate-200/60">
+            <StarIcon className="w-8 h-8 text-purple-400 flex-shrink-0"/>
+            <div>
+                <p className="text-lg font-bold text-slate-900">x{bonusData.multiplier}</p>
+                <p className="text-xs text-slate-500">Множитель</p>
             </div>
         </div>
     </div>
@@ -176,35 +211,105 @@ const UltimateProfilePage: React.FC = () => {
     const [profile, setProfile] = useState(initialUserProfile);
     const [isCelebrating, setIsCelebrating] = useState(false);
     const [showBonusSystem, setShowBonusSystem] = useState(false);
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [tempUserName, setTempUserName] = useState('');
 
     useEffect(() => {
         fetchBonusData();
+        fetchOrderStats();
+        // Загружаем имя пользователя
+        const userData = getUserData();
+        setTempUserName(userData.name || 'Пользователь');
     }, []);
 
     const fetchBonusData = async () => {
         try {
             const userId = getUserId();
-            const response = await fetch(`/api/user-bonus?userId=${userId}`);
+            console.log('🔥 Profile: загружаем бонусы для пользователя:', userId);
+            
+            const response = await fetch(`https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/userBonus?userId=${userId}`);
+            console.log('🔥 Profile: ответ API user-bonus:', response.status);
+            
             if (response.ok) {
                 const bonusData = await response.json();
+                console.log('🔥 Profile: получены данные бонусов:', bonusData);
                 setProfile(prev => ({ ...prev, bonusData }));
+            } else {
+                const errorData = await response.json();
+                console.error('🔥 Profile: ошибка API user-bonus:', errorData);
             }
         } catch (error) {
             console.error('Ошибка загрузки бонусных данных:', error);
         }
     };
 
+    const fetchOrderStats = async () => {
+        try {
+            const userId = getUserId();
+            const response = await fetch(`https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/orders?userId=${userId}`);
+            if (response.ok) {
+                const orders = await response.json();
+                const totalSpent = orders.reduce((sum, order) => sum + order.amount, 0);
+                const averageOrderValue = orders.length > 0 ? Math.round(totalSpent / orders.length) : 0;
+                
+                // Находим самый популярный товар
+                const itemCounts = {};
+                orders.forEach(order => {
+                    order.items?.forEach(item => {
+                        itemCounts[item.name] = (itemCounts[item.name] || 0) + item.quantity;
+                    });
+                });
+                const favoriteItem = Object.keys(itemCounts).reduce((a, b) => 
+                    itemCounts[a] > itemCounts[b] ? a : b, 'Капучино');
+
+                setProfile(prev => ({
+                    ...prev,
+                    orderStats: { totalSpent, favoriteItem, averageOrderValue },
+                    recentOrders: orders.slice(0, 3)
+                }));
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки статистики заказов:', error);
+        }
+    };
+
     const getUserId = () => {
         try {
             const userData = localStorage.getItem('user');
+            console.log('🔥 getUserId: userData из localStorage:', userData);
             if (userData) {
                 const user = JSON.parse(userData);
-                return user.phone || user.id || '+77071234567';
+                console.log('🔥 getUserId: распарсенный user:', user);
+                const userId = user.phone || user.id || user.userId || '87053096206';
+                console.log('🔥 getUserId: итоговый userId:', userId);
+                return userId;
             }
         } catch (e) {
             console.error('Ошибка парсинга user из localStorage:', e);
         }
-        return '+77071234567';
+        // Временно используем правильный userId для тестирования бонусов
+        return '87053096206';
+    };
+
+    // Функции для редактирования профиля
+    const handleSaveProfile = () => {
+        const userData = getUserData();
+        const updatedUserData = {
+            ...userData,
+            name: tempUserName
+        };
+        saveUserData(updatedUserData);
+        setProfile(prev => ({
+            ...prev,
+            name: tempUserName
+        }));
+        setIsEditingProfile(false);
+    };
+
+    const handleCancelEdit = () => {
+        const userData = getUserData();
+        setTempUserName(userData.name || 'Пользователь');
+        setIsEditingProfile(false);
     };
 
     const handleClaimReward = useCallback(() => {
@@ -268,15 +373,53 @@ const UltimateProfilePage: React.FC = () => {
                     <div className="flex items-center gap-4">
                         <img src={profile.avatar} className="w-20 h-20 rounded-full object-cover shadow-lg" />
                         <div className="flex-1">
-                            <h2 className="text-3xl font-extrabold">{profile.name}</h2>
-                            <div className="flex items-center gap-2 mt-1">
-                                <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold">
-                                    <TrophyIcon className="w-5 h-5 text-amber-500" />
-                                    {profile.level}
+                            {isEditingProfile ? (
+                                <div className="space-y-3">
+                                    <input 
+                                        type="text" 
+                                        value={tempUserName}
+                                        onChange={(e) => setTempUserName(e.target.value)}
+                                        className="w-full text-2xl font-extrabold bg-white border-2 border-blue-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400"
+                                        placeholder="Введите ваше имя"
+                                        maxLength={30}
+                                    />
+                                    <div className="flex gap-2">
+                                        <button 
+                                            onClick={handleSaveProfile}
+                                            className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            ✓ Сохранить
+                                        </button>
+                                        <button 
+                                            onClick={handleCancelEdit}
+                                            className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            ✕ Отмена
+                                        </button>
+                                    </div>
                                 </div>
+                            ) : (
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-3xl font-extrabold text-slate-900">{getUserData().name}</h2>
+                                        <p className="text-slate-500 text-sm mt-1">Нажмите на карандаш для редактирования</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setIsEditingProfile(true)}
+                                        className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-xl transition-colors shadow-lg"
+                                    >
+                                        <PencilIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            )}
+                            <div className="flex items-center gap-2 mt-3">
                                 <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
                                     <GiftIcon className="w-5 h-5 text-purple-500" />
                                     {profile.bonusData.level}
+                                </div>
+                                <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+                                    <ShoppingBagIcon className="w-5 h-5 text-blue-500" />
+                                    {profile.bonusData.totalOrders} заказов
                                 </div>
                             </div>
                         </div>
@@ -284,11 +427,9 @@ const UltimateProfilePage: React.FC = () => {
                 </motion.section>
 
                 <motion.section custom={1} initial="hidden" animate="visible" variants={sectionVariants}>
-                    <BalanceBar 
-                        points={profile.points} 
-                        streak={profile.streak} 
-                        lastVisitToday={profile.lastVisitToday} 
+                    <StatsBar 
                         bonusData={profile.bonusData}
+                        orderStats={profile.orderStats}
                     />
                 </motion.section>
 
@@ -334,33 +475,45 @@ const UltimateProfilePage: React.FC = () => {
                 </motion.section>
                 
                 <motion.section custom={4} initial="hidden" animate="visible" variants={sectionVariants}>
-                     <div className="flex justify-between items-center mb-3">
-                        <h2 className="text-2xl font-bold text-slate-900">Достижения</h2>
-                        <button className="font-semibold text-sm text-orange-600 flex items-center gap-1">
-                            Все <ChevronRightIcon className="w-4 h-4"/>
-                        </button>
-                     </div>
-                    <div className="flex space-x-4 overflow-x-auto -mx-4 px-4 pb-4" style={{scrollbarWidth: 'none'}}>
-                        {profile.achievements.map(ach => (
-                           <AchievementIcon key={ach.id} achievement={ach} />
-                        ))}
-                    </div>
+                    <AchievementList />
                 </motion.section>
 
                 <motion.section custom={5} initial="hidden" animate="visible" variants={sectionVariants}>
-                    <h2 className="text-2xl font-bold text-slate-900 mb-3">Персональные квесты</h2>
+                    <PromotionBanner showAll={false} maxItems={2} />
+                </motion.section>
+
+                <motion.section custom={6} initial="hidden" animate="visible" variants={sectionVariants}>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-3">Статистика заказов</h2>
                      <div className="space-y-3">
-                        {profile.personalQuests.map(quest => (
-                            <div key={quest.id} className="bg-white p-4 rounded-2xl shadow-lg flex items-center gap-4 border border-slate-200/80">
-                                <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center">
-                                    <TicketIcon className="w-7 h-7 text-orange-500" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="font-semibold text-slate-800">{quest.title}</p>
-                                    <p className="text-sm text-slate-500">{quest.description}</p>
-                                </div>
+                        <div className="bg-white p-4 rounded-2xl shadow-lg flex items-center gap-4 border border-slate-200/80">
+                            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <CurrencyDollarIcon className="w-7 h-7 text-green-500" />
                             </div>
-                        ))}
+                            <div className="flex-1">
+                                <p className="font-semibold text-slate-800">Всего потрачено</p>
+                                <p className="text-sm text-slate-500">{profile.orderStats.totalSpent} ₸ за все время</p>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white p-4 rounded-2xl shadow-lg flex items-center gap-4 border border-slate-200/80">
+                            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                <StarIcon className="w-7 h-7 text-orange-500" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="font-semibold text-slate-800">Любимый напиток</p>
+                                <p className="text-sm text-slate-500">{profile.orderStats.favoriteItem}</p>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white p-4 rounded-2xl shadow-lg flex items-center gap-4 border border-slate-200/80">
+                            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <TicketIcon className="w-7 h-7 text-blue-500" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="font-semibold text-slate-800">Средний чек</p>
+                                <p className="text-sm text-slate-500">{profile.orderStats.averageOrderValue} ₸ за заказ</p>
+                            </div>
+                        </div>
                     </div>
                 </motion.section>
             </main>

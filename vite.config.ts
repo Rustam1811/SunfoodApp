@@ -16,9 +16,35 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: mode === 'development' ? 'http://localhost:3000' : 'https://coffee-addict.vercel.app',
+          target: 'http://localhost:3000',
           changeOrigin: true,
-          rewrite: path => path.replace(/^\/api/, '/api')
+          secure: false,
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.log('proxy error', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('Proxying', req.method, req.url, 'to', options.target + req.url);
+            });
+          }
+        },
+        '/firebase-api': {
+          target: 'https://us-central1-coffeeaddict-c9d70.cloudfunctions.net',
+          changeOrigin: true,
+          secure: true,
+          ws: false,
+          rewrite: (path) => path.replace(/^\/firebase-api/, ''),
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.error('Firebase proxy error:', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('🔄 Proxying to Firebase:', req.method, req.url, '→', options.target + req.url.replace('/firebase-api', ''));
+            });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log('✅ Firebase response:', proxyRes.statusCode, 'for', req.url);
+            });
+          }
         }
       }
     }

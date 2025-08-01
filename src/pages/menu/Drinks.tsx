@@ -33,7 +33,18 @@ export interface Product {
     tagline?: string;
 }
 
-const mockUser = { name: "Алекс" };
+// Получаем данные пользователя из localStorage
+const getUserData = () => {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            return JSON.parse(userData);
+        }
+    } catch (e) {
+        console.error('Ошибка получения данных пользователя:', e);
+    }
+    return { id: '87053096206', name: 'Пользователь', phone: '87053096206' };
+};
 
 // Объект переводов
 const translations = {
@@ -332,8 +343,8 @@ export default function Drinks() {
     const { items: cart, dispatch } = useCart();
     const [showCartModal, setShowCartModal] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
-    // Имитация авторизации: userId, phone, name
-    const user = { id: 'user123', name: 'Алекс', phone: '+77071234567' };
+    // Получаем данные пользователя
+    const user = getUserData();
     const [showSwipeHint, setShowSwipeHint] = useState(true);
 
     // Плавная Apple-style навигация по категориям
@@ -417,7 +428,7 @@ export default function Drinks() {
         <div {...swipeHandlers} className="bg-slate-100 min-h-screen font-sans text-slate-900 touch-pan-y">
             <header className="p-5">
                 <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-extrabold">{t('ui.hello') || 'Привет'}, {mockUser.name}!</h1>
+                    <h1 className="text-3xl font-extrabold">{t('ui.hello') || 'Меню'}</h1>
                     <div className="flex items-center gap-3">
                         <LanguageSelector
                             currentLanguage={currentLanguage}
@@ -562,8 +573,8 @@ export default function Drinks() {
     );
 // Модальное окно корзины
 function CartModal({ cart, onClose, onOrderSuccess }) {
-    // Получаем данные пользователя из пропсов или глобального контекста
-    const user = { id: 'user123', name: 'Алекс', phone: '+77071234567' };
+    // Получаем данные пользователя
+    const user = getUserData();
     const [comment, setComment] = React.useState("");
     const [sending, setSending] = React.useState(false);
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -574,7 +585,7 @@ function CartModal({ cart, onClose, onOrderSuccess }) {
         setSending(true);
         try {
             // Отправляем заказ на правильный API endpoint
-            const res = await fetch("/api/orders", {
+            const res = await fetch("https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/orders", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -623,10 +634,6 @@ function CartModal({ cart, onClose, onOrderSuccess }) {
                             ))}
                         </ul>
                         <div className="font-bold text-lg mb-4 text-slate-900">Итого: {total} ₸</div>
-                        <div className="mb-2 px-3 py-2 border rounded-lg bg-slate-50">
-                            <div className="text-xs text-slate-500 mb-1">Имя</div>
-                            <div className="font-semibold text-slate-800">{user.name}</div>
-                        </div>
                         <div className="mb-2 px-3 py-2 border rounded-lg bg-slate-50">
                             <div className="text-xs text-slate-500 mb-1">Телефон</div>
                             <div className="font-semibold text-slate-800">{user.phone} <span className="text-xs text-slate-500">(последние 4 цифры: <b>{last4}</b>)</span></div>

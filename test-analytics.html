@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Аналитики</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .error { border-color: red; background: #fee; }
+        .success { border-color: green; background: #efe; }
+    </style>
+</head>
+<body>
+    <h1>Тест Аналитики Firebase Functions</h1>
+    <button onclick="testAnalytics()">Тестировать загрузку заказов</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAnalytics() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="result">Загрузка...</div>';
+            
+            try {
+                console.log('🔍 Начинаем тестирование...');
+                
+                const apiUrl = 'https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/orders?admin=true&v=' + Date.now();
+                console.log('📊 Используем URL:', apiUrl);
+                
+                // Пробуем сначала fetch
+                let response;
+                try {
+                    response = await fetch(apiUrl, {
+                        method: 'GET',
+                        mode: 'cors'
+                    });
+                } catch (fetchError) {
+                    console.error('Fetch failed, trying XMLHttpRequest:', fetchError);
+                    
+                    // Fallback на XMLHttpRequest
+                    const data = await new Promise((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('GET', apiUrl, true);
+                        xhr.onreadystatechange = function() {
+                            if (xhr.readyState === 4) {
+                                if (xhr.status === 200) {
+                                    try {
+                                        resolve(JSON.parse(xhr.responseText));
+                                    } catch (e) {
+                                        reject(new Error('Ошибка парсинга JSON: ' + e.message));
+                                    }
+                                } else {
+                                    reject(new Error(`HTTP ${xhr.status}: ${xhr.responseText}`));
+                                }
+                            }
+                        };
+                        xhr.onerror = () => reject(new Error('Сетевая ошибка'));
+                        xhr.send();
+                    });
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="result success">
+                            <strong>✅ Успешно (XMLHttpRequest)!</strong><br>
+                            Загружено заказов: ${data.orders?.length || 0}
+                        </div>
+                        <div class="result">
+                            <strong>Первые 3 заказа:</strong><br>
+                            <pre>${JSON.stringify(data.orders?.slice(0, 3), null, 2)}</pre>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                console.log('📊 Ответ сервера status:', response.status, 'url:', response.url);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const contentType = response.headers.get('content-type');
+                console.log('📊 Content-type:', contentType);
+                
+                if (!contentType || !contentType.includes('application/json')) {
+                    const responseText = await response.text();
+                    throw new Error(`Неожиданный content-type: ${contentType}. Ответ: ${responseText.substring(0, 100)}`);
+                }
+                
+                const data = await response.json();
+                console.log('📊 Получено заказов:', data.orders?.length || 0);
+                
+                resultsDiv.innerHTML = `
+                    <div class="result success">
+                        <strong>✅ Успешно (fetch)!</strong><br>
+                        Загружено заказов: ${data.orders?.length || 0}<br>
+                        Content-Type: ${contentType}<br>
+                        Status: ${response.status}
+                    </div>
+                    <div class="result">
+                        <strong>Первые 3 заказа:</strong><br>
+                        <pre>${JSON.stringify(data.orders?.slice(0, 3), null, 2)}</pre>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('📊 Ошибка:', error);
+                resultsDiv.innerHTML = `
+                    <div class="result error">
+                        <strong>❌ Ошибка:</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -122,7 +122,7 @@ const Booking: React.FC = () => {
                 <form onSubmit={handleBooking} className="bg-zinc-800/50 border border-zinc-700/50 rounded-2xl shadow-xl p-6 space-y-6">
                     <div>
                         <FormLabel icon={<UserIcon className="w-5 h-5 text-zinc-400"/>} text="Ваше имя" />
-                        <FormInput type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Алекс" error={formErrors.name} />
+                        <FormInput type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Введите ваше имя" error={formErrors.name} />
                         {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
                     </div>
                     <div>

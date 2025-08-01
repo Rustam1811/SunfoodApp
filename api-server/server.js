@@ -27,15 +27,15 @@ const login = require('../api/login');
 const register = require('../api/register');
 
 // API Routes
-app.all('/api/bonus-settings', bonusSettings);
-app.all('/api/orders', orders);
-app.all('/api/user-bonus', userBonus);
-app.all('/api/use-bonus', useBonus);
-app.all('/api/promo-codes', promoCodes);
-app.all('/api/test-bonus', testBonus);
-app.all('/api/simple-order', simpleOrder);
-app.all('/api/login', login);
-app.all('/api/register', register);
+app.use('/api/bonus-settings', bonusSettings);
+app.use('/api/orders', orders);
+app.use('/api/user-bonus', userBonus);
+app.use('/api/use-bonus', useBonus);
+app.use('/api/promo-codes', promoCodes);
+app.use('/api/test-bonus', testBonus);
+app.use('/api/simple-order', simpleOrder);
+app.use('/api/login', login);
+app.use('/api/register', register);
 
 // Health check
 app.get('/api/health', (req, res) => {

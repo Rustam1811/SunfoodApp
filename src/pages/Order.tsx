@@ -63,12 +63,12 @@ const Order: React.FC = () => {
             const userData = localStorage.getItem('user');
             if (userData) {
                 const user = JSON.parse(userData);
-                return user.phone || user.id || '+77071234567';
+                return user.phone || user.id || '87053096206';
             }
         } catch (e) {
             console.error('Ошибка парсинга user из localStorage:', e);
         }
-        return '+77071234567'; // fallback
+        return '87053096206'; // fallback для реального пользователя
     };
     
     const userId = getUserId();
@@ -76,7 +76,7 @@ const Order: React.FC = () => {
     // Загрузка заказов пользователя
     const fetchOrders = useCallback(async () => {
         try {
-            const res = await fetch(`/api/orders?userId=${userId}`);
+            const res = await fetch(`https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/orders?userId=${userId}`);
             if (!res.ok) return;
             const data = await res.json();
             // API возвращает массив для пользователей, объект с orders для админки
@@ -90,7 +90,7 @@ const Order: React.FC = () => {
     // Загрузка бонусных данных
     const fetchBonusData = useCallback(async () => {
         try {
-            const response = await fetch(`/api/user-bonus?userId=${userId}`);
+            const response = await fetch(`https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/userBonus?userId=${userId}`);
             if (response.ok) {
                 const data = await response.json();
                 setBonusData(data);
@@ -103,7 +103,7 @@ const Order: React.FC = () => {
     // Загрузка активных промокодов
     const fetchPromoCodes = useCallback(async () => {
         try {
-            const response = await fetch(`/api/promo-codes?userId=${userId}`);
+            const response = await fetch(`https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/promoCodes?userId=${userId}`);
             if (response.ok) {
                 const data = await response.json();
                 setPromoCodes(data.filter(code => !code.isUsed && new Date(code.expiresAt) > new Date()));
@@ -151,7 +151,7 @@ const Order: React.FC = () => {
 
             console.log('Отправляем заказ:', orderData); // Для отладки
 
-            const response = await fetch('/api/orders', {
+            const response = await fetch('https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData)
@@ -161,6 +161,9 @@ const Order: React.FC = () => {
             console.log('Ответ API:', result); // Для отладки
 
             if (response.ok) {
+                // Бонусы начисляются автоматически в Firebase Functions
+                console.log('Заказ успешно создан:', result.orderId);
+
                 // Очищаем корзину после успешного заказа
                 dispatch({ type: 'CLEAR_CART' });
                 setBonusToUse(0);
@@ -169,7 +172,7 @@ const Order: React.FC = () => {
                 await fetchBonusData();
                 await fetchPromoCodes();
                 
-                const message = result.message || `Заказ оформлен! Начислено ${result.bonusEarned} бонусов`;
+                const message = result.message || `Заказ оформлен! Начислено бонусов за заказ`;
                 setToastMessage(message);
                 setShowToast(true);
                 setTimeout(() => setShowToast(false), 4000);

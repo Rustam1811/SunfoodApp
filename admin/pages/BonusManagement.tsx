@@ -113,10 +113,18 @@ const BonusManagement: React.FC = () => {
 
     const fetchBonusSettings = async () => {
         try {
-            const response = await fetch('/api/bonus-settings');
+            const response = await fetch('https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/bonusSettings');
             if (response.ok) {
                 const data = await response.json();
-                setSettings(data);
+                // Адаптируем данные из Firebase под формат админки
+                if (data.percentage !== undefined) {
+                    setSettings(prev => ({
+                        ...prev,
+                        baseRate: data.percentage
+                    }));
+                } else {
+                    setSettings(data);
+                }
             }
         } catch (error) {
             console.error('Ошибка загрузки настроек бонусов:', error);
@@ -126,10 +134,17 @@ const BonusManagement: React.FC = () => {
     const saveBonusSettings = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/bonus-settings', {
+            // Адаптируем данные под формат Firebase функции
+            const firebaseSettings = {
+                percentage: settings.baseRate,
+                maxBonus: 1000,
+                minOrderAmount: 100
+            };
+
+            const response = await fetch('https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/bonusSettings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(settings)
+                body: JSON.stringify(firebaseSettings)
             });
 
             if (response.ok) {

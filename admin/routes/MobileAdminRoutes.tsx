@@ -11,7 +11,7 @@ import MenuPageNew from '../pages/MenuPageNew';
 import BonusManagement from '../pages/BonusManagement';
 import AchievementManagement from '../pages/AchievementManagement';
 import PromotionManagement from '../pages/PromotionManagement';
-import StoryManagement from '../pages/StoryManagement';
+import StoryManagement from '../pages/StoryManagement_New';
 
 /**
  * Главный роутер админ-панели с мобильной навигацией

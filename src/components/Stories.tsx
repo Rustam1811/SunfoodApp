@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PlayIcon, XMarkIcon, EyeIcon } from '@heroicons/react/24/outline';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase';
+import { createPortal } from 'react-dom';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { ApiService } from '../services/apiConfig';
 
 interface Story {
   id: string;
@@ -13,323 +13,289 @@ interface Story {
     text?: string;
     backgroundColor?: string;
   };
-  duration?: number; // для видео в секундах
-  viewCount: number;
-  isActive: boolean;
-  expiresAt: any;
-  createdAt: any;
+  duration?: number;
 }
 
-interface StoryViewer {
-  userId: string;
-  storyId: string;
-  viewedAt: any;
-}
-
-interface StoriesProps {
-  className?: string;
-  onStoryClick?: (story: Story) => void;
-}
-
-export const Stories: React.FC<StoriesProps> = ({ className = '', onStoryClick }) => {
-  const [stories, setStories] = useState<Story[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
-  const [viewedStories, setViewedStories] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user?.uid || null);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    loadStories();
-    if (currentUser) {
-      loadViewedStories();
-    }
-  }, [currentUser]);
-
-  const loadStories = async () => {
-    try {
-      const response = await fetch('https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/stories');
-      if (response.ok) {
-        const data = await response.json();
-        const activeStories = (data.stories || []).filter((story: Story) => {
-          const now = new Date();
-          const expiresAt = new Date(story.expiresAt);
-          return story.isActive && now < expiresAt;
-        });
-        
-        setStories(activeStories.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-      }
-    } catch (error) {
-      console.error('Ошибка загрузки историй:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadViewedStories = async () => {
-    if (!currentUser) return;
-
-    try {
-      const response = await fetch(`https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/stories?userId=${currentUser}&action=getViewed`);
-      if (response.ok) {
-        const data = await response.json();
-        const viewed = new Set<string>((data.viewedStories || []).map((v: StoryViewer) => v.storyId));
-        setViewedStories(viewed);
-      }
-    } catch (error) {
-      console.error('Ошибка загрузки просмотренных историй:', error);
-    }
-  };
-
-  const markAsViewed = async (storyId: string) => {
-    if (!currentUser || viewedStories.has(storyId)) return;
-
-    try {
-      await fetch('https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/stories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: currentUser,
-          storyId,
-          action: 'view'
-        }),
-      });
-
-      setViewedStories(prev => new Set([...prev, storyId]));
-    } catch (error) {
-      console.error('Ошибка при отметке просмотра:', error);
-    }
-  };
-
-  const handleStoryClick = (story: Story) => {
-    markAsViewed(story.id);
-    onStoryClick?.(story);
-  };
-
-  if (loading) {
-    return (
-      <div className={`${className} animate-pulse`}>
-        <div className="flex space-x-3 overflow-x-auto">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="w-16 h-16 bg-gray-200 rounded-full flex-shrink-0"></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (stories.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className={`${className}`}>
-      <h2 className="text-lg font-bold text-gray-900 mb-3">Истории</h2>
-      
-      <div className="flex space-x-3 overflow-x-auto pb-2">
-        {stories.map((story, index) => {
-          const isViewed = viewedStories.has(story.id);
-          
-          return (
-            <motion.button
-              key={story.id}
-              onClick={() => handleStoryClick(story)}
-              whileTap={{ scale: 0.95 }}
-              className="flex-shrink-0 focus:outline-none"
-            >
-              <div className={`relative w-16 h-16 rounded-full p-0.5 ${
-                isViewed 
-                  ? 'bg-gray-300' 
-                  : 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600'
-              }`}>
-                <div className="w-full h-full bg-white rounded-full p-0.5">
-                  <div className="w-full h-full rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                    {story.content.type === 'image' && story.content.url ? (
-                      <img 
-                        src={story.content.url} 
-                        alt={story.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : story.content.type === 'video' && story.content.url ? (
-                      <div className="relative w-full h-full bg-black flex items-center justify-center">
-                        <PlayIcon className="w-6 h-6 text-white" />
-                      </div>
-                    ) : (
-                      <div 
-                        className="w-full h-full flex items-center justify-center text-xs font-bold text-white"
-                        style={{ backgroundColor: story.content.backgroundColor || '#6B46C1' }}
-                      >
-                        {story.title.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {!isViewed && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                )}
-              </div>
-              
-              <p className="text-xs text-gray-600 mt-1 w-16 truncate text-center">
-                {story.title}
-              </p>
-            </motion.button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-interface StoryViewerProps {
+interface Props {
   stories: Story[];
   currentIndex: number;
   onClose: () => void;
   onNext: () => void;
   onPrevious: () => void;
-  onMarkViewed: (storyId: string) => void;
+  onMarkViewed: (id: string) => void;
 }
 
-export const StoryViewer: React.FC<StoryViewerProps> = ({
+export const StoryViewer: React.FC<Props> = ({
   stories,
   currentIndex,
   onClose,
   onNext,
   onPrevious,
-  onMarkViewed
+  onMarkViewed,
 }) => {
-  const [progress, setProgress] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  
+  // --- Главная защита ---
+  if (
+    !Array.isArray(stories) ||
+    !stories.length ||
+    typeof currentIndex !== 'number' ||
+    !stories[currentIndex] ||
+    !stories[currentIndex].content
+  ) {
+    return null;
+  }
+
   const currentStory = stories[currentIndex];
-  const duration = currentStory?.duration || 5; // 5 секунд по умолчанию
+  const [progress, setProgress] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const frameRef = useRef(0);
+  const rafId = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const duration = (currentStory?.duration || 5) * 1000;
 
-  useEffect(() => {
-    if (!currentStory || isPaused) return;
+  const loop = useCallback(
+    (timestamp: number) => {
+      if (!frameRef.current) frameRef.current = timestamp;
+      const delta = timestamp - frameRef.current;
 
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        const newProgress = prev + (100 / (duration * 10)); // обновляем каждые 100мс
-        
+      if (!paused) {
+        const newProgress = Math.min(100, (delta / duration) * 100);
+        setProgress(newProgress);
         if (newProgress >= 100) {
           onMarkViewed(currentStory.id);
-          onNext();
-          return 0;
+          currentIndex < stories.length - 1 ? onNext() : onClose();
+          frameRef.current = 0;
+          return;
         }
-        
-        return newProgress;
-      });
-    }, 100);
+      }
+      rafId.current = requestAnimationFrame(loop);
+    },
+    [paused, duration, currentStory.id, currentIndex, onClose, onNext, onMarkViewed, stories.length]
+  );
 
-    return () => clearInterval(interval);
-  }, [currentStory, isPaused, duration, onNext, onMarkViewed]);
+  useEffect(() => {
+    rafId.current = requestAnimationFrame(loop);
+    return () => rafId.current && cancelAnimationFrame(rafId.current);
+  }, [loop]);
 
   useEffect(() => {
     setProgress(0);
+    frameRef.current = 0;
   }, [currentIndex]);
 
-  if (!currentStory) return null;
+  const handleSwipe = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touchStartY = e.touches[0].clientY;
+    const handleEnd = (ev: TouchEvent) => {
+      const deltaY = ev.changedTouches[0].clientY - touchStartY;
+      if (deltaY > 80) onClose();
+      window.removeEventListener('touchend', handleEnd);
+    };
+    window.addEventListener('touchend', handleEnd);
+  };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <motion.div
+        ref={containerRef}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+        className="fixed inset-0 z-[99999] bg-black flex flex-col"
+        style={{ height: '100dvh', overscrollBehavior: 'none' }}
+        onTouchStart={handleSwipe}
       >
-        {/* Прогресс бары */}
-        <div className="absolute top-4 left-4 right-4 flex space-x-1 z-10">
-          {stories.map((_, index) => (
-            <div key={index} className="flex-1 h-1 bg-white bg-opacity-30 rounded-full overflow-hidden">
+        {/* Progress */}
+        <div className="absolute top-4 left-4 right-4 flex space-x-1 z-20">
+          {stories.map((_, i) => (
+            <div key={i} className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-white rounded-full"
                 style={{
-                  width: index < currentIndex ? '100%' : 
-                         index === currentIndex ? `${progress}%` : '0%'
+                  width:
+                    i < currentIndex
+                      ? '100%'
+                      : i === currentIndex
+                      ? `${progress}%`
+                      : '0%',
                 }}
-                transition={{ duration: 0.1 }}
               />
             </div>
           ))}
         </div>
 
-        {/* Кнопка закрытия */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-8 h-8 bg-black bg-opacity-50 rounded-full flex items-center justify-center"
-        >
-          <XMarkIcon className="w-5 h-5 text-white" />
-        </button>
+        {/* Close Button */}
+        <div className="absolute top-4 right-4 z-30">
+          <button onClick={onClose} className="p-2 bg-black/50 rounded-full">
+            <XMarkIcon className="h-6 w-6 text-white" />
+          </button>
+        </div>
 
-        {/* Контент истории */}
-        <div 
-          className="w-full h-full flex items-center justify-center"
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
-          onMouseDown={() => setIsPaused(true)}
-          onMouseUp={() => setIsPaused(false)}
+        {/* Tap Zones */}
+        <div className="absolute inset-0 z-10 flex">
+          <button
+            onClick={onPrevious}
+            disabled={currentIndex === 0}
+            className="flex-1"
+          />
+          <button
+            onClick={onNext}
+            disabled={currentIndex === stories.length - 1}
+            className="flex-1"
+          />
+        </div>
+
+        {/* Content */}
+        <div
+          className="flex-1 flex items-center justify-center text-white text-center p-4 select-none"
+          onMouseDown={() => setPaused(true)}
+          onMouseUp={() => setPaused(false)}
+          onTouchStart={() => setPaused(true)}
+          onTouchEnd={() => setPaused(false)}
         >
           {currentStory.content.type === 'image' && currentStory.content.url ? (
-            <img 
-              src={currentStory.content.url} 
+            <img
+              src={currentStory.content.url}
               alt={currentStory.title}
               className="max-w-full max-h-full object-contain"
             />
           ) : currentStory.content.type === 'video' && currentStory.content.url ? (
-            <video 
+            <video
               src={currentStory.content.url}
-              className="max-w-full max-h-full object-contain"
               autoPlay
               muted
-              loop
+              playsInline
+              className="max-w-full max-h-full object-contain"
             />
           ) : (
-            <div 
-              className="w-full h-full flex flex-col items-center justify-center p-8"
-              style={{ backgroundColor: currentStory.content.backgroundColor || '#6B46C1' }}
+            <div
+              style={{
+                backgroundColor:
+                  currentStory.content.backgroundColor || '#333',
+              }}
+              className="w-full h-full flex items-center justify-center"
             >
-              <h1 className="text-2xl font-bold text-white text-center mb-4">
-                {currentStory.title}
-              </h1>
+              <h1 className="text-3xl font-bold">{currentStory.title}</h1>
               {currentStory.content.text && (
-                <p className="text-lg text-white text-center leading-relaxed">
-                  {currentStory.content.text}
-                </p>
+                <div className="mt-2 text-lg">{currentStory.content.text}</div>
               )}
             </div>
           )}
         </div>
-
-        {/* Невидимые области для навигации */}
-        <button
-          onClick={onPrevious}
-          className="absolute left-0 top-0 w-1/3 h-full"
-          disabled={currentIndex === 0}
-        />
-        <button
-          onClick={onNext}
-          className="absolute right-0 top-0 w-1/3 h-full"
-        />
-
-        {/* Информация о истории */}
-        <div className="absolute bottom-4 left-4 right-4 z-10">
-          <div className="flex items-center space-x-2 text-white">
-            <EyeIcon className="w-4 h-4" />
-            <span className="text-sm">{currentStory.viewCount} просмотров</span>
-          </div>
-        </div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
+
+// Основной компонент Stories для отображения списка сторисов
+interface StoriesProps {
+  onStoryClick: (story: Story) => void;
+}
+
+const Stories: React.FC<StoriesProps> = ({ onStoryClick }) => {
+  const [stories, setStories] = useState<Story[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStories = async () => {
+      try {
+        setLoading(true);
+        const data = await ApiService.stories.getAll();
+        
+        // Фильтруем только активные сторисы
+        const activeStories = data.filter((story: any) => {
+          if (!story.isActive) return false;
+          // Проверяем, не истёк ли срок действия (24 часа)
+          const createdAt = new Date(story.createdAt?.toDate ? story.createdAt.toDate() : story.createdAt);
+          const now = new Date();
+          const hoursPassed = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+          return hoursPassed < 24;
+        });
+        
+        setStories(activeStories);
+      } catch (error) {
+        console.error('Ошибка загрузки сторисов:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStories();
+  }, []);
+
+  const handleMarkViewed = async (storyId: string) => {
+    try {
+      await ApiService.stories.incrementView(storyId);
+    } catch (error) {
+      console.error('Ошибка увеличения просмотров:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex space-x-3 px-2">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex flex-col items-center space-y-2">
+            <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse"></div>
+            <div className="w-12 h-3 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (stories.length === 0) {
+    return null; // Не показываем ничего, если нет активных сторисов
+  }
+
+  return (
+    <div className="relative">
+      <h3 className="text-lg font-semibold text-slate-900 mb-4 px-2">Истории</h3>
+      <div className="flex space-x-3 overflow-x-auto scrollbar-hide px-2 pb-2">
+        {stories.map((story) => (
+          <motion.div
+            key={story.id}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onStoryClick(story)}
+            className="flex flex-col items-center space-y-2 cursor-pointer flex-shrink-0"
+          >
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-400 via-pink-500 to-red-500 p-[2px]">
+                <div className="w-full h-full rounded-full bg-white p-[2px]">
+                  {story.content.type === 'image' && story.content.url ? (
+                    <img
+                      src={story.content.url}
+                      alt={story.title}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : story.content.type === 'video' && story.content.url ? (
+                    <video
+                      src={story.content.url}
+                      className="w-full h-full rounded-full object-cover"
+                      muted
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        backgroundColor: story.content.backgroundColor || '#6366f1',
+                      }}
+                      className="w-full h-full rounded-full flex items-center justify-center"
+                    >
+                      <span className="text-white text-xs font-bold">
+                        {story.title.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <span className="text-xs text-slate-600 text-center max-w-[60px] truncate">
+              {story.title}
+            </span>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Stories;

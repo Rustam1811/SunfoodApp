@@ -3,15 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MegaphoneIcon, TagIcon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
+import { ApiService } from '../services/apiConfig';
 
 interface Promotion {
   id: string;
   title: string;
   description: string;
-  discount: {
-    type: 'percentage' | 'fixed';
-    value: number;
-  };
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
   category?: string;
   minOrderAmount?: number;
   startDate: any;
@@ -20,6 +19,7 @@ interface Promotion {
   usedCount: number;
   isActive: boolean;
   imageUrl?: string;
+  image?: string;
   createdAt: any;
 }
 
@@ -30,11 +30,15 @@ interface PromotionBannerProps {
 }
 
 // Функция для форматирования скидки (вынесена наружу)
-const getDiscountText = (discount: Promotion['discount']) => {
-  if (discount.type === 'percentage') {
-    return `${discount.value}%`;
+const getDiscountText = (promotion: Promotion) => {
+  if (!promotion.discountType || promotion.discountValue === undefined) {
+    return '0%';
+  }
+  
+  if (promotion.discountType === 'percentage') {
+    return `${promotion.discountValue}%`;
   } else {
-    return `${discount.value}₽`;
+    return `${promotion.discountValue}₽`;
   }
 };
 
@@ -61,22 +65,19 @@ export const PromotionBanner: React.FC<PromotionBannerProps> = ({
 
   const loadPromotions = async () => {
     try {
-      const response = await fetch('https://us-central1-coffeeaddict-c9d70.cloudfunctions.net/promotions');
-      if (response.ok) {
-        const data = await response.json();
-        const activePromotions = (data.promotions || []).filter((promo: Promotion) => {
-          const now = new Date();
-          const startDate = new Date(promo.startDate);
-          const endDate = new Date(promo.endDate);
-          
-          return promo.isActive && 
-                 now >= startDate && 
-                 now <= endDate &&
-                 (!promo.usageLimit || promo.usedCount < promo.usageLimit);
-        });
+      const data = await ApiService.promotions.getAll();
+      const activePromotions = (data.promotions || []).filter((promo: Promotion) => {
+        const now = new Date();
+        const startDate = new Date(promo.startDate);
+        const endDate = new Date(promo.endDate);
         
-        setPromotions(activePromotions);
-      }
+        return promo.isActive && 
+               now >= startDate && 
+               now <= endDate &&
+               (!promo.usageLimit || promo.usedCount < promo.usageLimit);
+      });
+      
+      setPromotions(activePromotions);
     } catch (error) {
       console.error('Ошибка загрузки акций:', error);
     } finally {
@@ -161,7 +162,7 @@ export const PromotionBanner: React.FC<PromotionBannerProps> = ({
                       <div className="flex items-center space-x-2 mb-1">
                         <TagIcon className="w-4 h-4" />
                         <span className="text-sm font-semibold opacity-90">
-                          СКИДКА {getDiscountText(promotion.discount)}
+                          СКИДКА {getDiscountText(promotion)}
                         </span>
                       </div>
                       
@@ -199,7 +200,7 @@ export const PromotionBanner: React.FC<PromotionBannerProps> = ({
                     <div className="flex-shrink-0 ml-4">
                       <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
                         <span className="text-2xl font-bold">
-                          {getDiscountText(promotion.discount)}
+                          {getDiscountText(promotion)}
                         </span>
                       </div>
                     </div>
@@ -265,9 +266,9 @@ export const PromotionModal: React.FC<{
           className="bg-white rounded-xl max-w-md w-full max-h-[80vh] overflow-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          {promotion.imageUrl && (
+          {(promotion.imageUrl || promotion.image) && (
             <img 
-              src={promotion.imageUrl} 
+              src={promotion.imageUrl || promotion.image} 
               alt={promotion.title}
               className="w-full h-48 object-cover rounded-t-xl"
             />

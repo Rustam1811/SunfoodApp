@@ -25,6 +25,8 @@ const testBonus = require('../api/test-bonus');
 const simpleOrder = require('../api/simple-order');
 const login = require('../api/login');
 const register = require('../api/register');
+const stories = require('../api/stories');
+const promotions = require('../api/promotions');
 
 // API Routes
 app.use('/api/bonus-settings', bonusSettings);
@@ -36,6 +38,8 @@ app.use('/api/test-bonus', testBonus);
 app.use('/api/simple-order', simpleOrder);
 app.use('/api/login', login);
 app.use('/api/register', register);
+app.use('/api/stories', stories);
+app.use('/api/promotions', promotions);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -68,4 +72,6 @@ app.listen(PORT, () => {
     console.log(`   *    /api/simple-order`);
     console.log(`   *    /api/login`);
     console.log(`   *    /api/register`);
+    console.log(`   *    /api/stories`);
+    console.log(`   *    /api/promotions`);
 });

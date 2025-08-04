@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserIcon, ArrowRightIcon, ShoppingBagIcon, XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
-import { Stories, StoryViewer as StoryViewerComponent } from '../components/Stories';
+import Stories from '../components/Stories_New';
 import { PromotionBanner } from '../components/PromotionBanner';
 import { AchievementList } from '../components/AchievementList';
+import { ApiStatusIndicator } from '../components/ApiStatusIndicator';
 
 // ===================================================================
 //  ДАННЫЕ И ТИПЫ
@@ -93,43 +94,13 @@ const StoryProgress = ({ stories, currentStoryIndex, onFinish }: { stories: any[
 // ===================================================================
 
 const HomePage: React.FC = () => {
-    const [selectedStories, setSelectedStories] = useState<any[]>([]);
-    const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
-    const [isViewerOpen, setIsViewerOpen] = useState(false);
     const user = getUserData(); // Получаем данные пользователя
-
-    const handleStoryClick = (story: any) => {
-        // Здесь можно загрузить все активные истории
-        setSelectedStories([story]);
-        setCurrentStoryIndex(0);
-        setIsViewerOpen(true);
-    };
-
-    const handleStoryClose = () => {
-        setIsViewerOpen(false);
-        setSelectedStories([]);
-    };
-
-    const handleStoryNext = () => {
-        if (currentStoryIndex < selectedStories.length - 1) {
-            setCurrentStoryIndex(prev => prev + 1);
-        } else {
-            handleStoryClose();
-        }
-    };
-
-    const handleStoryPrevious = () => {
-        if (currentStoryIndex > 0) {
-            setCurrentStoryIndex(prev => prev - 1);
-        }
-    };
-
-    const markStoryAsViewed = (storyId: string) => {
-        // Логика уже реализована в компоненте Stories
-    };
     
     return (
         <div className="bg-slate-100 min-h-screen font-sans">
+            {/* API Status Indicator */}
+            <ApiStatusIndicator />
+            
             <header className="p-4 flex justify-between items-center sticky top-0 bg-slate-100/80 backdrop-blur-lg z-20 border-b border-slate-900/10">
                 <h1 className="text-2xl font-extrabold text-slate-900">Coffee Addict</h1>
                 <ProfilePill name={user.name} avatar={user.avatar} />
@@ -138,9 +109,7 @@ const HomePage: React.FC = () => {
             <main className="p-4 space-y-6 pb-28">
                 
                 {/* 1. Истории */}
-                <Stories 
-                    onStoryClick={handleStoryClick}
-                />
+                <Stories className="mb-6" />
 
                 {/* 2. Акции */}
                 <PromotionBanner 
@@ -188,19 +157,6 @@ const HomePage: React.FC = () => {
                 </section>
 
             </main>
-            
-            <AnimatePresence>
-                {isViewerOpen && selectedStories.length > 0 && (
-                    <StoryViewerComponent
-                        stories={selectedStories}
-                        currentIndex={currentStoryIndex}
-                        onClose={handleStoryClose}
-                        onNext={handleStoryNext}
-                        onPrevious={handleStoryPrevious}
-                        onMarkViewed={markStoryAsViewed}
-                    />
-                )}
-            </AnimatePresence>
         </div>
     );
 };

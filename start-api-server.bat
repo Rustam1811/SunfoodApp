@@ -1,0 +1,9 @@
+@echo off
+echo Запуск API сервера SunfoodApp...
+cd /d "d:\IT\SunfoodApp\api-server"
+echo Текущая директория: %CD%
+echo Установка зависимостей...
+call npm install
+echo Запуск сервера...
+node server.js
+pause

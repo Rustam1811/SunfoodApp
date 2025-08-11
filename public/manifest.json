@@ -1,11 +1,11 @@
 {
-  "short_name": "Addict App",
-  "name": "Addict Coffee App",
+  "short_name": "SunFood",
+  "name": "SunFood Coffee App",
   "icons": [
     {
-      "src": "assets/icon/favicon.png",
+      "src": "favicon.png",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/png"
     },
     {
       "src": "assets/icon/icon-192.png",
@@ -19,9 +19,9 @@
       "purpose": "maskable any"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#FF6B6B",
   "background_color": "#ffffff",
   "orientation": "portrait"
 }

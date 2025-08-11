@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Stories Test - SunFood</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .stories-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .info h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .info ul {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .info li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 Instagram Stories</h1>
+            <p>Тест компонента историй в стиле Instagram</p>
+        </div>
+        
+        <div class="stories-section">
+            <div class="section-title">Истории</div>
+            <div id="stories-container"></div>
+        </div>
+        
+        <div class="info">
+            <h3>Как пользоваться:</h3>
+            <ul>
+                <li>Нажмите на аватар, чтобы открыть истории</li>
+                <li>Нажмите на левую/правую часть экрана для навигации</li>
+                <li>Удерживайте нажатие, чтобы поставить на паузу</li>
+                <li>Нажмите X, чтобы закрыть</li>
+                <li>Градиентное кольцо означает непросмотренные истории</li>
+            </ul>
+        </div>
+    </div>
+
+    <script type="module">
+        // Симуляция Instagram Stories компонента для тестирования
+        
+        // Тестовые данные
+        const testStories = [
+            {
+                id: 'sunfood_official',
+                name: 'SunFood',
+                avatarSource: '/coffeeaddict.jpg',
+                stories: [
+                    {
+                        id: 'story1',
+                        title: 'Новое меню!',
+                        contentType: 'text',
+                        textContent: 'Попробуйте наши новые летние напитки с освежающими фруктами!',
+                        background: {
+                            type: 'gradient',
+                            value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                        },
+                        duration: 5000,
+                        link: '/menu',
+                        linkText: 'Посмотреть меню'
+                    },
+                    {
+                        id: 'story2',
+                        title: 'Кофе дня',
+                        contentType: 'image',
+                        mediaUrl: '/coffeeaddict.jpg',
+                        duration: 4000,
+                        link: '/order',
+                        linkText: 'Заказать'
+                    },
+                    {
+                        id: 'story3',
+                        title: 'Акция дня',
+                        contentType: 'text',
+                        textContent: 'Скидка 20% на все кофейные напитки до 18:00!',
+                        background: {
+                            type: 'color',
+                            value: '#FF6B6B'
+                        },
+                        duration: 6000,
+                        link: '/promotions',
+                        linkText: 'Заказать со скидкой'
+                    }
+                ]
+            },
+            {
+                id: 'customer_review',
+                name: 'Отзывы',
+                avatarSource: '/favicon.png',
+                stories: [
+                    {
+                        id: 'review1',
+                        title: 'Отзыв клиента',
+                        contentType: 'text',
+                        textContent: '"Лучший кофе в городе! Спасибо команде SunFood за качественный сервис!"',
+                        background: {
+                            type: 'gradient',
+                            value: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
+                        },
+                        duration: 5000
+                    }
+                ]
+            }
+        ];
+
+        // Создание аватаров для историй
+        function createStoriesAvatars() {
+            const container = document.getElementById('stories-container');
+            const avatarsHTML = testStories.map(user => `
+                <div style="display: inline-block; margin-right: 15px; text-align: center; cursor: pointer;" 
+                     onclick="openStories('${user.id}')">
+                    <div style="width: 70px; height: 70px; border-radius: 50%; padding: 3px; 
+                                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+                                margin-bottom: 8px;">
+                        <div style="width: 100%; height: 100%; border-radius: 50%; 
+                                    background: white; padding: 3px; display: flex; align-items: center; justify-content: center;">
+                            <img src="${user.avatarSource}" alt="${user.name}" 
+                                 style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />
+                        </div>
+                    </div>
+                    <div style="font-size: 12px; color: #333; font-weight: 500;">${user.name}</div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = `<div style="display: flex; align-items: center; overflow-x: auto; padding: 10px 0;">${avatarsHTML}</div>`;
+        }
+
+        // Открытие модального окна с историями
+        function openStories(userId) {
+            const user = testStories.find(u => u.id === userId);
+            if (!user) return;
+
+            // Создаем модальное окно
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: black;
+                z-index: 1000;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            `;
+
+            let currentStoryIndex = 0;
+            let progressInterval;
+
+            function updateStory() {
+                const story = user.stories[currentStoryIndex];
+                if (!story) return;
+
+                modal.innerHTML = `
+                    <!-- Прогресс бары -->
+                    <div style="position: absolute; top: 20px; left: 20px; right: 20px; display: flex; gap: 5px; z-index: 10;">
+                        ${user.stories.map((_, index) => `
+                            <div style="flex: 1; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden;">
+                                <div id="progress-${index}" style="height: 100%; background: white; width: ${
+                                    index < currentStoryIndex ? '100%' : 
+                                    index === currentStoryIndex ? '0%' : '0%'
+                                }; transition: width ${index === currentStoryIndex ? story.duration + 'ms' : '0ms'} linear;"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Заголовок -->
+                    <div style="position: absolute; top: 40px; left: 20px; right: 20px; display: flex; align-items: center; justify-content: space-between; z-index: 10;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${user.avatarSource}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;" />
+                            <span style="color: white; font-weight: 600; font-size: 14px;">${user.name}</span>
+                        </div>
+                        <button onclick="closeStories()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">×</button>
+                    </div>
+
+                    <!-- Контент -->
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; position: relative; width: 100%;">
+                        <!-- Зоны навигации -->
+                        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 33%; z-index: 5; cursor: pointer;" onclick="previousStory()"></div>
+                        <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 33%; z-index: 5; cursor: pointer;" onclick="nextStory()"></div>
+
+                        ${story.contentType === 'text' ? `
+                            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px; 
+                                        ${story.background?.type === 'gradient' ? 
+                                            `background: ${story.background.value}` : 
+                                            `background-color: ${story.background?.value || '#FF6B6B'}`}">
+                                <div style="text-align: center;">
+                                    <h2 style="color: white; font-size: 28px; font-weight: bold; margin-bottom: 20px;">${story.title}</h2>
+                                    ${story.textContent ? `<p style="color: white; font-size: 18px; line-height: 1.4;">${story.textContent}</p>` : ''}
+                                </div>
+                            </div>
+                        ` : `
+                            <img src="${story.mediaUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+                        `}
+
+                        ${story.link ? `
+                            <div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);">
+                                <a href="${story.link}" style="background: white; color: black; padding: 12px 24px; border-radius: 25px; 
+                                          text-decoration: none; font-weight: 600; font-size: 14px;">${story.linkText || 'Узнать больше'}</a>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                // Запускаем прогресс
+                setTimeout(() => {
+                    const progressBar = document.getElementById(`progress-${currentStoryIndex}`);
+                    if (progressBar) {
+                        progressBar.style.width = '100%';
+                    }
+                }, 100);
+
+                // Автопереход к следующей истории
+                clearTimeout(progressInterval);
+                progressInterval = setTimeout(() => {
+                    nextStory();
+                }, story.duration || 5000);
+            }
+
+            window.nextStory = function() {
+                if (currentStoryIndex < user.stories.length - 1) {
+                    currentStoryIndex++;
+                    updateStory();
+                } else {
+                    closeStories();
+                }
+            };
+
+            window.previousStory = function() {
+                if (currentStoryIndex > 0) {
+                    currentStoryIndex--;
+                    updateStory();
+                }
+            };
+
+            window.closeStories = function() {
+                clearTimeout(progressInterval);
+                document.body.removeChild(modal);
+                delete window.nextStory;
+                delete window.previousStory;
+                delete window.closeStories;
+            };
+
+            document.body.appendChild(modal);
+            updateStory();
+        }
+
+        window.openStories = openStories;
+
+        // Инициализация
+        createStoriesAvatars();
+    </script>
+</body>
+</html>

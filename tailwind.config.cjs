@@ -27,6 +27,9 @@ module.exports = {
       backdropBlur: {
         'sm': '4px',
       },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+      },
     },
   },
   plugins: [],

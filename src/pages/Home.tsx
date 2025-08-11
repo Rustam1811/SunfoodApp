@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { UserIcon, ArrowRightIcon, ShoppingBagIcon, XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
-import Stories from '../components/Stories_New';
+import React from 'react';
+import { motion } from 'framer-motion';
+import { ShoppingBagIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
+import { StoriesContainer } from '../components/StoriesContainer';
 import { PromotionBanner } from '../components/PromotionBanner';
 import { AchievementList } from '../components/AchievementList';
-import { ApiStatusIndicator } from '../components/ApiStatusIndicator';
 
 // ===================================================================
 //  ДАННЫЕ И ТИПЫ
@@ -40,8 +39,6 @@ const getUserData = () => {
     };
 };
 
-const fakeStoriesData = [];
-
 const curatedListData = {
     title: "Идеально к вашему утру",
     items: [
@@ -49,12 +46,6 @@ const curatedListData = {
         { id: 2, name: 'Свежий круассан', image: 'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=800&q=80' },
         { id: 3, name: 'Фильтр-кофе', image: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=800&q=80' },
     ]
-};
-
-const promoBannerData = { 
-    title: 'Новое летнее меню!', 
-    image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1200&h=600&q=80', 
-    cta: 'Смотреть' 
 };
 
 
@@ -69,26 +60,6 @@ const ProfilePill = ({ name, avatar }: { name: string; avatar: string; }) => (
     </div>
 );
 
-const StoryBubble = ({ pack, onClick, hasBeenViewed }: { pack: any, onClick: () => void, hasBeenViewed: boolean }) => (
-    <div onClick={onClick} className="text-center w-[76px] flex-shrink-0 cursor-pointer group">
-        <div className={`w-[76px] h-[76px] rounded-full p-0.5 transition-all duration-300 transform group-hover:scale-105 ${hasBeenViewed ? 'bg-slate-200' : 'bg-gradient-to-tr from-yellow-400 via-orange-500 to-pink-500'}`}>
-            <div className="bg-slate-50 p-1 rounded-full w-full h-full"><img src={pack.userAvatar} alt={pack.userName} className="w-full h-full object-cover rounded-full"/></div>
-        </div>
-        <p className="text-xs font-medium text-slate-600 mt-2 truncate group-hover:text-slate-900 transition-colors">{pack.userName}</p>
-    </div>
-);
-
-const StoryProgress = ({ stories, currentStoryIndex, onFinish }: { stories: any[], currentStoryIndex: number, onFinish: () => void }) => (
-    <div className="absolute top-4 left-4 right-4 flex gap-1.5 z-20">
-        {stories.map((story, index) => (
-            <div key={story.id} className="h-1 flex-1 bg-white/30 rounded-full overflow-hidden">
-                {index < currentStoryIndex && <div className="h-full bg-white w-full"/>}
-                {index === currentStoryIndex && (<motion.div className="h-full bg-white" initial={{ width: "0%" }} animate={{ width: "100%" }} onAnimationComplete={onFinish} transition={{ duration: (story.duration || 7), ease: "linear" }} />)}
-            </div>
-        ))}
-    </div>
-);
-
 // ===================================================================
 //  ГЛАВНЫЙ КОМПОНЕНТ СТРАНИЦЫ
 // ===================================================================
@@ -98,9 +69,6 @@ const HomePage: React.FC = () => {
     
     return (
         <div className="bg-slate-100 min-h-screen font-sans">
-            {/* API Status Indicator */}
-            <ApiStatusIndicator />
-            
             <header className="p-4 flex justify-between items-center sticky top-0 bg-slate-100/80 backdrop-blur-lg z-20 border-b border-slate-900/10">
                 <h1 className="text-2xl font-extrabold text-slate-900">Coffee Addict</h1>
                 <ProfilePill name={user.name} avatar={user.avatar} />
@@ -109,7 +77,7 @@ const HomePage: React.FC = () => {
             <main className="p-4 space-y-6 pb-28">
                 
                 {/* 1. Истории */}
-                <Stories className="mb-6" />
+                <StoriesContainer className="mb-6" showName={true} avatarSize={70} />
 
                 {/* 2. Акции */}
                 <PromotionBanner 

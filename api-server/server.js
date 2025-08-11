@@ -1,6 +1,44 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+
+// Initialize Firebase Admin before importing other modules
+const admin = require('firebase-admin');
+if (!admin.apps.length) {
+    try {
+        // Try loading from JSON file first (more reliable)
+        const serviceAccountPath = './firebase-service-account.json';
+        const fs = require('fs');
+        
+        let serviceAccount;
+        if (fs.existsSync(serviceAccountPath)) {
+            serviceAccount = require(serviceAccountPath);
+            console.log('🔑 Loading Firebase service account from JSON file');
+        } else {
+            // Fallback to base64 if JSON file doesn't exist
+            const b64 = process.env.FIREBASE_KEY_BASE64;
+            if (!b64) throw new Error("Neither firebase-service-account.json nor FIREBASE_KEY_BASE64 is available");
+            
+            const serviceAccountJson = Buffer.from(b64, "base64").toString("utf8");
+            serviceAccount = JSON.parse(serviceAccountJson);
+            
+            // Fix the private key formatting by replacing escaped newlines with actual newlines
+            if (serviceAccount.private_key) {
+                serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+            }
+            console.log('🔑 Loading Firebase service account from base64');
+        }
+        
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            databaseURL: "https://coffeeaddict-c9d70-default-rtdb.firebaseio.com"
+        });
+        console.log('✅ Firebase Admin initialized successfully');
+    } catch (error) {
+        console.error('❌ Firebase Admin initialization failed:', error.message);
+    }
+}
 
 const app = express();
 const PORT = 3000;

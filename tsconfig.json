@@ -9,13 +9,27 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["vite/client", "node", "jest"]
+    "types": ["vite/client", "node", "jest"],
+    // added for path aliases
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"],
+      "@features/*": ["features/*"],
+      "@components/*": ["components/*"],
+      "@hooks/*": ["hooks/*"],
+      "@utils/*": ["utils/*"],
+      "@services/*": ["services/*"],
+      "@types/*": ["types/*"],
+      "@theme/*": ["theme/*"],
+      "@contexts/*": ["contexts/*"]
+    }
   },
   "include": [
     "src",
     "vite.config.ts",
-    "admin"
-, "api"  ],
+    "admin",
+    "api"
+  ],
   "exclude": [
     "node_modules"
   ]

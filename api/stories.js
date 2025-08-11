@@ -1,25 +1,254 @@
 const express = require('express');
-const admin = require('firebase-admin');
 const router = express.Router();
 
-// Проверяем, инициализирован ли Firebase Admin
-if (!admin.apps.length) {
+// Временные mock данные для тестирования (пока не исправим Firebase)
+let mockStories = [
+    {
+        id: '1',
+        title: 'Кофейная история',
+        contentType: 'text',
+        textContent: 'Попробуйте наши новые летние напитки с освежающими фруктами!',
+        background: {
+            type: 'gradient',
+            value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        },
+        duration: 5000,
+        isActive: true,
+        viewCount: 0,
+        createdAt: new Date('2025-08-07T10:00:00Z'),
+        publishAt: null,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        link: '/menu',
+        linkText: 'Посмотреть меню'
+    },
+    {
+        id: '2', 
+        title: 'Кофе дня',
+        contentType: 'image',
+        mediaUrl: '/coffeeaddict.jpg',
+        duration: 4000,
+        isActive: true,
+        viewCount: 0,
+        createdAt: new Date('2025-08-07T11:00:00Z'),
+        publishAt: null,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        link: '/order',
+        linkText: 'Заказать'
+    }
+];
+
+let nextId = 3;
+
+// GET - получить все stories
+router.get('/', async (req, res) => {
     try {
-        // Попытка инициализации с ключом из переменной окружения
-        const serviceAccount = process.env.FIREBASE_KEY_BASE64 
-            ? JSON.parse(Buffer.from(process.env.FIREBASE_KEY_BASE64, 'base64').toString())
-            : require('../firebase-key.json');
+        console.log('📖 Получение списка stories (mock data)...');
         
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-            databaseURL: "https://coffeeaddict-c9d70-default-rtdb.firebaseio.com"
+        const stories = mockStories
+            .filter(story => story.isActive)
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        res.json({
+            success: true,
+            data: stories,
+            total: stories.length
         });
     } catch (error) {
-        console.warn('Firebase Admin не удалось инициализировать:', error.message);
+        console.error('❌ Ошибка получения stories:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка сервера при получении stories' 
+        });
     }
-}
+});
 
-const db = admin.firestore();
+// POST - создать новую story
+router.post('/', async (req, res) => {
+    try {
+        console.log('📝 Создание новой story (mock data)...', req.body);
+        
+        const { 
+            title, 
+            contentType, 
+            mediaUrl, 
+            textContent, 
+            background, 
+            duration = 5000, 
+            link, 
+            linkText, 
+            publishAt,
+            fileSize,
+            originalFileName
+        } = req.body;
+        
+        // Валидация обязательных полей
+        if (!title || !contentType) {
+            return res.status(400).json({
+                success: false,
+                error: 'Поля title и contentType обязательны'
+            });
+        }
+
+        // Валидация по типу контента
+        if (contentType === 'text' && !textContent) {
+            return res.status(400).json({
+                success: false,
+                error: 'Для текстовых историй поле textContent обязательно'
+            });
+        }
+
+        if ((contentType === 'image' || contentType === 'video') && !mediaUrl) {
+            return res.status(400).json({
+                success: false,
+                error: 'Для медиа-историй поле mediaUrl обязательно'
+            });
+        }
+        
+        const newStory = {
+            id: nextId.toString(),
+            title,
+            contentType,
+            mediaUrl: mediaUrl || null,
+            textContent: textContent || null,
+            background: background || { type: 'color', value: '#FF6B6B' },
+            duration,
+            link: link || null,
+            linkText: linkText || null,
+            isActive: true,
+            viewCount: 0,
+            createdAt: new Date(),
+            publishAt: publishAt ? new Date(publishAt) : null,
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 часа
+            fileSize: fileSize || null,
+            originalFileName: originalFileName || null
+        };
+        
+        mockStories.push(newStory);
+        nextId++;
+        
+        console.log('✅ Story создана успешно:', newStory.id);
+        
+        res.status(201).json({
+            success: true,
+            data: newStory,
+            message: 'Story создана успешно'
+        });
+    } catch (error) {
+        console.error('❌ Ошибка создания story:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка сервера при создании story' 
+        });
+    }
+});
+
+// PUT - обновить story
+router.put('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { 
+            title, 
+            contentType, 
+            mediaUrl, 
+            textContent, 
+            background, 
+            duration, 
+            link, 
+            linkText, 
+            publishAt,
+            isActive,
+            fileSize,
+            originalFileName
+        } = req.body;
+        
+        const storyIndex = mockStories.findIndex(story => story.id === id);
+        if (storyIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                error: 'Story не найдена'
+            });
+        }
+
+        // Валидация при обновлении
+        if (contentType === 'text' && textContent === '') {
+            return res.status(400).json({
+                success: false,
+                error: 'Для текстовых историй поле textContent не может быть пустым'
+            });
+        }
+
+        if ((contentType === 'image' || contentType === 'video') && !mediaUrl) {
+            return res.status(400).json({
+                success: false,
+                error: 'Для медиа-историй поле mediaUrl обязательно'
+            });
+        }
+        
+        // Обновляем story с сохранением существующих значений
+        mockStories[storyIndex] = {
+            ...mockStories[storyIndex],
+            title: title || mockStories[storyIndex].title,
+            contentType: contentType || mockStories[storyIndex].contentType,
+            mediaUrl: mediaUrl !== undefined ? mediaUrl : mockStories[storyIndex].mediaUrl,
+            textContent: textContent !== undefined ? textContent : mockStories[storyIndex].textContent,
+            background: background || mockStories[storyIndex].background,
+            duration: duration || mockStories[storyIndex].duration,
+            link: link !== undefined ? link : mockStories[storyIndex].link,
+            linkText: linkText !== undefined ? linkText : mockStories[storyIndex].linkText,
+            publishAt: publishAt !== undefined ? (publishAt ? new Date(publishAt) : null) : mockStories[storyIndex].publishAt,
+            isActive: isActive !== undefined ? isActive : mockStories[storyIndex].isActive,
+            fileSize: fileSize !== undefined ? fileSize : mockStories[storyIndex].fileSize,
+            originalFileName: originalFileName !== undefined ? originalFileName : mockStories[storyIndex].originalFileName,
+            updatedAt: new Date()
+        };
+        
+        console.log('✅ Story обновлена успешно:', id);
+        
+        res.json({
+            success: true,
+            data: mockStories[storyIndex],
+            message: 'Story обновлена успешно'
+        });
+    } catch (error) {
+        console.error('❌ Ошибка обновления story:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка сервера при обновлении story' 
+        });
+    }
+});
+
+// DELETE - удалить story
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const storyIndex = mockStories.findIndex(story => story.id === id);
+        if (storyIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                error: 'Story не найдена'
+            });
+        }
+        
+        mockStories.splice(storyIndex, 1);
+        
+        console.log('✅ Story удалена успешно:', id);
+        
+        res.json({
+            success: true,
+            message: 'Story удалена успешно'
+        });
+    } catch (error) {
+        console.error('❌ Ошибка удаления story:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка сервера при удалении story' 
+        });
+    }
+});
+
+module.exports = router;
 
 // GET - получить все stories
 router.get('/', async (req, res) => {

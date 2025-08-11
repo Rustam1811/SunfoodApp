@@ -3,7 +3,6 @@ import {
   PlusIcon, 
   PencilIcon, 
   TrashIcon, 
-  ArchiveBoxIcon,
   DocumentDuplicateIcon,
   EyeIcon,
   ClockIcon,
@@ -57,9 +56,22 @@ export const StoryManagement: React.FC = () => {
     try {
       setLoading(true);
       const response = await ApiService.stories.getAll();
-      setStories(response || []);
+      console.log('API Response:', response); // Для отладки
+      
+      // Убеждаемся, что у нас есть массив
+      let storiesData = [];
+      if (response && Array.isArray(response)) {
+        storiesData = response;
+      } else if (response && response.data && Array.isArray(response.data)) {
+        storiesData = response.data;
+      } else if (response && response.success && Array.isArray(response.data)) {
+        storiesData = response.data;
+      }
+      
+      setStories(storiesData);
     } catch (error) {
       console.error('Ошибка загрузки stories:', error);
+      setStories([]); // Убеждаемся, что stories остается массивом даже при ошибке
     } finally {
       setLoading(false);
     }
@@ -119,9 +131,10 @@ export const StoryManagement: React.FC = () => {
 
       await loadStories();
       resetForm();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Ошибка сохранения story:', error);
-      alert(`Ошибка: ${error.message || 'Не удалось сохранить story'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Не удалось сохранить story';
+      alert(`Ошибка: ${errorMessage}`);
     }
   };
 
@@ -193,6 +206,10 @@ export const StoryManagement: React.FC = () => {
   };
 
   const getFilteredStories = () => {
+    if (!Array.isArray(stories)) {
+      return [];
+    }
+    
     const now = new Date();
     
     return stories.filter(story => {
@@ -220,7 +237,7 @@ export const StoryManagement: React.FC = () => {
     }
   };
 
-  const formatDate = (date: any) => {
+  const formatDate = (date: string | Date | null | undefined) => {
     if (!date) return 'Не указано';
     return new Date(date).toLocaleDateString('ru-RU', {
       day: '2-digit',
@@ -235,7 +252,7 @@ export const StoryManagement: React.FC = () => {
     return new Date(story.expiresAt) < new Date();
   };
 
-  const getTimeLeft = (expiresAt: any) => {
+  const getTimeLeft = (expiresAt: string | Date) => {
     const now = new Date();
     const expires = new Date(expiresAt);
     const diff = expires.getTime() - now.getTime();
@@ -269,10 +286,10 @@ export const StoryManagement: React.FC = () => {
       {/* Фильтры */}
       <div className="flex space-x-2 mb-6">
         {[
-          { key: 'active', label: 'Активные', count: stories.filter(s => s.isActive && !isExpired(s)).length },
-          { key: 'archived', label: 'Архив', count: stories.filter(s => !s.isActive || isExpired(s)).length },
-          { key: 'scheduled', label: 'Запланированные', count: stories.filter(s => s.publishAt && new Date(s.publishAt) > new Date()).length },
-          { key: 'all', label: 'Все', count: stories.length }
+          { key: 'active', label: 'Активные', count: Array.isArray(stories) ? stories.filter(s => s.isActive && !isExpired(s)).length : 0 },
+          { key: 'archived', label: 'Архив', count: Array.isArray(stories) ? stories.filter(s => !s.isActive || isExpired(s)).length : 0 },
+          { key: 'scheduled', label: 'Запланированные', count: Array.isArray(stories) ? stories.filter(s => s.publishAt && new Date(s.publishAt) > new Date()).length : 0 },
+          { key: 'all', label: 'Все', count: Array.isArray(stories) ? stories.length : 0 }
         ].map(({ key, label, count }) => (
           <button
             key={key}

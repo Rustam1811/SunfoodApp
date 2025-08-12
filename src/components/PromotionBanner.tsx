@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MegaphoneIcon, TagIcon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase';
 import { ApiService } from '../services/apiConfig';
 
 interface Promotion {
@@ -13,14 +11,14 @@ interface Promotion {
   discountValue: number;
   category?: string;
   minOrderAmount?: number;
-  startDate: any;
-  endDate: any;
+  startDate: string | number | Date;
+  endDate: string | number | Date;
   usageLimit?: number;
   usedCount: number;
   isActive: boolean;
   imageUrl?: string;
   image?: string;
-  createdAt: any;
+  createdAt: string | number | Date;
 }
 
 interface PromotionBannerProps {
@@ -49,15 +47,6 @@ export const PromotionBanner: React.FC<PromotionBannerProps> = ({
 }) => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user?.uid || null);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     loadPromotions();
@@ -85,7 +74,7 @@ export const PromotionBanner: React.FC<PromotionBannerProps> = ({
     }
   };
 
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: string | number | Date) => {
     const date = new Date(timestamp);
     return date.toLocaleDateString('ru-RU', {
       day: 'numeric',
@@ -93,7 +82,7 @@ export const PromotionBanner: React.FC<PromotionBannerProps> = ({
     });
   };
 
-  const getDaysLeft = (endDate: any) => {
+  const getDaysLeft = (endDate: string | number | Date) => {
     const now = new Date();
     const end = new Date(endDate);
     const diffTime = end.getTime() - now.getTime();
@@ -287,7 +276,7 @@ export const PromotionModal: React.FC<{
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <span className="font-medium">Скидка:</span>
                 <span className="text-lg font-bold text-green-600">
-                  {getDiscountText(promotion.discount)}
+                  {getDiscountText(promotion)}
                 </span>
               </div>
 

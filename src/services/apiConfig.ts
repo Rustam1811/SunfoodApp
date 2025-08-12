@@ -77,7 +77,7 @@ export class ApiService {
       body: JSON.stringify(data) 
     }),
     
-    update: (id: string, data: any) => ApiService.request(`/stories/${id}`, { 
+    update: (id: string, data: Record<string, unknown>) => ApiService.request(`/stories/${id}`, { 
       method: 'PUT', 
       body: JSON.stringify(data) 
     }),
@@ -110,11 +110,21 @@ export class ApiService {
   // Promotions API
   static promotions = {
     getAll: () => ApiService.request('/promotions'),
-    create: (data: any) => ApiService.request('/promotions', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: string, data: any) => ApiService.request(`/promotions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    create: (data: PromotionsCreateData) => ApiService.request('/promotions', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: PromotionsCreateData) => ApiService.request(`/promotions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: string) => ApiService.request(`/promotions/${id}`, { method: 'DELETE' }),
     use: (id: string) => ApiService.request(`/promotions/${id}/use`, { method: 'POST' }),
   };
+}
+
+// Тип данных для создания/обновления акции
+export interface PromotionsCreateData {
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  imageUrl?: string;
+  [key: string]: unknown; // Для дополнительных полей, если есть
 }
 
 // 🎯 Хук для проверки окружения

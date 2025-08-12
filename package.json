@@ -2,15 +2,16 @@
   "name": "SunfoodApp",
   "private": true,
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
     "export-admin": "cd admin && npm ci && npm run build && npm run export",
     "deploy": "npm run build && npm run export-admin && firebase deploy --only hosting",
     "preview": "vite preview",
     "test.e2e": "cypress run",
     "test.unit": "vitest",
-    "type": "module",
     "lint": "eslint"
   },
   "dependencies": {

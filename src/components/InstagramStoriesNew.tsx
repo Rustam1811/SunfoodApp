@@ -94,14 +94,14 @@ const StoriesRing: React.FC<StoriesRingProps> = ({ story, onOpen }) => {
       }`}
       style={{ contain: 'layout style paint' }}
     >
-      <span className={`ring2 relative block ${isCloseFriends ? 'close-friends' : ''}`}>
-        {/* внутренняя часть: БЕЗ серого фона */}
-        <span className="ring2-inner absolute rounded-full overflow-hidden">
+      <span className={`ring2 relative block w-[88px] h-[88px] ${isCloseFriends ? 'close-friends' : ''}`}>
+        {/* внутренняя таблетка: БЕЗ blur и полупрозрачности */}
+        <span className="ring2-inner absolute inset-[5px] rounded-full bg-white overflow-hidden">
           {content}
         </span>
       </span>
 
-      <p className="text-xs text-center mt-0.5 truncate w-[72px] text-slate-900 font-medium">
+      <p className="text-[11px] text-center mt-1 truncate w-[84px] text-slate-800">
         {story.author || 'Anonymous'}
       </p>
     </button>
@@ -507,7 +507,7 @@ export const InstagramStoriesNew: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar px-1">
+      <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
         {authors.map((author, i) => {
           const arr = groups[author];
           const anyUnviewed = arr.some((s) => !s.viewed);

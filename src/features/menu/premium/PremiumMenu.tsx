@@ -220,65 +220,6 @@ export const PremiumMenu: React.FC<Props> = ({ items, categories, type = 'drinks
 
   const visibleItems = useMemo(()=> categories && activeCat ? items.filter(i=> String(i.categoryId) === activeCat) : items, [items, categories, activeCat]);
 
-  // Swipe navigation for categories
-  const handleSwipe = useCallback((direction: 'left' | 'right') => {
-    if (!categories || categories.length <= 1) return;
-    
-    const currentIndex = categories.findIndex(c => c.key === activeCat);
-    if (currentIndex === -1) return;
-    
-    let nextIndex: number;
-    if (direction === 'left') {
-      // Swipe left = next category
-      nextIndex = currentIndex === categories.length - 1 ? 0 : currentIndex + 1;
-    } else {
-      // Swipe right = previous category  
-      nextIndex = currentIndex === 0 ? categories.length - 1 : currentIndex - 1;
-    }
-    
-    setActiveCat(categories[nextIndex].key);
-  }, [categories, activeCat]);
-
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
-  const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart({
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
-    });
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    setTouchEnd({
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
-    });
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    if (!touchStart || !touchEnd) return;
-    
-    const deltaX = touchStart.x - touchEnd.x;
-    const deltaY = touchStart.y - touchEnd.y;
-    
-    // Check if horizontal swipe is more significant than vertical
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      const minSwipeDistance = 50;
-      
-      if (Math.abs(deltaX) > minSwipeDistance) {
-        if (deltaX > 0) {
-          // Swiped left
-          handleSwipe('left');
-        } else {
-          // Swiped right
-          handleSwipe('right');
-        }
-      }
-    }
-  }, [touchStart, touchEnd, handleSwipe]);
-
   const changeLang = () => {
     const order: string[] = ['ru','en','kz'];
     const idx = order.indexOf(i18n.language as string);
@@ -331,13 +272,7 @@ export const PremiumMenu: React.FC<Props> = ({ items, categories, type = 'drinks
           </div>
         )}
         {/* Premium Grid */}
-        <div 
-          className="px-6 pb-32" 
-          style={{ transform: 'translateZ(0)', willChange: 'scroll-position' }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
+        <div className="px-6 pb-32" style={{ transform: 'translateZ(0)', willChange: 'scroll-position' }}>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {visibleItems.map((it) => (
               <div key={it.id} style={{ contain: 'layout style paint' }}>

@@ -134,20 +134,17 @@ body { -webkit-tap-highlight-color: transparent; }
   border-radius:9999px;
   background:transparent;
   border:0; outline:0;
-  filter:
-    drop-shadow(0 8px 16px rgba(0,0,0,.12))
-    drop-shadow(0 4px 8px rgba(0,0,0,.08));
 }
 .ring2::before{
   content:"";
   position:absolute;
   inset:0;
   border-radius:inherit;
-  /* Instagram-style ЯРКИЙ оранжевый градиент для новых сторис */
+  /* Instagram-style ЖИРНЫЙ оранжевый градиент для новых сторис */
   background:linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
-  /* вырезаем центр → остаётся ровное кольцо */
-  -webkit-mask: radial-gradient(farthest-side,#000 calc(100% - var(--thickness,2.5px)),transparent 0);
-          mask: radial-gradient(farthest-side,#000 calc(100% - var(--thickness,2.5px)),transparent 0);
+  /* вырезаем центр → остаётся ЖИРНОЕ кольцо */
+  -webkit-mask: radial-gradient(farthest-side,#000 calc(100% - var(--thickness,3.5px)),transparent 0);
+          mask: radial-gradient(farthest-side,#000 calc(100% - var(--thickness,3.5px)),transparent 0);
 }
 
 /* Зелёный градиент для close friends (Instagram-style) */
@@ -156,7 +153,7 @@ body { -webkit-tap-highlight-color: transparent; }
 }
 .ring2-inner{
   position:absolute;
-  inset:calc(var(--thickness,2.5px));
+  inset:calc(var(--thickness,3.5px));
   border-radius:9999px;
   overflow:hidden;
   border:0; outline:0;

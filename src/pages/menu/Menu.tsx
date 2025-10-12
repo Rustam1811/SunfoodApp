@@ -68,9 +68,9 @@ const Menu: React.FC = () => {
   );
   
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)]">
+    <div className="min-h-screen bg-[var(--color-bg-base)]" style={{ transform: 'translateZ(0)' }}>
       {/* Переключатель Напитки/Еда */}
-      <div className="sticky top-0 z-30 bg-white/90 border-b border-slate-200 px-4 py-3" style={{ backdropFilter: 'blur(8px)' }}>
+      <div className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3">
         <div className="flex gap-2 max-w-md mx-auto">
           <button
             onClick={() => setActiveTab('drinks')}

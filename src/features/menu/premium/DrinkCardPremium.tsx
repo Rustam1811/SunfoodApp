@@ -25,16 +25,15 @@ export const DrinkCardPremiumImpl: React.FC<Props> = ({ item, onOpen }) => {
         w-full h-[320px] p-0
         bg-white
         rounded-[28px]
-        shadow-[0_1px_3px_rgba(0,0,0,0.05)]
-        hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)]
+        shadow-sm
+        hover:shadow-md
         active:scale-[0.98]
         border-0
-        transition-all duration-150 ease-out
+        transition-all duration-100 ease-out
         focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
         overflow-hidden
-        will-change-transform
       "
-      style={{ contain: 'layout style paint' }}
+      style={{ contain: 'layout style paint', transform: 'translateZ(0)' }}
     >
       {/* Simple badge */}
       {item.badges && item.badges.length > 0 && (
@@ -63,11 +62,10 @@ export const DrinkCardPremiumImpl: React.FC<Props> = ({ item, onOpen }) => {
             width={320}
             height={400}
             onLoad={() => setLoaded(true)}
-            style={{ aspectRatio: '3/4', willChange: 'auto' }}
+            style={{ aspectRatio: '3/4', transform: 'translateZ(0)' }}
             className={`
               w-full h-full object-cover
-              drop-shadow-sm
-              transition-opacity duration-200
+              transition-opacity duration-150
               ${loaded ? 'opacity-100' : 'opacity-0'}
             `}
           />

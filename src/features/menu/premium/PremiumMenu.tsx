@@ -220,65 +220,6 @@ export const PremiumMenu: React.FC<Props> = ({ items, categories, type = 'drinks
 
   const visibleItems = useMemo(()=> categories && activeCat ? items.filter(i=> String(i.categoryId) === activeCat) : items, [items, categories, activeCat]);
 
-  // Swipe navigation for categories
-  const handleSwipe = useCallback((direction: 'left' | 'right') => {
-    if (!categories || categories.length <= 1) return;
-    
-    const currentIndex = categories.findIndex(c => c.key === activeCat);
-    if (currentIndex === -1) return;
-    
-    let nextIndex: number;
-    if (direction === 'left') {
-      // Swipe left = next category
-      nextIndex = currentIndex === categories.length - 1 ? 0 : currentIndex + 1;
-    } else {
-      // Swipe right = previous category  
-      nextIndex = currentIndex === 0 ? categories.length - 1 : currentIndex - 1;
-    }
-    
-    setActiveCat(categories[nextIndex].key);
-  }, [categories, activeCat]);
-
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
-  const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart({
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
-    });
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    setTouchEnd({
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
-    });
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    if (!touchStart || !touchEnd) return;
-    
-    const deltaX = touchStart.x - touchEnd.x;
-    const deltaY = touchStart.y - touchEnd.y;
-    
-    // Check if horizontal swipe is more significant than vertical
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      const minSwipeDistance = 50;
-      
-      if (Math.abs(deltaX) > minSwipeDistance) {
-        if (deltaX > 0) {
-          // Swiped left
-          handleSwipe('left');
-        } else {
-          // Swiped right
-          handleSwipe('right');
-        }
-      }
-    }
-  }, [touchStart, touchEnd, handleSwipe]);
-
   const changeLang = () => {
     const order: string[] = ['ru','en','kz'];
     const idx = order.indexOf(i18n.language as string);
@@ -287,9 +228,9 @@ export const PremiumMenu: React.FC<Props> = ({ items, categories, type = 'drinks
   };
 
   return (
-    <div className={`min-h-screen ${dark?'dark-theme':''} bg-[var(--color-bg-base)] text-[var(--color-text-primary)] font-sans transition-colors`}>
+    <div className={`min-h-screen ${dark?'dark-theme':''} bg-[var(--color-bg-base)] text-[var(--color-text-primary)] font-sans transition-colors`} style={{ transform: 'translateZ(0)' }}>
       {/* Header */}
-      <div className="pt-4 pb-4 sticky top-0 z-20 bg-[var(--color-bg-base)]/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur-sm flex items-center justify-between px-5">
+      <div className="pt-4 pb-4 sticky top-0 z-20 bg-[var(--color-bg-base)] border-b border-gray-200 flex items-center justify-between px-5">
           <div className="flex items-center gap-3">
             <h1 className="text-[20px] font-semibold tracking-tight">{t('ui.menu')}</h1>
             {categories && categories.length > 1 && (
@@ -297,7 +238,7 @@ export const PremiumMenu: React.FC<Props> = ({ items, categories, type = 'drinks
                 {categories.map((cat) => (
                   <div
                     key={cat.key}
-                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
                       cat.key === activeCat ? 'bg-black w-4' : 'bg-gray-300'
                     }`}
                   />
@@ -316,14 +257,14 @@ export const PremiumMenu: React.FC<Props> = ({ items, categories, type = 'drinks
           </div>
         </div>
         {categories && categories.length>0 && (
-          <div className="sticky top-[68px] z-10 px-4 pb-4 pt-1 bg-[var(--color-bg-base)]/90 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md">
+          <div className="sticky top-[68px] z-10 px-4 pb-4 pt-1 bg-[var(--color-bg-base)] border-b border-gray-100">
             <nav className="flex gap-4 overflow-x-auto no-scrollbar [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
               {categories.map(c=>{
                 const active = c.key === activeCat;
                 return (
-                  <button key={c.key} onClick={()=>setActiveCat(c.key)} className={`relative pb-2 text-[13px] font-medium tracking-tight transition-colors ${active? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'}`}>
+                  <button key={c.key} onClick={()=>setActiveCat(c.key)} className={`relative pb-2 text-[13px] font-medium tracking-tight transition-colors duration-150 ${active? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'}`}>
                     <span className="px-1 py-1.5">{c.label}</span>
-                    {active && <motion.span layoutId="pmenu-cat-underline" className="absolute left-0 right-0 -bottom-px h-[2px] rounded-full bg-[var(--color-text-primary)]" transition={{type:'spring', stiffness: 520, damping: 34}} />}
+                    {active && <span className="absolute left-0 right-0 -bottom-px h-[2px] rounded-full bg-[var(--color-text-primary)] transition-all duration-150" />}
                   </button>
                 );
               })}
@@ -331,15 +272,10 @@ export const PremiumMenu: React.FC<Props> = ({ items, categories, type = 'drinks
           </div>
         )}
         {/* Premium Grid */}
-        <div 
-          className="px-6 pb-32"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
+        <div className="px-6 pb-32" style={{ transform: 'translateZ(0)', willChange: 'scroll-position' }}>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {visibleItems.map((it) => (
-              <div key={it.id}>
+            {visibleItems.slice(0, 20).map((it) => (
+              <div key={it.id} style={{ contain: 'layout style paint' }}>
                 <DrinkCardPremium item={it} onOpen={openWith} />
               </div>
             ))}

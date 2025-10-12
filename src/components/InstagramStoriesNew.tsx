@@ -95,8 +95,8 @@ const StoriesRing: React.FC<StoriesRingProps> = ({ story, onOpen }) => {
       style={{ contain: 'layout style paint' }}
     >
       <span className={`ring2 relative block ${isCloseFriends ? 'close-friends' : ''}`}>
-        {/* внутренняя таблетка: БЕЗ blur и полупрозрачности */}
-        <span className="ring2-inner absolute rounded-full bg-white overflow-hidden">
+        {/* внутренняя часть: БЕЗ серого фона */}
+        <span className="ring2-inner absolute rounded-full overflow-hidden">
           {content}
         </span>
       </span>

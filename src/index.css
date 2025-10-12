@@ -158,7 +158,6 @@ body { -webkit-tap-highlight-color: transparent; }
   position:absolute;
   inset:calc(var(--thickness,2.5px));
   border-radius:9999px;
-  background:#fff;
   overflow:hidden;
   border:0; outline:0;
 }

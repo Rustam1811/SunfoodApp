@@ -67,9 +67,9 @@ export const ProductConfiguratorSheet: React.FC<ProductConfiguratorProps> = ({ o
           <motion.div
             initial={{ y: '100%' }} animate={{ y: peek ? '55%' : 0 }} exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 420, damping: 42 }}
-            className="relative z-10 w-full bg-[var(--color-bg-elev-1)] rounded-t-[34px] shadow-float max-h-[100vh] flex flex-col"
+            className="relative z-10 w-full bg-[var(--color-bg-elev-1)] rounded-t-[34px] shadow-float max-h-[90vh] flex flex-col overflow-hidden"
           >
-            <header className="p-5 pt-6 text-center relative border-b border-[var(--color-border)] cursor-pointer select-none" onClick={()=>{ if (peek) {/* expand on tap */} }}>
+            <header className="p-5 pt-6 text-center relative border-b border-[var(--color-border)] cursor-pointer select-none flex-shrink-0" onClick={()=>{ if (peek) {/* expand on tap */} }}>
               <LazyImage layoutId={`product-image-${product.id}`} src={product.image} alt={t(product.name)} className="w-48 h-48 mx-auto -mt-32 drop-shadow-2xl" rounded="rounded-2xl" />
               <h2 className="text-2xl font-extrabold mt-4 text-[var(--color-text-primary)] tracking-tight">{t(product.name)}</h2>
               {product.description && <p className="text-sm text-[var(--color-text-secondary)] mt-2 px-4 line-clamp-3">{t(product.description)}</p>}
@@ -77,7 +77,7 @@ export const ProductConfiguratorSheet: React.FC<ProductConfiguratorProps> = ({ o
                 <XMarkIcon className="h-5 w-5 text-[var(--color-text-secondary)]" />
               </button>
             </header>
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-8 pb-44">
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-8">
               <div>
                 <h4 className="text-sm font-semibold mb-2 tracking-wide text-[var(--color-text-secondary)] uppercase">{t('ui.size')}</h4>
                 <div className="grid grid-cols-3 gap-3">
@@ -156,7 +156,7 @@ export const ProductConfiguratorSheet: React.FC<ProductConfiguratorProps> = ({ o
                 />
               )}
             </div>
-            <div className="absolute left-0 right-0 bottom-[70px] p-4 pb-6 bg-gradient-to-t from-[var(--color-bg-elev-1)] via-[var(--color-bg-elev-1)]/95 to-[var(--color-bg-elev-1)]/60 backdrop-blur-xl border-t border-[var(--color-border)] flex items-center gap-3">
+            <div className="flex-shrink-0 p-4 pb-6 bg-[var(--color-bg-elev-1)] border-t border-[var(--color-border)] flex items-center gap-3">
               <div className="flex items-center gap-2 bg-[var(--color-bg-elev-2)] rounded-2xl px-2 py-2">
                 <button onClick={() => dispatch({ type: 'QTY', delta: -1 })} disabled={state.quantity === 1} className="w-8 h-8 rounded-xl bg-[var(--color-bg-elev-1)] flex items-center justify-center text-lg font-bold disabled:opacity-40">-</button>
                 <span className="w-6 text-center font-semibold select-none">{state.quantity}</span>

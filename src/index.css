@@ -125,44 +125,40 @@ body { -webkit-tap-highlight-color: transparent; }
   .skel-fade:after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0)); mix-blend-mode:overlay; }
 }
 
-/* Премиум-кольцо для сторис: чётко, без анимаций и без серых кромок */
+/* Stories кольцо: чистый градиент БЕЗ теней */
 .ring2{
   position:relative;
   display:inline-block;
-  width:var(--size,76px);
-  height:var(--size,76px);
+  width:var(--size,72px);
+  height:var(--size,72px);
   border-radius:9999px;
   background:transparent;
-  border:0; outline:0;
-  filter:
-    drop-shadow(0 12px 28px rgba(0,0,0,.16))
-    drop-shadow(0 6px 14px rgba(0,0,0,.10));
+  border:0; 
+  outline:0;
 }
 .ring2::before{
   content:"";
   position:absolute;
   inset:0;
   border-radius:inherit;
-  /* Instagram-style ЯРКИЙ оранжевый градиент для обычных сторис */
-  background:linear-gradient(45deg,#ff8a00 0%,#ff5478 25%,#ff006e 50%,#d50f99 75%,#a02cc4 100%);
-  /* вырезаем центр → остаётся ровное кольцо */
-  -webkit-mask: radial-gradient(farthest-side,#000 calc(100% - var(--thickness,4px)),transparent 0);
-          mask: radial-gradient(farthest-side,#000 calc(100% - var(--thickness,4px)),transparent 0);
+  /* Instagram оранжевый градиент */
+  background:linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+  /* Вырезаем центр - толщина 3px */
+  -webkit-mask: radial-gradient(farthest-side,#000 calc(100% - 3px),transparent 0);
+          mask: radial-gradient(farthest-side,#000 calc(100% - 3px),transparent 0);
 }
 
-/* Зелёный градиент для close friends (Instagram-style) */
+/* Зелёный для close friends */
 .ring2.close-friends::before{
-  background:linear-gradient(45deg,#22c55e 0%,#16a34a 50%,#15803d 100%);
+  background:linear-gradient(135deg,#22c55e 0%,#16a34a 50%,#15803d 100%);
 }
 .ring2-inner{
   position:absolute;
-  inset:calc(var(--thickness,4px));
+  inset:3px;
   border-radius:9999px;
-  background:rgba(255,255,255,.85);
-  -webkit-backdrop-filter:blur(8px);
-          backdrop-filter:blur(8px);
   overflow:hidden;
-  border:0; outline:0;
+  border:0; 
+  outline:0;
 }
 
 /* Скрыть полосы прокрутки в ленте */

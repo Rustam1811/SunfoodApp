@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useInView } from '../../../hooks/useInView';
 
 export interface PremiumDrinkBadge { type:string; label:string; color?:string; }
 export interface PremiumDrinkItem {
@@ -15,26 +16,31 @@ interface Props { item: PremiumDrinkItem; onOpen: (id: string|number)=>void; ind
 
 export const DrinkCardPremiumImpl: React.FC<Props> = ({ item, onOpen }) => {
   const [loaded, setLoaded] = useState(false);
+  const { ref, isInView } = useInView();
 
   return (
-    <button
-      onClick={() => onOpen(item.id)}
-      data-fly-id={item.id}
-      className="
-        group relative flex flex-col
-        w-full h-[320px] p-0
-        bg-white
-        rounded-[28px]
-        shadow-sm
-        hover:shadow-md
-        active:scale-[0.98]
-        border-0
-        transition-all duration-100 ease-out
-        focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
-        overflow-hidden
-      "
-      style={{ contain: 'layout style paint', transform: 'translateZ(0)' }}
-    >
+    <div ref={ref} style={{ minHeight: '320px' }}>
+      {!isInView ? (
+        <div className="w-full h-[320px] bg-gray-100 rounded-[28px]" />
+      ) : (
+        <button
+          onClick={() => onOpen(item.id)}
+          data-fly-id={item.id}
+          className="
+            group relative flex flex-col
+            w-full h-[320px] p-0
+            bg-white
+            rounded-[28px]
+            shadow-sm
+            hover:shadow-md
+            active:scale-[0.98]
+            border-0
+            transition-all duration-100 ease-out
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
+            overflow-hidden
+          "
+          style={{ contain: 'layout style paint', transform: 'translateZ(0)' }}
+        >
       {/* Simple badge */}
       {item.badges && item.badges.length > 0 && (
         <div className="absolute top-4 left-4 z-10">
@@ -105,7 +111,9 @@ export const DrinkCardPremiumImpl: React.FC<Props> = ({ item, onOpen }) => {
           </div>
         </div>
       </div>
-    </button>
+        </button>
+      )}
+    </div>
   );
 };
 

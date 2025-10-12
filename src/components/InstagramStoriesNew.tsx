@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Eye } from 'lucide-react';
 import { StoriesService, Story } from '../services/stories';
 import { db } from '../lib/firebase';
@@ -56,6 +55,8 @@ const StoriesRing: React.FC<StoriesRingProps> = ({ story, onOpen }) => {
           src={story.mediaUrl} 
           alt={story.author}
           className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
           onError={(e) => {
             console.error('❌ Image load error for story:', story.id, 'URL:', story.mediaUrl);
             console.error('Error details:', e);
@@ -88,15 +89,15 @@ const StoriesRing: React.FC<StoriesRingProps> = ({ story, onOpen }) => {
     <button
       onClick={onOpen}
       aria-label={`Open stories by ${story.author || 'Anonymous'}`}
-      className={`group flex-shrink-0 rounded-full active:scale-95 transition ${
+      className={`group flex-shrink-0 rounded-full active:scale-95 transition-transform duration-100 ${
         story.viewed ? 'opacity-60' : 'opacity-100'
       }`}
+      style={{ contain: 'layout style paint' }}
     >
       <span className={`ring2 relative block w-[88px] h-[88px] ${isCloseFriends ? 'close-friends' : ''}`}>
         {/* внутренняя таблетка: БЕЗ blur и полупрозрачности */}
         <span className="ring2-inner absolute inset-[5px] rounded-full bg-white overflow-hidden">
           {content}
-          <span className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_0_0_22px_rgba(255,255,255,0.55)]" />
         </span>
       </span>
 
@@ -240,14 +241,11 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
     );
 
   return (
-    <motion.div
+    <div
       className="fixed inset-0 z-[60] flex flex-col"
       role="dialog"
       aria-modal="true"
       aria-label="Stories viewer"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       onMouseDown={onMouseDown}
@@ -303,7 +301,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
         </div>
         <span className="text-xs text-white/70">tap • swipe • esc</span>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -526,18 +524,16 @@ export const InstagramStoriesNew: React.FC = () => {
         })}
       </div>
 
-      <AnimatePresence>
-        {open && currentAuthor && (
-          <StoryViewer
-            stories={groups[currentAuthor]}
-            currentIndex={storyIdx}
-            onClose={closeViewer}
-            onNext={next}
-            onPrevious={prev}
-            onStoryView={markViewed}
-          />
-        )}
-      </AnimatePresence>
+      {open && currentAuthor && (
+        <StoryViewer
+          stories={groups[currentAuthor]}
+          currentIndex={storyIdx}
+          onClose={closeViewer}
+          onNext={next}
+          onPrevious={prev}
+          onStoryView={markViewed}
+        />
+      )}
     </div>
   );
 };

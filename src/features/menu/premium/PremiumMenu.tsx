@@ -274,7 +274,7 @@ export const PremiumMenu: React.FC<Props> = ({ items, categories, type = 'drinks
         {/* Premium Grid */}
         <div className="px-6 pb-32" style={{ transform: 'translateZ(0)', willChange: 'scroll-position' }}>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {visibleItems.slice(0, 20).map((it) => (
+            {visibleItems.map((it) => (
               <div key={it.id} style={{ contain: 'layout style paint' }}>
                 <DrinkCardPremium item={it} onOpen={openWith} />
               </div>

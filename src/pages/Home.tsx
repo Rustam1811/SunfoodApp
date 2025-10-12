@@ -164,9 +164,9 @@ const HomePage: React.FC = () => {
         </div>
       </header>
 
-      <main className="space-y-8 pb-28">
-        {/* Stories — теперь без серого блюра внутри колец и крупнее */}
-        <section className="px-4">
+      <main className="space-y-6 pb-28">
+        {/* Stories — Instagram-style градиент */}
+        <section className="px-4 pt-2">
           <InstagramStoriesNew />
         </section>
 

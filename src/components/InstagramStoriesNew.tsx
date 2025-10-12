@@ -101,7 +101,7 @@ const StoriesRing: React.FC<StoriesRingProps> = ({ story, onOpen }) => {
         </span>
       </span>
 
-      <p className="text-xs text-center mt-0.5 truncate w-[72px] text-slate-800 font-medium">
+      <p className="text-xs text-center mt-0.5 truncate w-[72px] text-slate-900 font-medium">
         {story.author || 'Anonymous'}
       </p>
     </button>

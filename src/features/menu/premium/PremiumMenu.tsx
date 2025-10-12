@@ -261,7 +261,7 @@ export const PremiumMenu: React.FC<Props> = ({ items, categories, type = 'drinks
     if (!touchStart || !touchEnd) return;
     
     const deltaX = touchStart.x - touchEnd.x;
-    const deltaY = touchStart.x - touchEnd.y;
+    const deltaY = touchStart.y - touchEnd.y;
     
     // Check if horizontal swipe is more significant than vertical
     if (Math.abs(deltaX) > Math.abs(deltaY)) {

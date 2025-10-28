@@ -51,7 +51,7 @@ const curatedListData = {
 };
 
 const ProfilePill = ({ name, avatar }: { name: string; avatar: string }) => (
-  <div className="flex items-center gap-2 bg-white/80 rounded-full p-1 pr-3 shadow-sm" style={{ backdropFilter: 'blur(8px)' }}>
+  <div className="flex items-center gap-2 bg-white rounded-full p-1 pr-3 shadow-sm border border-gray-200">
     <img src={avatar} alt={name} className="w-8 h-8 rounded-full object-cover" loading="lazy" />
     <span className="font-semibold text-slate-800 text-sm">Привет, {name}</span>
   </div>
@@ -184,8 +184,13 @@ const HomePage: React.FC = () => {
   }
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen font-sans bg-inherit">
       <header className="sticky top-0 z-30 px-4 py-3 ">
+=======
+    <div className="min-h-screen font-sans bg-slate-100" style={{ transform: 'translateZ(0)' }}>
+      <header className="sticky top-0 z-30 px-4 py-3 bg-white border-b border-gray-200">
+>>>>>>> 248862203ee85c67a5644dffe59762c6166a1e01
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-extrabold tracking-tight text-slate-900">Coffee Addict</h1>
           <ProfilePill name={user.name} avatar={user.avatar} />

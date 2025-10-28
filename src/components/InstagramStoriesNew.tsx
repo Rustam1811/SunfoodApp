@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Eye, Volume2, VolumeX, Play } from 'lucide-react';
+=======
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { X, Heart, Eye } from 'lucide-react';
+>>>>>>> 248862203ee85c67a5644dffe59762c6166a1e01
 import { StoriesService, Story } from '../services/stories';
 import { db } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -43,6 +48,7 @@ const timeAgo = (d?: string | number | Date) => {
 
 // Stories ring (увеличил размер + убрал blur)
 const StoriesRing: React.FC<StoriesRingProps> = ({ story, onOpen }) => {
+<<<<<<< HEAD
   const isImage = story.contentType?.startsWith("image/") || story.contentType === "image";
   const isVideo = story.contentType?.startsWith("video/") || story.contentType === "video";
 
@@ -95,6 +101,41 @@ const StoriesRing: React.FC<StoriesRingProps> = ({ story, onOpen }) => {
     }
 
     return (
+=======
+  // DEBUG: выводим mediaUrl для проверки
+  console.log('🖼️ Story Ring:', story.id, 'mediaUrl:', story.mediaUrl, 'contentType:', story.contentType);
+  
+  // Проверяем что это изображение (может быть "image" или "image/jpeg" и т.д.)
+  const isImage = story.contentType?.startsWith('image/') || story.contentType === 'image';
+  
+  const content =
+    isImage && story.mediaUrl ? (
+      <div className="w-full h-full rounded-full overflow-hidden">
+        <img 
+          src={story.mediaUrl} 
+          alt={story.author}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+          onError={(e) => {
+            console.error('❌ Image load error for story:', story.id, 'URL:', story.mediaUrl);
+            console.error('Error details:', e);
+          }}
+          onLoad={() => {
+            console.log('✅ Image loaded successfully:', story.id);
+          }}
+        />
+      </div>
+    ) : story.contentType === 'text/plain' && story.text ? (
+      <div
+        className="w-full h-full rounded-full flex items-center justify-center text-white text-[11px] font-bold text-center px-2 leading-tight"
+        style={{ background: getGradient(story.gradient) }}
+      >
+        {story.text.slice(0, 18)}
+        {story.text.length > 18 ? '…' : ''}
+      </div>
+    ) : (
+>>>>>>> 248862203ee85c67a5644dffe59762c6166a1e01
       <div
         className="w-full h-full rounded-full flex items-center justify-center text-white text-xs font-bold"
         style={{ background: getGradient(story.gradient) }}
@@ -110,10 +151,17 @@ const StoriesRing: React.FC<StoriesRingProps> = ({ story, onOpen }) => {
     <button
       type="button"
       onClick={onOpen}
+<<<<<<< HEAD
       aria-label={`Open stories by ${story.author || "Anonymous"}`}
       className={`group flex-shrink-0 rounded-full active:scale-95 transition ${
         story.viewed ? "opacity-60" : "opacity-100"
+=======
+      aria-label={`Open stories by ${story.author || 'Anonymous'}`}
+      className={`group flex-shrink-0 rounded-full active:scale-95 transition-transform duration-100 ${
+        story.viewed ? 'opacity-60' : 'opacity-100'
+>>>>>>> 248862203ee85c67a5644dffe59762c6166a1e01
       }`}
+      style={{ contain: 'layout style paint' }}
     >
       <span
         className="block w-[88px] h-[88px] rounded-full p-[3px] bg-transparent"
@@ -411,14 +459,11 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
     );
 
   return (
-    <motion.div
+    <div
       className="fixed inset-0 z-[60] flex flex-col"
       role="dialog"
       aria-modal="true"
       aria-label="Stories viewer"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       onMouseDown={onMouseDown}
@@ -474,7 +519,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
         </div>
         <span className="text-xs text-white/70">tap • swipe • esc</span>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -697,18 +742,16 @@ export const InstagramStoriesNew: React.FC = () => {
         })}
       </div>
 
-      <AnimatePresence>
-        {open && currentAuthor && (
-          <StoryViewer
-            stories={groups[currentAuthor]}
-            currentIndex={storyIdx}
-            onClose={closeViewer}
-            onNext={next}
-            onPrevious={prev}
-            onStoryView={markViewed}
-          />
-        )}
-      </AnimatePresence>
+      {open && currentAuthor && (
+        <StoryViewer
+          stories={groups[currentAuthor]}
+          currentIndex={storyIdx}
+          onClose={closeViewer}
+          onNext={next}
+          onPrevious={prev}
+          onStoryView={markViewed}
+        />
+      )}
     </div>
   );
 };

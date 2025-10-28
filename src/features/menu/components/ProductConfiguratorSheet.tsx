@@ -62,7 +62,11 @@ export const ProductConfiguratorSheet: React.FC<ProductConfiguratorProps> = ({ o
   return (
     <AnimatePresence>
       {open && product && (
+<<<<<<< HEAD
         <div className="fixed inset-0 z-[var(--layer-dialog)] flex items-center justify-center p-4" role="dialog" aria-modal="true">
+=======
+        <div className="fixed inset-0 z-[var(--layer-dialog)] flex items-center justify-center p-4 pb-24" role="dialog" aria-modal="true">
+>>>>>>> 248862203ee85c67a5644dffe59762c6166a1e01
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
@@ -75,6 +79,7 @@ export const ProductConfiguratorSheet: React.FC<ProductConfiguratorProps> = ({ o
             animate={{ opacity: 1, scale: 1, y: 0 }} 
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+<<<<<<< HEAD
             className="relative z-10 w-full max-w-md bg-[var(--color-bg-elev-1)] rounded-3xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden"
           >
             {/* Header - компактный */}
@@ -85,12 +90,28 @@ export const ProductConfiguratorSheet: React.FC<ProductConfiguratorProps> = ({ o
               <h2 className="text-lg font-bold text-[var(--color-text-primary)]">{t(product.name)}</h2>
               {product.description && <p className="text-xs text-[var(--color-text-secondary)] mt-1 line-clamp-2">{t(product.description)}</p>}
               <button onClick={onClose} className="absolute top-3 right-3 p-2 rounded-full bg-[var(--color-bg-elev-2)] hover:bg-gray-200 transition-colors">
+=======
+            className="relative z-10 w-full max-w-sm bg-[var(--color-bg-elev-1)] rounded-3xl shadow-2xl max-h-[75vh] flex flex-col overflow-hidden"
+          >
+            {/* Header - компактный */}
+            <header className="flex-shrink-0 p-4 pt-5 text-center relative border-b border-[var(--color-border)]">
+              <div className="w-28 h-28 mx-auto mb-2 rounded-2xl overflow-hidden">
+                <img src={product.image} alt={t(product.name)} className="w-full h-full object-cover" />
+              </div>
+              <h2 className="text-base font-bold text-[var(--color-text-primary)]">{t(product.name)}</h2>
+              {product.description && <p className="text-xs text-[var(--color-text-secondary)] mt-1 line-clamp-1">{t(product.description)}</p>}
+              <button onClick={onClose} className="absolute top-2 right-2 p-2 rounded-full bg-[var(--color-bg-elev-2)] hover:bg-gray-200 transition-colors">
+>>>>>>> 248862203ee85c67a5644dffe59762c6166a1e01
                 <XMarkIcon className="h-5 w-5 text-[var(--color-text-secondary)]" />
               </button>
             </header>
 
             {/* Content - скроллится */}
+<<<<<<< HEAD
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+=======
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+>>>>>>> 248862203ee85c67a5644dffe59762c6166a1e01
               {/* Size */}
               <div>
                 <h4 className="text-xs font-semibold mb-2 tracking-wide text-[var(--color-text-secondary)] uppercase">{t('ui.size')}</h4>
@@ -105,8 +126,13 @@ export const ProductConfiguratorSheet: React.FC<ProductConfiguratorProps> = ({ o
                           : 'bg-[var(--color-bg-elev-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-gray-300'
                       }`}
                     >
+<<<<<<< HEAD
                       <span className="text-base font-bold">{s.label}</span>
                       <span className="text-[9px] opacity-70">{s.ml} мл</span>
+=======
+                      <span className="text-sm font-bold">{s.label}</span>
+                      <span className="text-[8px] opacity-70">{s.ml} мл</span>
+>>>>>>> 248862203ee85c67a5644dffe59762c6166a1e01
                     </button>
                   ))}
                 </div>
@@ -191,6 +217,7 @@ export const ProductConfiguratorSheet: React.FC<ProductConfiguratorProps> = ({ o
             </div>
 
             {/* Footer - фиксированная кнопка */}
+<<<<<<< HEAD
             <div className="flex-shrink-0 p-4 border-t border-[var(--color-border)] bg-[var(--color-bg-elev-1)] flex items-center gap-3">
               <div className="flex items-center gap-2 bg-[var(--color-bg-elev-2)] rounded-xl px-2 py-2">
                 <button onClick={() => dispatch({ type: 'QTY', delta: -1 })} disabled={state.quantity === 1} className="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-base font-bold disabled:opacity-40 disabled:cursor-not-allowed">-</button>
@@ -200,6 +227,17 @@ export const ProductConfiguratorSheet: React.FC<ProductConfiguratorProps> = ({ o
               <button
                 onClick={() => { if (!product) return; onAdd({ productId: product.id, name: product.name, sizeKey: state.sizeKey, milkKey: state.milkKey, syrupKey: state.syrupKey, quantity: state.quantity, totalPrice: total }); onClose(); }}
                 className="flex-1 bg-gradient-to-r from-[var(--color-action-strong)] to-amber-500 text-white font-semibold py-3 rounded-xl shadow-lg text-sm"
+=======
+            <div className="flex-shrink-0 p-3 border-t border-[var(--color-border)] bg-[var(--color-bg-elev-1)] flex items-center gap-2">
+              <div className="flex items-center gap-1.5 bg-[var(--color-bg-elev-2)] rounded-xl px-2 py-1.5">
+                <button onClick={() => dispatch({ type: 'QTY', delta: -1 })} disabled={state.quantity === 1} className="w-6 h-6 rounded-lg bg-white flex items-center justify-center text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed">-</button>
+                <span className="w-5 text-center font-semibold text-sm">{state.quantity}</span>
+                <button onClick={() => dispatch({ type: 'QTY', delta: 1 })} className="w-6 h-6 rounded-lg bg-white flex items-center justify-center text-sm font-bold">+</button>
+              </div>
+              <button
+                onClick={() => { if (!product) return; onAdd({ productId: product.id, name: product.name, sizeKey: state.sizeKey, milkKey: state.milkKey, syrupKey: state.syrupKey, quantity: state.quantity, totalPrice: total }); onClose(); }}
+                className="flex-1 bg-gradient-to-r from-[var(--color-action-strong)] to-amber-500 text-white font-semibold py-2.5 rounded-xl shadow-lg text-sm"
+>>>>>>> 248862203ee85c67a5644dffe59762c6166a1e01
               >
                 {t('ui.add_for') || 'Добавить за'} {total} ₸
               </button>

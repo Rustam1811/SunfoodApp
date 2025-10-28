@@ -690,6 +690,66 @@ httpApp.get('/api/orders', async (req: Request, res: Response) => {
   }
 });
 
+// API endpoint для поиска пользователя по телефону
+httpApp.get('/api/users', async (req: Request, res: Response) => {
+  const action = req.query.action as string;
+  const phone = req.query.phone as string;
+  
+  // Get user by phone number
+  if (action === 'getByPhone' && phone) {
+    try {
+      // Normalize phone
+      const normalizePhone = (p: string) => {
+        const cleaned = p.replace(/\D/g, '');
+        if (cleaned.startsWith('8') && cleaned.length === 11) {
+          return '+7' + cleaned.substring(1);
+        }
+        if (cleaned.startsWith('7') && cleaned.length === 11) {
+          return '+' + cleaned;
+        }
+        return p;
+      };
+      
+      const normalized = normalizePhone(phone);
+      console.log('🔍 API /api/users - Поиск по телефону в Firestore:');
+      console.log('   Оригинальный:', phone);
+      console.log('   Нормализованный:', normalized);
+      
+      // Search in Firestore
+      const usersRef = admin.firestore().collection('users');
+      const snapshot = await usersRef.where('phone', '==', normalized).limit(1).get();
+      
+      if (snapshot.empty) {
+        console.log('   ❌ Пользователь НЕ найден');
+        return res.status(404).json({ ok: false, error: 'User not found' });
+      }
+      
+      const userDoc = snapshot.docs[0];
+      const userData = userDoc.data();
+      
+      console.log('   ✅ Пользователь найден:', userData.name || userData.displayName);
+      
+      return res.status(200).json({
+        ok: true,
+        user: {
+          id: userDoc.id,
+          phone: userData.phone,
+          displayName: userData.displayName || userData.name,
+          name: userData.name,
+          email: userData.email,
+          bonusPoints: userData.bonusPoints || 0
+        }
+      });
+    } catch (error) {
+      console.error('❌ Ошибка поиска в Firestore:', error);
+      return res.status(500).json({ ok: false, error: 'Internal server error' });
+    }
+  }
+  
+  // Если не action=getByPhone - вернуть ошибку
+  return res.status(400).json({ ok: false, error: 'Invalid action or missing parameters' });
+});
+
 // Endpoint для загрузки файлов (обходит CORS проблему)
 httpApp.post('/api/upload-story', async (req: Request, res: Response) => {
   try {

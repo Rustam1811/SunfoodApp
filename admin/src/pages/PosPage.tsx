@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { getFirestore, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
 import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
 import { parseLoyaltyPayload } from '@/utils/parseLoyaltyPayload';
 
@@ -185,19 +185,46 @@ export default function PosPage() {
         throw Object.assign(new Error('Неподдерживаемый код'), { status: 400 });
       }
       const payload = parsed.uid || parsed.cardId || raw;
-      const resp = await callApi('/pos/scan', { payload });
-      const { uid, balance: apiBalance, name, phone } = (resp?.data || {}) as { uid: string; balance: number; name?: string; phone?: string };
-      if (!uid) throw new Error('Пользователь не найден');
+      
+      // Поиск пользователя в Firestore напрямую
+      const db = getFirestore();
+      const usersRef = collection(db, 'users');
+      
+      // Сначала пробуем поиск по phone
+      let userDoc: any = null;
+      const phoneQuery = query(usersRef, where('phone', '==', payload));
+      const phoneSnap = await getDocs(phoneQuery);
+      
+      if (!phoneSnap.empty) {
+        userDoc = phoneSnap.docs[0];
+      } else {
+        // Если не нашли по phone, пробуем по cardId
+        const cardQuery = query(usersRef, where('cardId', '==', payload));
+        const cardSnap = await getDocs(cardQuery);
+        if (!cardSnap.empty) {
+          userDoc = cardSnap.docs[0];
+        }
+      }
+      
+      if (!userDoc) {
+        throw Object.assign(new Error('Клиент не найден'), { status: 404 });
+      }
+      
+      const uid = userDoc.id;
+      const userData = userDoc.data();
+      const name = userData.name || userData.displayName || 'Клиент';
+      const phone = userData.phone || '';
+      const apiBalance = userData.bonusPoints || 0;
       
       setTargetUid(uid);
-      setCustomerName(name || 'Клиент');
-      setCustomerPhone(phone || '');
-      setBalance(Number(apiBalance || 0));
+      setCustomerName(name);
+      setCustomerPhone(phone);
+      setBalance(Number(apiBalance));
       const lg = await fetchLedger(uid);
       setLedger(lg);
       setInput('');
       
-      setToast(`${name || 'Клиент'} (${phone || uid}), баланс: ${Number(apiBalance || 0)}₸`);
+      setToast(`${name} (${phone || uid}), баланс: ${Number(apiBalance)}₸`);
       if (toastTimer.current) window.clearTimeout(toastTimer.current);
       toastTimer.current = window.setTimeout(() => setToast(null), 2500);
     } catch (e: any) {

@@ -3,22 +3,22 @@
  */
 export enum OrderStatus {
   // Начальные статусы
-  NEW = 'new',                    // Новый заказ от клиента
-  ACCEPTED = 'accepted',          // Принят баристой
+  NEW = 'NEW',                    // Новый заказ от клиента
+  ACCEPTED = 'ACCEPTED',          // Принят баристой
   
   // Процесс приготовления
-  PREPARING = 'preparing',        // Готовится (попадает в доставку)
-  READY = 'ready',               // Готов (ждёт курьера)
+  PREPARING = 'PREPARING',        // Готовится (попадает в доставку)
+  READY = 'READY',               // Готов (ждёт курьера)
   
   // Процесс доставки (только для delivery orders)
-  ASSIGNED = 'assigned',          // Назначен курьеру
-  PICKED_UP = 'picked_up',       // Курьер забрал
-  ON_THE_WAY = 'on_the_way',     // В пути к клиенту
-  DELIVERED = 'delivered',        // Доставлено
+  ASSIGNED = 'ASSIGNED',          // Назначен курьеру
+  PICKED_UP = 'PICKED_UP',       // Курьер забрал
+  ON_THE_WAY = 'ON_THE_WAY',     // В пути к клиенту
+  DELIVERED = 'DELIVERED',        // Доставлено
   
   // Финальные статусы
-  COMPLETED = 'completed',        // Завершено (для самовывоза)
-  CANCELLED = 'cancelled',        // Отменено
+  COMPLETED = 'COMPLETED',        // Завершено (для самовывоза)
+  CANCELLED = 'CANCELLED',        // Отменено
 }
 
 /**

@@ -3,7 +3,10 @@
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
-      { "source": "/api/**", "function": "api" },
+      { "source": "/api/**", "function": {
+        "functionId": "app",
+        "region": "us-central1"
+      }},
       { "source": "/admin/**", "destination": "/admin/index.html" },
       { "source": "**", "destination": "/index.html" }
     ],

@@ -14,10 +14,11 @@ import PromotionManagement from '@/pages/PromotionManagement';
 import InstagramStoriesAdminPageNew from '@/pages/InstagramStoriesAdminPageNew';
 import PosPage from '@/pages/PosPage';
 import UsersPage from '@/pages/UsersPage';
-import DeliveryManagement from '@/pages/DeliveryManagement';
-import CourierManagement from '@/pages/CourierManagement';
-import CourierDashboard from '@/pages/CourierDashboard';
-import CourierDocumentsPage from '@/pages/CourierDocumentsPage';
+// COMMENTED OUT - Delivery/Courier features
+// import DeliveryManagement from '@/pages/DeliveryManagement';
+// import CourierManagement from '@/pages/CourierManagement';
+// import CourierDashboard from '@/pages/CourierDashboard';
+// import CourierDocumentsPage from '@/pages/CourierDocumentsPage';
 
 // Новая респонсивная навигация
 import ResponsiveAdminNavigation from '@/components/ResponsiveAdminNavigation';
@@ -101,6 +102,7 @@ const ResponsiveAdminRoutes: React.FC = () => {
                   <Dashboard />
                 </div>
               </Route>
+              {/* COMMENTED OUT - Courier routes
               <Route exact path="/admin/courier-dashboard">
                 <div className="bg-white rounded-lg shadow p-6">
                   {userRole === 'courier' ? <CourierDashboard /> : <div className="p-6 text-center text-gray-500">Нет доступа</div>}
@@ -111,6 +113,7 @@ const ResponsiveAdminRoutes: React.FC = () => {
                   {userRole === 'courier' ? <CourierDocumentsPage /> : <div className="p-6 text-center text-gray-500">Нет доступа</div>}
                 </div>
               </Route>
+              */}
               <Route exact path="/admin/orders">
                 <div className="bg-white rounded-lg shadow p-6">
                   <OrderManagement />
@@ -155,6 +158,7 @@ const ResponsiveAdminRoutes: React.FC = () => {
                   {userRole === 'admin' ? <UsersPage /> : <div className="p-6 text-center text-gray-500">Нет доступа</div>}
                 </div>
               </Route>
+              {/* COMMENTED OUT - Delivery/Courier management
               <Route exact path="/admin/delivery">
                 <div className="bg-white rounded-lg shadow p-6">
                   {userRole === 'admin' ? <DeliveryManagement /> : <div className="p-6 text-center text-gray-500">Нет доступа</div>}
@@ -165,12 +169,9 @@ const ResponsiveAdminRoutes: React.FC = () => {
                   {userRole === 'admin' ? <CourierManagement /> : <div className="p-6 text-center text-gray-500">Нет доступа</div>}
                 </div>
               </Route>
-              <Redirect from="/admin" exact to={
-                userRole === 'courier' ? "/admin/courier-dashboard" : "/admin/dashboard"
-              } />
-              <Redirect from="/" exact to={
-                userRole === 'courier' ? "/admin/courier-dashboard" : "/admin/dashboard"
-              } />
+              */}
+              <Redirect from="/admin" exact to="/admin/dashboard" />
+              <Redirect from="/" exact to="/admin/dashboard" />
             </Switch>
           </div>
         </main>

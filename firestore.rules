@@ -19,12 +19,19 @@ service cloud.firestore {
       //   get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    // Orders collection - admin access only
+    // Orders collection - admin/barista/courier access
     match /orders/{orderId} {
-      // Allow read/write for authenticated admin users
-      // For dev mode, allow for specific emails
-      allow read, write: if request.auth != null && 
-        request.auth.token.email in ['admin121@gmail.com', 'barista121@gmail.com'];
+      // Allow read/write for authenticated admin users (dev mode - allow all authenticated)
+      allow read, write: if request.auth != null;
+      
+      // Production: restrict by role
+      // allow read, write: if request.auth != null && 
+      //   request.auth.token.email in ['admin121@gmail.com', 'barista121@gmail.com', 'courier121@gmail.com'];
+      
+      // Status history subcollection
+      match /statusHistory/{historyId} {
+        allow read, write: if request.auth != null;
+      }
     }
     
     // Users collection - admin access + user can update own phone
@@ -83,9 +90,33 @@ service cloud.firestore {
     
     // Notifications log collection - only Cloud Functions can write, admin can read
     match /notifications_log/{logId} {
-      allow read: if request.auth != null && 
-        request.auth.token.email in ['admin121@gmail.com', 'barista121@gmail.com'];
+      allow read: if request.auth != null;
       allow write: if false; // Only Cloud Functions can write
+    }
+    
+    // Bonuses collection - users can read their own, admin can read/write all
+    match /bonuses/{userId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == userId || request.auth.token.email in ['admin121@gmail.com', 'barista121@gmail.com']);
+      allow write: if request.auth != null;
+    }
+    
+    // Bonus settings collection - admin write, public read
+    match /bonusSettings/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Courier locations collection - courier can update their own, admin can read all
+    match /courierLocations/{courierId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        (request.auth.uid == courierId || request.auth.token.email in ['admin121@gmail.com', 'courier121@gmail.com']);
+    }
+    
+    // Counters collection - allow read/write for backend operations
+    match /counters/{counterId} {
+      allow read, write: if request.auth != null;
     }
     
     // All other collections - deny by default

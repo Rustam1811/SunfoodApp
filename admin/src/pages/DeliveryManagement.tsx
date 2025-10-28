@@ -62,30 +62,42 @@ const DeliveryManagement: React.FC = () => {
   // Real-time Firestore subscription
   useEffect(() => {
     const ordersRef = collection(db, 'orders');
+    
+    // ЛОГИКА КАК В GLOVO:
+    // Показываем только заказы на доставку которые ГОТОВЫ к отправке
+    // (бариста сделал READY) и еще не доставлены
     const q = query(
       ordersRef,
       where('type', '==', 'delivery'),
+      // Можно использовать один из вариантов:
+      // 1. Показывать только готовые и в процессе доставки
+      // where('status', 'in', ['READY', 'ASSIGNED', 'PICKED_UP', 'ON_THE_WAY', 'DELIVERED']),
+      // 2. ИЛИ просто все доставки и фильтровать на клиенте
       orderBy('createdAt', 'desc')
     );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedOrders: DeliveryOrder[] = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          orderNumber: data.orderNumber || doc.id.slice(-6),
-          customerName: data.customerName || 'Клиент',
-          customerPhone: data.customerPhone || data.phone || '',
-          address: {
-            street: data.address?.street || data.deliveryAddress || '',
-            apartment: data.address?.apartment,
-          },
-          amount: data.total || data.amount || 0,
-          status: mapFirestoreStatus(data.status),
-          createdAt: data.createdAt?.toMillis?.() || Date.now(),
-        };
-      });
+      const fetchedOrders: DeliveryOrder[] = snapshot.docs
+        .map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            orderNumber: data.orderNumber || data.orderNumberDisplay || `#${doc.id.slice(-6)}`,
+            customerName: data.customerName || 'Клиент',
+            customerPhone: data.customerPhone || data.phone || '',
+            address: {
+              street: data.address?.street || data.deliveryAddress || '',
+              apartment: data.address?.apartment,
+            },
+            amount: data.total || data.amount || 0,
+            status: mapFirestoreStatus(data.status),
+            createdAt: data.createdAt?.toMillis?.() || Date.now(),
+          };
+        })
+        // ФИЛЬТР: Показываем только готовые к доставке (READY и дальше)
+        .filter(order => ['ready', 'assigned', 'picked_up', 'on_the_way', 'delivered'].includes(order.status));
       
+      console.log(`📦 Loaded ${fetchedOrders.length} delivery orders (READY and later)`);
       setOrders(fetchedOrders);
       setLoading(false);
     }, (error) => {
@@ -97,6 +109,8 @@ const DeliveryManagement: React.FC = () => {
   }, []);
   
   const mapFirestoreStatus = (status: string): DeliveryStatus => {
+    // Нормализация: uppercase для совместимости
+    const normalized = status?.toUpperCase() || 'NEW';
     const mapping: Record<string, DeliveryStatus> = {
       'NEW': 'pending',
       'ACCEPTED': 'preparing',
@@ -109,7 +123,7 @@ const DeliveryManagement: React.FC = () => {
       'COMPLETED': 'delivered',
       'CANCELLED': 'cancelled',
     };
-    return mapping[status] || 'pending';
+    return mapping[normalized] || 'pending';
   };
   
   if (loading) {

@@ -6,6 +6,8 @@ import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PremiumMenu } from '../../../src/features/menu/premium/PremiumMenu';
 import { useTranslation } from 'react-i18next';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const humanize = (key: string) => key.split('.').pop()?.replace(/_/g,' ') || key;
 const CURRENCY = '₸';
@@ -67,55 +69,37 @@ export default function PosMenuPage() {
       
       try {
         const normalized = normalizePhone(customerPhone);
-        console.log('🔍 POS - Поиск клиента:');
+        console.log('🔍 POS - Поиск клиента в Firestore:');
         console.log('   Введено:', customerPhone);
         console.log('   Нормализовано:', normalized);
         
-        const url = `/api/users?action=getByPhone&phone=${encodeURIComponent(normalized)}`;
-        console.log('   URL:', url);
+        // ПРЯМОЙ ПОИСК В FIRESTORE
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('phone', '==', normalized), limit(1));
+        const snapshot = await getDocs(q);
         
-        const response = await fetch(url);
-        console.log('   Статус ответа:', response.status);
-        
-        const data = await response.json();
-        console.log('   Данные:', data);
-        
-        // Проверяем успешность и наличие пользователя
-        if (response.ok && data.ok && data.user) {
-          console.log('   ✅ Пользователь найден:', data.user.displayName || data.user.name);
-          
-          // Fetch bonus balance
-          const bonusResponse = await fetch(`/api/bonus?userId=${data.user.id}`);
-          
-          if (bonusResponse.ok) {
-            const bonusData = await bonusResponse.json();
-            // После исправления ok() сервер возвращает { ok: true, balance: xxx, ... }
-            if (bonusData.ok && bonusData.balance !== undefined) {
-              setCustomerBonus(bonusData.balance);
-              setCustomerName(data.user.displayName || data.user.name || '');
-              setBonusError(null);
-              console.log('   💰 Бонусы загружены:', bonusData.balance);
-            } else {
-              // Пользователь найден, но не удалось загрузить бонусы
-              setCustomerName(data.user.displayName || data.user.name || '');
-              setCustomerBonus(0);
-              setBonusError('Не удалось загрузить бонусы');
-              console.log('   ⚠️ Не удалось загрузить бонусы');
-            }
-          } else {
-            // Пользователь найден, но запрос бонусов вернул ошибку
-            setCustomerName(data.user.displayName || data.user.name || '');
-            setCustomerBonus(0);
-            setBonusError('Не удалось загрузить бонусы');
-            console.log('   ⚠️ Не удалось загрузить бонусы');
-          }
-        } else {
-          // Пользователь не найден
+        if (snapshot.empty) {
           console.log('   ❌ Клиент не найден');
           setBonusError('Клиент не найден');
           setCustomerBonus(0);
           setCustomerName('');
+          setLoadingBonus(false);
+          return;
         }
+        
+        const userDoc = snapshot.docs[0];
+        const userData = userDoc.data();
+        const userId = userDoc.id;
+        
+        console.log('   ✅ Пользователь найден:', userData.name || userData.displayName);
+        
+        // Получаем бонусы
+        const bonusPoints = userData.bonusPoints || 0;
+        
+        setCustomerBonus(bonusPoints);
+        setCustomerName(userData.displayName || userData.name || '');
+        setBonusError(null);
+        console.log('   💰 Бонусы:', bonusPoints);
       } catch (error) {
         console.error('❌ Ошибка загрузки:', error);
         setBonusError('Ошибка загрузки данных');

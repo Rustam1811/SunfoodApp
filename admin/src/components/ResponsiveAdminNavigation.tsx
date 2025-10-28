@@ -14,9 +14,10 @@ import {
   Bars3Icon,
   XMarkIcon,
   SparklesIcon,
-  TruckIcon,
-  MapPinIcon,
-  DocumentTextIcon
+  // COMMENTED OUT - Delivery/Courier icons
+  // TruckIcon,
+  // MapPinIcon,
+  // DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { UserContext, type Role } from '@/contexts/UserContext';
 
@@ -45,6 +46,7 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     route: 'dashboard',
     roles: ['admin', 'barista']
   },
+  /* COMMENTED OUT - Courier features
   {
     id: 'courier-dashboard',
     label: 'Мои доставки',
@@ -59,12 +61,13 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     route: 'courier-documents',
     roles: ['courier']
   },
+  */
   {
     id: 'orders',
     label: 'Заказы',
     icon: ClipboardDocumentListIcon,
     route: 'orders',
-    roles: ['admin', 'barista', 'courier']
+    roles: ['admin', 'barista']
   },
   {
     id: 'pos',
@@ -122,6 +125,7 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     route: 'users',
     roles: ['admin']
   },
+  /* COMMENTED OUT - Delivery/Courier management
   {
     id: 'delivery',
     label: 'Доставка',
@@ -136,6 +140,7 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     route: 'couriers',
     roles: ['admin']
   }
+  */
 ];
 
 /**

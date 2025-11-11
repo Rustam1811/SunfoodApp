@@ -16,6 +16,7 @@ import Booking from './pages/Booking';
 // Контексты
 import { CartProvider } from './contexts/CartContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { PromoProvider } from './contexts/PromoContext';
 
 import "./index.css";
 
@@ -134,12 +135,14 @@ const BottomNavBar = () => {
 const App: React.FC = () => (
     <CartProvider>
         <LanguageProvider>
-            <BrowserRouter>
-                <>
-                    <SwipeableMain />
-                    <BottomNavBar />
-                </>
-            </BrowserRouter>
+            <PromoProvider>
+                <BrowserRouter>
+                    <>
+                        <SwipeableMain />
+                        <BottomNavBar />
+                    </>
+                </BrowserRouter>
+            </PromoProvider>
         </LanguageProvider>
     </CartProvider>
 );

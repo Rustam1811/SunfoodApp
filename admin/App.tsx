@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { BrowserRouter as Router, Route, Redirect, Switch } from "react-router-dom";
-import { UserProvider, UserContext } from "./contexts/UserContext";
+import { UserContext } from "./contexts/UserContext";
 import AdminRoutes from "./routes/AdminRoutes";
 
 const App: React.FC = () => {
@@ -9,16 +9,16 @@ const App: React.FC = () => {
   if (loading) return <div className="h-screen flex items-center justify-center">Загрузка...</div>;
 
   return (
-    <Router>
+    <Router basename="/admin">
       <Switch>
-        <Route path="/admin/login" component={AdminRoutes} />
+        <Route path="/login" component={AdminRoutes} />
         <Route
-          path="/admin"
+          path="/"
           render={() =>
             user && (user.role === "owner" || user.role === "admin") ? (
               <AdminRoutes />
             ) : (
-              <Redirect to="/admin/login" />
+              <Redirect to="/login" />
             )
           }
         />
@@ -27,8 +27,4 @@ const App: React.FC = () => {
   );
 };
 
-export default () => (
-  <UserProvider>
-    <App />
-  </UserProvider>
-);
+export default App;

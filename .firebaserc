@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "sunfood-35bdd"
-  }
+    "default": "sunfood-35bdd",
+    "prod": "coffeeaddict-c9d70"
+  },
+  "targets": {},
+  "etags": {}
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserIcon, ArrowRightIcon, ShoppingBagIcon, XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
+import { ArrowRightIcon, ShoppingBagIcon, XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
+import PromoSection from '../components/PromoSection';
 
 // ===================================================================
 //  ДАННЫЕ И ТИПЫ
@@ -186,6 +187,9 @@ const HomePage: React.FC = () => {
                         </motion.button>
                     </div>
                 </section>
+
+                {/* 2.5 Активные акции */}
+                <PromoSection />
                 
                 {/* 3. Кураторская подборка (Открытие) */}
                 <section>

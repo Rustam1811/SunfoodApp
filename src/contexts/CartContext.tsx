@@ -13,6 +13,8 @@ export interface CartItem {
     sizeKey?: string;
     milkKey?: string;
     syrupKey?: string;
+    // Для акций
+    categoryId?: number;
 }
 
 // ✨ ИСПРАВЛЕНО: Добавлены новые типы действий

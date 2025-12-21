@@ -1,8 +1,13 @@
 import React from 'react';
 import { Route, Redirect, RouteProps, useLocation } from 'react-router-dom';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../auth/AuthContextV2';
 
-const PrivateRoute: React.FC<RouteProps> = ({ children, ...rest }) => {
+interface PrivateRouteProps extends Omit<RouteProps, 'component' | 'render'> {
+  component?: React.ComponentType<unknown>;
+  children?: React.ReactNode;
+}
+
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ component: Component, children, ...rest }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -15,21 +20,18 @@ const PrivateRoute: React.FC<RouteProps> = ({ children, ...rest }) => {
   }
 
   return (
-    <Route
-      {...rest}
-      render={() =>
-        user ? (
-          children
-        ) : (
-          <Redirect
-            to={{
-              pathname: '/login',
-              state: { from: location.pathname }
-            }}
-          />
-        )
-      }
-    />
+    <Route {...rest}>
+      {user ? (
+        Component ? <Component /> : children
+      ) : (
+        <Redirect
+          to={{
+            pathname: '/login',
+            state: { from: location.pathname }
+          }}
+        />
+      )}
+    </Route>
   );
 };
 

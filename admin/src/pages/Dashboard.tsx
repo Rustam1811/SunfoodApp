@@ -1,198 +1,162 @@
-import React, { useContext } from 'react';
-import { motion } from 'framer-motion';
-import { useHistory } from 'react-router-dom';
-import { UserContext } from '@/contexts/UserContext';
-import { 
-  ChartBarIcon, 
-  ClipboardDocumentListIcon
-} from '@heroicons/react/24/outline';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  collection,
+  getCountFromServer,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  where,
+} from 'firebase/firestore';
+import { db } from '../firebase';
 
-interface Stat {
-  label: string;
-  value: string | number;
-  roles: Array<'owner' | 'admin'>;
-}
+type ActionLog = {
+  id: string;
+  actionType: string;
+  collection: string;
+  targetId: string;
+  byUid?: string;
+  createdAt?: { toDate: () => Date };
+  diff?: Record<string, unknown>;
+};
 
-const Dashboard: React.FC = () => {
-  const { user, loading } = useContext(UserContext);
-  const history = useHistory();
+type EntitySummary = {
+  active: number;
+  flows: number;
+};
 
-  const stats: Stat[] = [
-    { label: 'Новые заказы сегодня', value: 24, roles: ['owner', 'admin'] },
-    { label: 'Продажи сегодня', value: '₸34,000', roles: ['owner'] },
-    { label: 'Общая выручка', value: '₸1,200,000', roles: ['owner'] },
-  ];
+export const Dashboard: React.FC = () => {
+  const [counts, setCounts] = useState<EntitySummary>({
+    active: 0,
+    flows: 0,
+  });
+  const [recentActions, setRecentActions] = useState<ActionLog[]>([]);
 
-  // Показываем индикатор загрузки в стиле Analytics
-  if (loading) {
-    return (
-      <div className="min-h-screen font-sans bg-gradient-to-b from-slate-100 via-slate-100 to-white pb-20">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-900 border-t-transparent mx-auto mb-4"></div>
-            <p className="text-slate-600">Загрузка...</p>
-          </div>
-        </div>
-      </div>
+  useEffect(() => {
+    const loadCounts = async () => {
+      try {
+        const activeEntitiesQuery = query(
+          collection(db, 'entities'),
+          where('status', '==', 'active')
+        );
+        const flowsQuery = collection(db, 'flows');
+        const [activeEntitiesCount, flowsCount] = await Promise.all([
+          getCountFromServer(activeEntitiesQuery),
+          getCountFromServer(flowsQuery),
+        ]);
+        setCounts({
+          active: activeEntitiesCount.data().count,
+          flows: flowsCount.data().count,
+        });
+      } catch (err) {
+        console.error('[Admin] Failed to load counts:', err);
+      }
+    };
+
+    loadCounts();
+  }, []);
+
+  useEffect(() => {
+    const actionsQuery = query(
+      collection(db, 'admin_actions'),
+      orderBy('createdAt', 'desc'),
+      limit(10)
     );
-  }
+    return onSnapshot(actionsQuery, (snapshot) => {
+      const actions = snapshot.docs.map((doc) => {
+        const data = doc.data() as ActionLog;
+        return { ...data, id: doc.id };
+      });
+      setRecentActions(actions);
+    });
+  }, []);
 
-  // Проверяем, что пользователь загружен
-  if (!user) {
-    return (
-      <div className="min-h-screen font-sans bg-gradient-to-b from-slate-100 via-slate-100 to-white pb-20">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <p className="text-slate-600">Необходима авторизация</p>
-            <p className="text-sm text-slate-500 mt-2">Пожалуйста, войдите в систему</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const shortcuts = [
-    {
-      id: 'analytics',
-      title: 'Аналитика',
-      description: 'Продажи, популярные товары, отчеты',
-      icon: ChartBarIcon,
-      color: 'from-admin-primary to-admin-info',
-      route: '/admin/analytics',
-      features: ['Продажи', 'Популярные товары', 'Отчеты'],
-    },
-    {
-      id: 'orders',
-      title: 'Управление заказами',
-      description: 'Принятие заказов, обновление статусов',
-      icon: ClipboardDocumentListIcon,
-      color: 'from-admin-success to-admin-secondary',
-      route: '/admin/orders',
-      features: ['Новые заказы', 'Статусы', 'QR-коды'],
-    },
-  ];
+  const actionsPreview = useMemo(() => {
+    return recentActions.map((action) => {
+      const timestamp = action.createdAt?.toDate ? action.createdAt.toDate().toLocaleString() : 'Just now';
+      const fallbackAction = (action as unknown as { action?: string }).action;
+      const fallbackCollection = (action as unknown as { entityType?: string }).entityType;
+      const fallbackTarget = (action as unknown as { entityId?: string }).entityId;
+      return {
+        ...action,
+        actionType: action.actionType || fallbackAction || 'update',
+        collection: action.collection || fallbackCollection || 'entities',
+        targetId: action.targetId || fallbackTarget || 'unknown',
+        timestamp,
+      };
+    });
+  }, [recentActions]);
 
   return (
-    <div className="min-h-screen font-sans bg-gradient-to-b from-slate-100 via-slate-100 to-white pb-20">
-      <div className="px-4 py-6">
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-2xl font-extrabold tracking-tight text-slate-900 mb-6"
-        >
-          ☕ Панель управления
-        </motion.h1>
+    <div className="space-y-6">
+      <div className="grid gap-6 md:grid-cols-3">
+        <div className="admin-card rounded-3xl px-5 py-5">
+          <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--admin-muted)]">
+            Active Entities
+          </div>
+          <div className="mt-4 font-display text-3xl font-semibold">
+            {counts.active}
+          </div>
+          <div className="mt-2 text-xs text-[color:var(--admin-muted)]">
+            Visible to client apps.
+          </div>
+        </div>
+        <div className="admin-card rounded-3xl px-5 py-5">
+          <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--admin-muted)]">
+            Flows
+          </div>
+          <div className="mt-4 font-display text-3xl font-semibold">{counts.flows}</div>
+          <div className="mt-2 text-xs text-[color:var(--admin-muted)]">Total flow definitions.</div>
+        </div>
+        <div className="admin-card rounded-3xl px-5 py-5">
+          <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--admin-muted)]">
+            Data Discipline
+          </div>
+          <div className="mt-4 text-sm font-semibold text-[color:var(--admin-ink)]">
+            Admin is the single source of truth.
+          </div>
+          <p className="mt-2 text-xs text-[color:var(--admin-muted)]">
+            Create, update, and govern states here. Client apps read and execute.
+          </p>
+        </div>
+      </div>
 
-        {/* Статистика в стиле клиентского приложения */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
-        >
-          {stats
-            .filter(stat => stat.roles.includes(user.role as 'owner' | 'admin'))
-            .map((stat) => (
-              <motion.div 
-                key={stat.label}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="rounded-3xl bg-white shadow-[0_16px_48px_-20px_rgba(0,0,0,0.35)] overflow-hidden p-4"
-              >
-                <p className="text-xs text-slate-600 uppercase tracking-wide font-medium mb-2">
-                  {stat.label}
-                </p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {stat.value}
-                </p>
-              </motion.div>
-            ))}
-        </motion.div>
-
-        {/* Последние заказы в стиле клиентского приложения */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-8"
-        >
-          <h2 className="text-lg font-bold tracking-tight text-slate-900 mb-4">
-            Последние заказы
-          </h2>
-          <div className="rounded-3xl bg-white shadow-[0_16px_48px_-20px_rgba(0,0,0,0.35)] overflow-hidden p-4">
-            <div className="space-y-3">
-              <motion.div 
-                whileHover={{ scale: 1.01 }}
-                className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl"
-              >
-                <span className="text-slate-900 font-medium">Заказ #1024</span>
-                <span className="text-slate-900 font-semibold">₸450</span>
-              </motion.div>
-              <motion.div 
-                whileHover={{ scale: 1.01 }}
-                className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl"
-              >
-                <span className="text-slate-900 font-medium">Заказ #1023</span>
-                <span className="text-slate-900 font-semibold">₸1,200</span>
-              </motion.div>
+      <div className="admin-card rounded-3xl px-5 py-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--admin-muted)]">
+              Recent Actions
             </div>
+            <div className="mt-2 font-display text-lg font-semibold">Latest CRUD activity</div>
           </div>
-        </motion.div>
-
-        {/* Ссылки для быстрого доступа в стиле клиентского приложения */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <h2 className="text-lg font-bold tracking-tight text-slate-900 mb-4">
-            Быстрый доступ
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {shortcuts.map((shortcut) => (
-              <motion.div
-                key={shortcut.id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => history.push(shortcut.route)}
-                className="rounded-3xl bg-white shadow-[0_16px_48px_-20px_rgba(0,0,0,0.35)] overflow-hidden p-4 cursor-pointer"
+        </div>
+        <div className="mt-4 space-y-3">
+          {actionsPreview.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-[color:var(--admin-border)] px-4 py-4 text-xs text-[color:var(--admin-muted)]">
+              No recent admin actions yet.
+            </div>
+          ) : (
+            actionsPreview.map((action) => (
+              <div
+                key={action.id}
+                className="flex items-center justify-between rounded-2xl border border-[color:var(--admin-border)] bg-white px-4 py-3 text-xs"
               >
-                <div className="flex items-center mb-4">
-                  <div className="p-3 bg-slate-100 rounded-2xl">
-                    <shortcut.icon className="h-6 w-6 text-slate-700" />
+                <div>
+                  <div className="font-semibold text-[color:var(--admin-ink)]">
+                    {action.actionType} {action.collection} {action.targetId}
                   </div>
-                  <span className="ml-3 text-slate-900 font-bold text-lg tracking-tight">
-                    {shortcut.title}
-                  </span>
+                  <div className="mt-1 text-[color:var(--admin-muted)]">
+                    {action.byUid ? `by ${action.byUid}` : 'by admin'}
+                  </div>
                 </div>
-                <p className="text-slate-600 text-sm mb-4">
-                  {shortcut.description}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {shortcut.features.map((feature) => (
-                    <span
-                      key={feature}
-                      className="inline-flex items-center bg-slate-100 rounded-full px-3 py-1 text-xs font-medium text-slate-700"
-                    >
-                      {feature}
-                    </span>
-                  ))}
+                <div className="text-[color:var(--admin-muted)]">
+                  {action.timestamp}
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
 };
-
-export default Dashboard;
-
-
-// Как сделать ещё круче:
-// 1. Извлечь карточку статистики в переиспользуемый компонент Card для консистентного стиля.
-// 2. Подключить библиотеку Recharts или Chart.js для визуализации динамических графиков выручки.
-// 3. Использовать React Query или SWR для асинхронной подгрузки данных и кеширования.
-// 4. Добавить переключатель темной/светлой темы (dark mode) с сохранением в localStorage.
-// 5. Внедрить WebSocket для реального обновления заказов и статистики в режиме реального времени.

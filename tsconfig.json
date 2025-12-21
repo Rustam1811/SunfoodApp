@@ -24,8 +24,8 @@
       "@contexts/*": ["contexts/*"]
     },
 
-    "noEmit": true        // <- добавь ЭТО
+    "noEmit": true
   },
-  "include": ["src", "vite.config.ts", "admin", "api"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*", "vite.config.ts"],
+  "exclude": ["node_modules", "admin", "dist", "functions"]
 }

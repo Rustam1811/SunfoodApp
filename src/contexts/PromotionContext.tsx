@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase';
 import { apiUrl } from '../config/api';
+import { useAuth } from '../auth/AuthContextV2';
 
 interface Promotion {
   id: string;
@@ -66,16 +65,8 @@ export const PromotionProvider: React.FC<PromotionProviderProps> = ({ children }
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [appliedPromotion, setAppliedPromotion] = useState<AppliedPromotion | null>(null);
   const [loading, setLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
-
-  // Следим за авторизацией
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user ? user.uid : null);
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const { user } = useAuth();
+  const currentUser = user?.id || null;
 
   // Загружаем акции при смене пользователя
   useEffect(() => {

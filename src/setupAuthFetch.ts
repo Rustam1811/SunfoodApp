@@ -1,46 +1,12 @@
-import { getAuth } from 'firebase/auth';
+/**
+ * Setup Auth Fetch
+ * 
+ * NOTE: Firebase Auth removed - using simple phone+password auth via Firestore.
+ * This file is kept for backwards compatibility but no longer adds auth tokens.
+ * Authentication is now handled via session in localStorage.
+ * 
+ * See src/services/authService.ts for the new auth system.
+ */
 
-if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-  const originalFetch = window.fetch.bind(window);
-
-  window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    try {
-      const url = typeof input === 'string'
-        ? input
-        : input instanceof URL
-          ? input.href
-          : input.url;
-
-      const isApiRequest = /^\/api\b/.test(url) || url.startsWith(`${window.location.origin}/api`);
-
-      if (!isApiRequest) {
-        return originalFetch(input, init);
-      }
-
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        return originalFetch(input, init);
-      }
-
-      const token = await currentUser.getIdToken();
-      const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
-      headers.set('Authorization', `Bearer ${token}`);
-
-      const config: RequestInit = {
-        credentials: init?.credentials ?? 'include',
-        ...init,
-        headers
-      };
-
-      if (input instanceof Request) {
-        return originalFetch(new Request(input, config));
-      }
-
-      return originalFetch(input, config);
-    } catch (error) {
-      console.error('Failed to attach auth token to fetch request:', error);
-      return originalFetch(input, init);
-    }
-  };
-}
+// No-op - auth tokens no longer needed with simple Firestore auth
+export {};

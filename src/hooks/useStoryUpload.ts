@@ -1,6 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../lib/firebase';
+import { storage, ref, uploadBytes, getDownloadURL } from '../lib/firebase';
 
 export interface StoryUploadResult {
   url: string; path: string; contentType: string;

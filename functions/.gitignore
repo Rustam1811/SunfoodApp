@@ -8,3 +8,7 @@ typings/
 # Node.js dependency directory
 node_modules/
 *.local
+
+# Service Account Key (NEVER commit!)
+service-account.json
+*.json.key

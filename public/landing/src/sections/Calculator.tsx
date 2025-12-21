@@ -157,10 +157,14 @@ export function Calculator() {
             </div>
 
             {/* CTA */}
-            <div className="mt-12 pt-8 border-t border-[#E8DDD4] text-center">
+            <div className="mt-12 pt-8 border-t border-[#E8DDD4] text-center space-y-4">
               <Button onClick={() => openModal()}>
                 {t.calculator.getCalculation}
               </Button>
+              {/* Disclaimer */}
+              <p className="text-xs text-[#4A2C2A]/50 max-w-md mx-auto leading-relaxed">
+                {t.calculator.disclaimer}
+              </p>
             </div>
           </div>
         </div>

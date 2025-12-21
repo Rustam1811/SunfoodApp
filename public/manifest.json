@@ -1,27 +1,28 @@
 {
-  "short_name": "SunFood",
-  "name": "SunFood Coffee App",
+  "short_name": "TrainerOS",
+  "name": "Trainer OS - Personal Training",
+  "description": "Personal trainer operating system for coaches and clients",
   "icons": [
     {
-      "src": "coffeeaddict.jpg",
+      "src": "images/fitness-icon.png",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/png"
     },
     {
-      "src": "coffeeaddict.jpg",
+      "src": "images/fitness-icon.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "coffeeaddict.jpg",
+      "src": "images/fitness-icon.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable any"
     }
   ],
-  "start_url": "/",
+  "start_url": "/app/",
   "display": "standalone",
-  "theme_color": "#FF6B6B",
-  "background_color": "#ffffff",
+  "theme_color": "#1A1A1A",
+  "background_color": "#1A1A1A",
   "orientation": "portrait"
 }

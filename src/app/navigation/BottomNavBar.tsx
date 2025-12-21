@@ -1,11 +1,11 @@
-import React from 'react';
+﻿import React from 'react';
 import { NavLink, useLocation, useRouteMatch } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   HomeIcon, 
   Squares2X2Icon, 
-  ShoppingBagIcon, 
-  CreditCardIcon, 
+  PlayCircleIcon, 
+  ChartBarIcon, 
   UserCircleIcon 
 } from '@heroicons/react/24/solid';
 
@@ -17,9 +17,9 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: '/home', icon: HomeIcon, label: 'Главная' },
-  { to: '/menu', icon: Squares2X2Icon, label: 'Меню' },
-  { to: '/order', icon: ShoppingBagIcon, label: 'Заказ' },
-  { to: '/card', icon: CreditCardIcon, label: 'Карта' },
+  { to: '/menu', icon: Squares2X2Icon, label: 'Тренировки' },
+  { to: '/order', icon: PlayCircleIcon, label: 'Мои занятия' },
+  { to: '/card', icon: ChartBarIcon, label: 'Прогресс' },
   { to: '/profile', icon: UserCircleIcon, label: 'Профиль' },
 ];
 
@@ -74,3 +74,4 @@ export const BottomNavBar: React.FC = () => {
     </div>
   );
 };
+

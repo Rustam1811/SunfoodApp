@@ -28,7 +28,7 @@ export function Testimonials() {
               className="coffee-card p-8"
             >
               {/* Result Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E8DDD4]/50 rounded-full border-2 border-[#C68B59]/30 mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E8DDD4]/50 rounded-full border-2 border-[#C68B59]/30 mb-4">
                 <span className="text-2xl font-bold text-[#6B4423]">
                   {testimonial.result}
                 </span>
@@ -36,6 +36,14 @@ export function Testimonials() {
                   {testimonial.period}
                 </span>
               </div>
+
+              {/* Before context */}
+              {'before' in testimonial && testimonial.before && (
+                <div className="mb-4 px-3 py-2 bg-[#FFF8F0] rounded-lg border-l-4 border-[#C68B59]/50">
+                  <span className="text-xs font-semibold text-[#6B4423]">{t.testimonials.beforeLabel} </span>
+                  <span className="text-xs text-[#4A2C2A]/70">{testimonial.before}</span>
+                </div>
+              )}
 
               {/* Quote */}
               <blockquote className="text-[#4A2C2A]/80 leading-relaxed mb-6">

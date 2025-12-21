@@ -1,12 +1,12 @@
 // Service Worker для SunfoodApp - версия с улучшенной обработкой ошибок
-const CACHE_VERSION = 'v7';
+const CACHE_VERSION = 'v9';
 const CACHE_NAME = `sunfood-cache-${CACHE_VERSION}`;
 
 // Ресурсы для кэширования
 const STATIC_CACHE_URLS = [
-  '/',
-  '/index.html',
-  '/admin.html',
+  '/app/',
+  '/app/index.html',
+  '/admin/',
   '/manifest.json'
 ];
 
@@ -18,7 +18,7 @@ const SKIP_CACHE_PATTERNS = [
   'firebase',
   'googleapis',
   'chrome-extension',
-  'us-central1-coffeeaddict-c9d70.cloudfunctions.net'
+  'us-central1-gym-vantero.cloudfunctions.net'
 ];
 
 // Установка Service Worker

@@ -5,11 +5,13 @@
     "rewrites": [
       { "source": "/api/**", "function": "app" },
       { "source": "/admin/**", "destination": "/admin/index.html" },
-      { "source": "**", "destination": "/index.html" }
+      { "source": "/app/**", "destination": "/app/index.html" },
+      { "source": "/", "destination": "/app/index.html" },
+      { "source": "**", "destination": "/app/index.html" }
     ],
     "headers": [
       {
-        "source": "/index.html",
+        "source": "/app/index.html",
         "headers": [
           {
             "key": "Cache-Control",
@@ -18,20 +20,7 @@
         ]
       },
       {
-        "source": "/sw.js",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate"
-          },
-          {
-            "key": "Service-Worker-Allowed",
-            "value": "/"
-          }
-        ]
-      },
-      {
-        "source": "/firebase-messaging-sw.js",
+        "source": "**/sw.js",
         "headers": [
           {
             "key": "Cache-Control",
@@ -44,7 +33,20 @@
         ]
       },
       {
-        "source": "/manifest.webmanifest",
+        "source": "**/firebase-messaging-sw.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          },
+          {
+            "key": "Service-Worker-Allowed",
+            "value": "/"
+          }
+        ]
+      },
+      {
+        "source": "**/manifest.webmanifest",
         "headers": [
           {
             "key": "Cache-Control",

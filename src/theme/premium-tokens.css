@@ -1,0 +1,170 @@
+/**
+ * Premium Dark Design System - Design Tokens
+ * 
+ * Dreamkit-level dark theme with glass morphism, depth, and tactile feel.
+ * Mobile-first, one-hand layout, big tap targets.
+ * 
+ * @module theme/premium-tokens
+ */
+
+:root {
+  /* ========================================================================
+     BACKGROUNDS - Layered depth system
+     ======================================================================== */
+  --pm-bg-base: #09090b;           /* zinc-950 */
+  --pm-bg-elevated: #0f0f11;       /* Slightly lifted */
+  --pm-bg-surface: #18181b;        /* zinc-900 */
+  --pm-bg-card: rgba(255, 255, 255, 0.03);
+  --pm-bg-card-hover: rgba(255, 255, 255, 0.05);
+  --pm-bg-card-active: rgba(255, 255, 255, 0.07);
+  --pm-bg-overlay: rgba(0, 0, 0, 0.8);
+  
+  /* ========================================================================
+     GLASS MORPHISM
+     ======================================================================== */
+  --pm-glass-bg: rgba(255, 255, 255, 0.05);
+  --pm-glass-bg-strong: rgba(255, 255, 255, 0.08);
+  --pm-glass-border: rgba(255, 255, 255, 0.1);
+  --pm-glass-border-strong: rgba(255, 255, 255, 0.15);
+  --pm-glass-blur: 20px;
+  --pm-glass-blur-strong: 40px;
+  
+  /* ========================================================================
+     ACCENT COLORS - Gradient-based for premium feel
+     ======================================================================== */
+  --pm-accent-start: #6366f1;      /* indigo-500 */
+  --pm-accent-mid: #0ea5e9;        /* sky-500 */
+  --pm-accent-end: #22d3ee;        /* cyan-400 */
+  --pm-accent-glow: rgba(56, 189, 248, 0.5);
+  --pm-accent-glow-strong: rgba(56, 189, 248, 0.7);
+  
+  /* Gradient definitions */
+  --pm-gradient-primary: linear-gradient(135deg, var(--pm-accent-start) 0%, var(--pm-accent-mid) 50%, var(--pm-accent-end) 100%);
+  --pm-gradient-primary-90: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(14, 165, 233, 0.9) 50%, rgba(34, 211, 238, 0.9) 100%);
+  --pm-gradient-subtle: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(14, 165, 233, 0.1) 100%);
+  
+  /* Status colors */
+  --pm-success: #22c55e;
+  --pm-success-glow: rgba(34, 197, 94, 0.4);
+  --pm-warning: #f59e0b;
+  --pm-error: #ef4444;
+  
+  /* ========================================================================
+     TEXT HIERARCHY
+     ======================================================================== */
+  --pm-text-primary: #ffffff;
+  --pm-text-secondary: rgba(255, 255, 255, 0.7);
+  --pm-text-muted: rgba(255, 255, 255, 0.5);
+  --pm-text-dim: rgba(255, 255, 255, 0.3);
+  --pm-text-disabled: rgba(255, 255, 255, 0.2);
+  
+  /* ========================================================================
+     BORDERS
+     ======================================================================== */
+  --pm-border-subtle: rgba(255, 255, 255, 0.05);
+  --pm-border-default: rgba(255, 255, 255, 0.1);
+  --pm-border-strong: rgba(255, 255, 255, 0.15);
+  --pm-border-accent: rgba(99, 102, 241, 0.5);
+  
+  /* ========================================================================
+     SHADOWS - Deep, dramatic, premium
+     ======================================================================== */
+  --pm-shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.5);
+  --pm-shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+  --pm-shadow-lg: 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+  --pm-shadow-xl: 0 25px 70px -25px rgba(0, 0, 0, 0.8);
+  --pm-shadow-card: 0 20px 70px -30px rgba(0, 0, 0, 0.8);
+  --pm-shadow-button-glow: 0 18px 50px -18px var(--pm-accent-glow-strong);
+  --pm-shadow-inset-top: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  
+  /* ========================================================================
+     SPACING (4px base, mobile-friendly)
+     ======================================================================== */
+  --pm-space-1: 4px;
+  --pm-space-2: 8px;
+  --pm-space-3: 12px;
+  --pm-space-4: 16px;
+  --pm-space-5: 20px;
+  --pm-space-6: 24px;
+  --pm-space-8: 32px;
+  --pm-space-10: 40px;
+  --pm-space-12: 48px;
+  
+  /* Safe areas */
+  --pm-safe-top: env(safe-area-inset-top, 0px);
+  --pm-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --pm-safe-left: env(safe-area-inset-left, 0px);
+  --pm-safe-right: env(safe-area-inset-right, 0px);
+  
+  /* ========================================================================
+     BORDER RADIUS
+     ======================================================================== */
+  --pm-radius-sm: 8px;
+  --pm-radius-md: 12px;
+  --pm-radius-lg: 16px;
+  --pm-radius-xl: 20px;
+  --pm-radius-2xl: 24px;
+  --pm-radius-3xl: 32px;
+  --pm-radius-full: 9999px;
+  
+  /* ========================================================================
+     TYPOGRAPHY
+     ======================================================================== */
+  --pm-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --pm-font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  
+  /* Font sizes */
+  --pm-text-xs: 0.75rem;       /* 12px */
+  --pm-text-sm: 0.875rem;      /* 14px */
+  --pm-text-base: 1rem;        /* 16px */
+  --pm-text-lg: 1.125rem;      /* 18px */
+  --pm-text-xl: 1.25rem;       /* 20px */
+  --pm-text-2xl: 1.5rem;       /* 24px */
+  --pm-text-3xl: 1.875rem;     /* 30px */
+  --pm-text-4xl: 2.25rem;      /* 36px */
+  --pm-text-5xl: 3rem;         /* 48px */
+  --pm-text-6xl: 3.75rem;      /* 60px */
+  
+  /* Line heights */
+  --pm-leading-none: 1;
+  --pm-leading-tight: 1.25;
+  --pm-leading-snug: 1.375;
+  --pm-leading-normal: 1.5;
+  --pm-leading-relaxed: 1.625;
+  
+  /* Letter spacing */
+  --pm-tracking-tighter: -0.05em;
+  --pm-tracking-tight: -0.025em;
+  --pm-tracking-normal: 0;
+  --pm-tracking-wide: 0.025em;
+  --pm-tracking-wider: 0.05em;
+  --pm-tracking-widest: 0.1em;
+  --pm-tracking-caps: 0.2em;
+  
+  /* ========================================================================
+     TRANSITIONS & ANIMATIONS
+     ======================================================================== */
+  --pm-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --pm-transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --pm-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --pm-transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* ========================================================================
+     Z-INDEX SCALE
+     ======================================================================== */
+  --pm-z-base: 0;
+  --pm-z-elevated: 10;
+  --pm-z-sticky: 20;
+  --pm-z-overlay: 30;
+  --pm-z-modal: 40;
+  --pm-z-popover: 50;
+  --pm-z-toast: 60;
+  --pm-z-max: 100;
+  
+  /* ========================================================================
+     TAP TARGETS (Mobile-first)
+     ======================================================================== */
+  --pm-tap-min: 44px;          /* Minimum touch target */
+  --pm-tap-comfortable: 48px;  /* Comfortable one-hand */
+  --pm-tap-large: 56px;        /* Primary actions */
+}

@@ -1,168 +1,122 @@
+/**
+ * Skeleton Components - Loading States
+ * 
+ * Shimmer-based loading skeletons for Trainer OS.
+ * 
+ * @module components/Skeleton
+ */
+
 import React from 'react';
+
+// ============================================================================
+// Base Skeleton
+// ============================================================================
 
 interface SkeletonProps {
   className?: string;
-  variant?: 'text' | 'circular' | 'rectangular' | 'rounded';
   width?: string | number;
   height?: string | number;
-  animation?: 'pulse' | 'wave' | 'none';
+  rounded?: 'none' | 'sm' | 'md' | 'lg' | 'full';
 }
 
 export const Skeleton: React.FC<SkeletonProps> = ({
   className = '',
-  variant = 'rectangular',
   width,
   height,
-  animation = 'pulse',
+  rounded = 'md',
 }) => {
-  const baseClasses = 'bg-gray-200';
-  
-  const variantClasses = {
-    text: 'rounded',
-    circular: 'rounded-full',
-    rectangular: '',
-    rounded: 'rounded-lg',
-  };
-
-  const animationClasses = {
-    pulse: 'animate-pulse',
-    wave: 'animate-shimmer',
+  const roundedClasses = {
     none: '',
-  };
-
-  const style: React.CSSProperties = {
-    width: width || '100%',
-    height: height || (variant === 'text' ? '1em' : '100%'),
+    sm: 'rounded',
+    md: 'rounded-lg',
+    lg: 'rounded-xl',
+    full: 'rounded-full',
   };
 
   return (
     <div
-      className={`${baseClasses} ${variantClasses[variant]} ${animationClasses[animation]} ${className}`}
-      style={style}
+      className={`tr-skeleton ${roundedClasses[rounded]} ${className}`}
+      style={{
+        width: typeof width === 'number' ? `${width}px` : width,
+        height: typeof height === 'number' ? `${height}px` : height,
+      }}
     />
   );
 };
 
-// Композитные скелетоны для разных страниц
-
-export const StorySkeleton: React.FC = () => (
-  <div className="flex-shrink-0 w-20 flex flex-col items-center gap-2">
-    <Skeleton variant="circular" width={64} height={64} />
-    <Skeleton variant="text" width={60} height={12} />
-  </div>
-);
-
-export const PromotionSkeleton: React.FC = () => (
-  <div className="bg-white rounded-2xl p-4 shadow-sm">
-    <Skeleton variant="rounded" height={120} className="mb-3" />
-    <Skeleton variant="text" height={20} className="mb-2" />
-    <Skeleton variant="text" height={16} width="70%" />
-  </div>
-);
-
-export const DrinkCardSkeleton: React.FC = () => (
-  <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-    <Skeleton variant="rectangular" height={160} />
-    <div className="p-4">
-      <Skeleton variant="text" height={18} className="mb-2" />
-      <Skeleton variant="text" height={16} width="60%" className="mb-3" />
-      <Skeleton variant="rounded" height={40} />
-    </div>
-  </div>
-);
-
-export const OrderCardSkeleton: React.FC = () => (
-  <div className="bg-white rounded-2xl p-4 shadow-sm">
-    <div className="flex justify-between items-start mb-3">
-      <div className="flex-1">
-        <Skeleton variant="text" height={18} width="40%" className="mb-2" />
-        <Skeleton variant="text" height={14} width="60%" />
-      </div>
-      <Skeleton variant="rounded" width={80} height={28} />
-    </div>
-    <div className="space-y-2">
-      <Skeleton variant="text" height={14} width="80%" />
-      <Skeleton variant="text" height={14} width="50%" />
-    </div>
-  </div>
-);
-
-export const ProfileSkeleton: React.FC = () => (
-  <div className="max-w-md mx-auto p-6">
-    <div className="flex flex-col items-center mb-6">
-      <Skeleton variant="circular" width={100} height={100} className="mb-4" />
-      <Skeleton variant="text" height={24} width={150} className="mb-2" />
-      <Skeleton variant="text" height={16} width={180} />
-    </div>
-    <div className="space-y-4">
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="bg-white rounded-xl p-4">
-          <Skeleton variant="text" height={18} className="mb-2" />
-          <Skeleton variant="text" height={16} width="70%" />
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-export const MenuSkeleton: React.FC = () => (
-  <div className="p-4">
-    {/* Categories */}
-    <div className="flex gap-2 mb-6 overflow-x-auto">
-      {[1, 2, 3, 4].map((i) => (
-        <Skeleton key={i} variant="rounded" width={100} height={40} className="flex-shrink-0" />
-      ))}
-    </div>
-    {/* Items Grid */}
-    <div className="grid grid-cols-2 gap-4">
-      {[1, 2, 3, 4, 5, 6].map((i) => (
-        <DrinkCardSkeleton key={i} />
-      ))}
-    </div>
-  </div>
-);
+// ============================================================================
+// Home Skeleton - Full page loading state
+// ============================================================================
 
 export const HomeSkeleton: React.FC = () => (
-  <div className="min-h-screen bg-[#F6F7FB] pb-24">
-    <div className="p-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <Skeleton variant="rounded" width={150} height={40} />
-        <Skeleton variant="circular" width={40} height={40} />
+  <div className="min-h-screen bg-tr-base px-5 py-6 animate-pulse">
+    {/* Header */}
+    <div className="flex items-center justify-between mb-8">
+      <div>
+        <div className="h-4 w-16 bg-tr-elevated rounded mb-2" />
+        <div className="h-8 w-48 bg-tr-elevated rounded" />
       </div>
+      <div className="w-12 h-12 bg-tr-elevated rounded-full" />
+    </div>
+    
+    {/* Stats */}
+    <div className="flex gap-4 mb-8">
+      <div className="h-16 flex-1 bg-tr-elevated rounded-xl" />
+      <div className="h-16 flex-1 bg-tr-elevated rounded-xl" />
+    </div>
+    
+    {/* Content cards */}
+    <div className="space-y-4">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="h-20 bg-tr-elevated rounded-xl" />
+      ))}
+    </div>
+    
+    {/* CTA */}
+    <div className="mt-8 h-14 bg-tr-elevated rounded-2xl" />
+  </div>
+);
 
-      {/* Stories */}
-      <div className="flex gap-4 mb-6 overflow-x-auto">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <StorySkeleton key={i} />
-        ))}
-      </div>
+// ============================================================================
+// Card Skeleton
+// ============================================================================
 
-      {/* Promotion Banner */}
-      <PromotionSkeleton />
-
-      {/* Favorite Drink */}
-      <div className="mt-6 bg-white rounded-2xl p-4">
-        <Skeleton variant="text" height={20} width={200} className="mb-3" />
-        <div className="flex gap-4">
-          <Skeleton variant="rounded" width={100} height={100} />
-          <div className="flex-1">
-            <Skeleton variant="text" height={18} className="mb-2" />
-            <Skeleton variant="text" height={16} width="60%" className="mb-3" />
-            <Skeleton variant="rounded" height={40} />
-          </div>
-        </div>
-      </div>
-
-      {/* Curated List */}
-      <div className="mt-6">
-        <Skeleton variant="text" height={20} width={200} className="mb-3" />
-        <div className="grid grid-cols-3 gap-3">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} variant="rounded" height={100} />
-          ))}
-        </div>
-      </div>
+export const CardSkeleton: React.FC<{ rows?: number }> = ({ rows = 3 }) => (
+  <div className="bg-tr-card rounded-xl p-4 animate-pulse">
+    <div className="h-5 w-1/3 bg-tr-elevated rounded mb-4" />
+    <div className="space-y-3">
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="h-4 bg-tr-elevated rounded" style={{ width: `${100 - i * 15}%` }} />
+      ))}
     </div>
   </div>
 );
+
+// ============================================================================
+// List Item Skeleton
+// ============================================================================
+
+export const ListItemSkeleton: React.FC = () => (
+  <div className="flex items-center gap-4 py-3 animate-pulse">
+    <div className="w-10 h-10 bg-tr-elevated rounded-xl" />
+    <div className="flex-1">
+      <div className="h-4 w-2/3 bg-tr-elevated rounded mb-2" />
+      <div className="h-3 w-1/3 bg-tr-elevated rounded" />
+    </div>
+    <div className="w-6 h-6 bg-tr-elevated rounded" />
+  </div>
+);
+
+// ============================================================================
+// Avatar Skeleton
+// ============================================================================
+
+export const AvatarSkeleton: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md' }) => {
+  const sizeClasses = {
+    sm: 'w-8 h-8',
+    md: 'w-12 h-12',
+    lg: 'w-16 h-16',
+  };
+
+  return <div className={`${sizeClasses[size]} bg-tr-elevated rounded-full animate-pulse`} />;
+};

@@ -11,6 +11,7 @@ const envSchema = z.object({
   VITE_FIREBASE_APP_ID: z.string().min(1, 'Firebase App ID is required'),
 
   // Optional
+  VITE_FIREBASE_MEASUREMENT_ID: z.string().optional(),
   VITE_FCM_VAPID_KEY: z.string().optional(),
   VITE_API_BASE: z.string().default('/api'),
 });
@@ -30,6 +31,7 @@ export function validateEnv(): Env {
       VITE_FIREBASE_STORAGE_BUCKET: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
       VITE_FIREBASE_MESSAGING_SENDER_ID: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
       VITE_FIREBASE_APP_ID: import.meta.env.VITE_FIREBASE_APP_ID,
+      VITE_FIREBASE_MEASUREMENT_ID: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
       VITE_FCM_VAPID_KEY: import.meta.env.VITE_FCM_VAPID_KEY,
       VITE_API_BASE: import.meta.env.VITE_API_BASE,
     });
@@ -38,7 +40,7 @@ export function validateEnv(): Env {
     return validatedEnv;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const missingVars = error.errors.map(e => e.path.join('.')).join(', ');
+      const missingVars = error.issues.map(e => e.path.join('.')).join(', ');
       const errorMessage = `Missing or invalid environment variables: ${missingVars}`;
       
       logger.error('Environment validation failed', error, { missingVars });

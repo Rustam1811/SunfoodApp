@@ -84,7 +84,7 @@ export const en = {
       {
         number: '02',
         title: 'We Set Up',
-        description: 'Upload menu, customize colors for your brand, connect payment.',
+        description: 'Upload menu, customize colors for your brand.',
         duration: '3-5 days',
         icon: '⚙️',
       },
@@ -119,8 +119,8 @@ export const en = {
       admin: 'Admin',
       client: 'Client',
     },
-    adminShots: ['Orders', 'POS Menu', 'Analytics'],
-    clientShots: ['Home', 'Menu', 'Order', 'Profile'],
+    adminShots: ['Orders', 'POS Menu', 'Analytics', 'Bonuses', 'Customers'],
+    clientShots: ['Home', 'Menu', 'Order', 'Profile', 'Card'],
   },
 
   // Why Us Section
@@ -130,7 +130,7 @@ export const en = {
     description: 'Compare for yourself. We built Brewly for ourselves, then realized — every coffee shop needs this.',
     competitors: [
       {
-        name: 'Drinkit',
+        name: 'Yandex eda',
         problems: [
           '15% commission on every order',
           'Customers go to their database',
@@ -177,12 +177,14 @@ export const en = {
   // Testimonials Section
   testimonials: {
     eyebrow: 'Owner Results',
-    title: 'Don\'t Take Our Word For It',
-    description: 'Real owners. Real numbers. Real money.',
+    title: 'We Don\'t Promise. We Show Potential.',
+    description: 'Real owners. Real situations. Real solutions.',
+    beforeLabel: 'Before:',
     items: [
       {
         name: 'Dmitry Volkov',
         role: 'Owner, Coffee Addict',
+        before: 'Queues during peak hours, some guests left without waiting',
         result: '+230,000₸/mo',
         period: 'in 2 months',
         quote: 'At first I thought — another service. But when the average check grew from 1,690₸ to 2,385₸, I understood: this isn\'t an expense, it\'s an investment. Brewly paid for itself in the first month.',
@@ -191,6 +193,7 @@ export const en = {
       {
         name: 'Anna Sokolova',
         role: 'Coffee Hub Chain (3 locations)',
+        before: '2 baristas couldn\'t keep up during morning hours',
         result: '+680,000₸/mo',
         period: 'in 3 months',
         quote: 'The main thing — guests come back. They used to come once a week, now 3-4 times. And no queues during rush hour. Staff can finally breathe.',
@@ -199,6 +202,7 @@ export const en = {
       {
         name: 'Igor Petrov',
         role: 'Brew Bar on Pokrovka',
+        before: 'Small coffee shop, 30 seats, some guests turned around',
         result: '+150,000₸/mo',
         period: 'in 6 weeks',
         quote: 'I have a small coffee shop, 30 seats. I thought it was too expensive for me. But in 6 weeks I got +150k to revenue. Now I understand — I was overpaying by NOT using Brewly.',
@@ -214,9 +218,9 @@ export const en = {
 
   // Story Section
   story: {
-    quote: 'We opened a coffee shop in 2021. After six months we realized: rush hour queues kill sales. Guests leave without waiting. We looked for solutions — Drinkit took 15% commission, iiko couldn\'t do loyalty. We built it for ourselves. It worked so well that now it\'s Brewly.',
+    quote: 'We opened a coffee shop in 2021. After six months we realized: rush hour queues kill sales. Guests leave without waiting. We looked for solutions — Yandex eda took 15% commission, iiko couldn\'t do loyalty. We built it for ourselves. It worked so well that now it\'s Brewly.',
     highlightQueue: 'rush hour queues kill sales',
-    highlightCommission: 'Drinkit took 15% commission',
+    highlightCommission: 'Yandex eda took 15% commission',
     founder: 'Rustam',
     founderRole: 'Founder of Brewly',
     stats: [
@@ -229,30 +233,31 @@ export const en = {
 
   // Calculator Section
   calculator: {
-    eyebrow: 'ROI Calculator',
-    title: 'How Much Will You Earn?',
-    description: 'Enter your coffee shop data — see specific revenue growth forecast.',
+    eyebrow: 'Potential Calculator',
+    title: 'Estimate Your Growth Opportunities',
+    description: 'Enter your coffee shop data — see estimated revenue growth potential.',
     currentMetrics: 'Your Current Metrics',
     ordersPerDay: 'Orders per day',
     averageCheck: 'Average check, ₸',
     currentRevenue: 'Current monthly revenue',
-    withBrewly: 'With Brewly in 2 Months',
-    newCheck: 'New average check',
-    newOrders: 'Orders per day',
-    newRevenue: 'New monthly revenue',
-    revenueIncrease: 'Revenue increase',
+    withBrewly: 'Potential in 2 Months with Brewly',
+    newCheck: 'Projected average check',
+    newOrders: 'Projected orders per day',
+    newRevenue: 'Projected monthly revenue',
+    revenueIncrease: 'Revenue increase potential',
     perMonth: '/mo',
-    netProfit: 'Net profit after Brewly payment',
-    payback: 'Payback',
+    netProfit: 'Potential profit after Brewly payment',
+    payback: 'Estimated payback',
     months: 'mo',
-    getCalculation: 'Get calculation for my coffee shop',
+    getCalculation: 'Discuss calculation for my coffee shop',
+    disclaimer: 'Calculation is based on average metrics from coffee shops with queues and take-away. Actual results depend on location, foot traffic, and implementation.',
   },
 
   // Pricing Section
   pricing: {
     eyebrow: 'Pricing',
     title: 'Choose Your Plan',
-    description: 'Flexible terms for any business. If you don\'t see results in 3 months — 100% money back.',
+    description: 'Flexible terms for any business.',
     popular: 'Popular',
     cta: 'Choose plan',
     plans: {
@@ -260,60 +265,84 @@ export const en = {
         name: 'Subscription',
         price: '50,000 ₸',
         period: '/mo',
-        description: 'Perfect for getting started. Everything you need to take orders and grow revenue.',
-        features: [
-          'Web app for guests',
-          'Admin panel for management',
-          'Menu and product catalog',
-          'Online orders',
-          'Basic analytics',
-          'Business hours support',
+        tagline: 'Access to Brewly',
+        description: 'Pay as you go.',
+        suitableFor: [
+          'want to try first',
+          'not ready to buy',
+          'need a system right now',
         ],
+        features: [
+          'Skip the queue ordering',
+          'Admin panel',
+          'Menu and online orders',
+          'Promotions, achievements, stories',
+          'Exclusive offers for regulars',
+          'Push notifications (web)*',
+          'Analytics',
+        ],
+        disclaimer: '* notification delivery depends on guest\'s device.',
         support: null,
       },
       standard: {
         name: 'Standard',
         price: '300,000 ₸',
         period: '',
-        description: 'Complete solution for serious business. All yours, no monthly payments.',
-        features: [
-          'Web app for guests',
-          'Admin panel for management',
-          'Loyalty program',
-          'Push notifications',
-          'Advanced analytics',
-          'POS integration',
-          'Team training',
+        tagline: 'Brewly stays with you',
+        description: 'No subscription. No time limits.',
+        suitableFor: [
+          'need product long-term',
+          'don\'t want monthly payments',
         ],
+        features: [
+          'Same features as subscription',
+          'Dedicated setup for your coffee shop',
+          'Product stays with you',
+          'Web / PWA version',
+          'Push notifications (web)*',
+        ],
+        disclaimer: '* notification delivery depends on guest\'s device.',
         support: {
           price: '40,000 ₸/mo',
-          description: '24/7 support, new features development, customizations',
+          description: 'optional',
         },
       },
       premium: {
         name: 'Premium',
         price: '500,000 ₸',
         period: '',
-        description: 'Maximum features + native mobile app within 3 months.',
+        tagline: 'Maximum control and stability',
+        description: 'Product and channel stay with you.',
+        suitableFor: [
+          'returns and promos are important',
+          'need reliable guest communication',
+          'building a brand',
+        ],
         features: [
           'Everything from Standard',
-          'Native iOS app',
-          'Native Android app',
-          'App Store & Play Market publishing',
+          'Own app in App Store and Play Market',
+          'Stable push notifications (iOS / Android)',
+          'Full control over communication channel',
           'Custom brand design',
-          'Personal manager',
-          'Training + 3 mo support',
         ],
+        disclaimer: null,
         support: {
           price: '50,000 ₸/mo',
-          description: 'Premium support, priority development, new features',
+          description: 'optional',
         },
       },
     },
+    suitableForLabel: 'Suitable if:',
     supportLabel: 'Tech Support',
-    guarantee: {
-      title: 'Results Guaranteed',
-      description: 'Don\'t see growth in 3 months — 100% money back',
+    techSupport: {
+      title: 'Why tech support?',
+      features: [
+        'updates',
+        'changes for new promotions',
+        'analytics help',
+        'stable system operation',
+      ],
+      note: 'Don\'t need it — don\'t pay.',
     },
   },
 
@@ -352,7 +381,7 @@ export const en = {
 
   // CTA Section
   cta: {
-    badge: 'First 5 coffee shops — month free',
+    // badge: 'First 5 coffee shops — month free',
     headline: 'Ready to earn +353,000₸/mo?',
     description: 'Get a personalized calculation for your coffee shop. See specific revenue growth numbers. No spam — just an honest conversation about money.',
     button: 'Get calculation for my coffee shop',

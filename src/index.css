@@ -3,14 +3,16 @@
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import './theme/tokens.css';
+@import './theme/premium-tokens.css';
 
 
 :root {
-  color-scheme: light;
-  font-family: 'Manrope', system-ui, sans-serif;
-  background: var(--color-bg-base);
-  color: var(--color-text-primary);
+  color-scheme: dark;
+  font-family: 'Inter', 'Manrope', system-ui, sans-serif;
+  background: var(--tr-bg-base);
+  color: var(--tr-text-primary);
 }
 
 
@@ -24,11 +26,42 @@
 }
 html, body, #root {
   height: 100%;
-  background: #F8FAFC; /* твой светлый фон */
+  background: var(--tr-bg-base);
   overscroll-behavior: none;
 }
 body { margin:0; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;}
+
+/* ============================================================================
+   Premium Dark Global Effects
+   ============================================================================ */
+
+/* Global grain overlay (applied to body::before) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* Global vignette overlay (applied to body::after) */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+}
+
+/* Disable grain/vignette in specific contexts */
+.no-grain body::before,
+.no-vignette body::after {
+  display: none;
+}
 
 /* Smooth scroll / tap highlights */
 body { -webkit-tap-highlight-color: transparent; }
@@ -48,7 +81,10 @@ body { -webkit-tap-highlight-color: transparent; }
   100% { transform: scale(1.05); }
 }
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-.bg-dynamic { background-image: url('https://images.unsplash.com/photo-1509042239860-f550ce710b93?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'); background-size: cover; background-position: center; filter: grayscale(100%) blur(10px); animation: backgroundMove 10s infinite alternate; }
+.bg-dynamic { background-image:
+  radial-gradient(circle at 20% 20%, rgba(var(--color-brand-amber-rgb)/0.30), transparent 34%),
+  radial-gradient(circle at 80% 28%, rgba(var(--color-accent-cyan-rgb)/0.28), transparent 36%),
+  linear-gradient(135deg, #0B1220, #0F172A 45%, #0B1220)); background-size: 140% 140%; background-position: center; filter: blur(6px); animation: backgroundMove 12s ease-in-out infinite alternate; }
 .animate-bounce-three { animation: bounce-three 1.5s ease forwards; }
 
 /* Utility refinements */
@@ -66,9 +102,9 @@ body { -webkit-tap-highlight-color: transparent; }
 
 /* Ambient gradient + noise helper */
 .app-ambient:before { content:""; position:fixed; inset:0; pointer-events:none; background:
-  radial-gradient(circle at 20% 25%, rgba(var(--color-brand-amber-rgb)/0.20), transparent 60%),
-  radial-gradient(circle at 85% 60%, rgba(255 120 90 / 0.25), transparent 55%);
-  mix-blend-mode:plus-lighter; opacity:.35; filter:blur(40px); }
+  radial-gradient(circle at 22% 25%, rgba(var(--color-brand-amber-rgb)/0.22), transparent 60%),
+  radial-gradient(circle at 82% 58%, rgba(var(--color-accent-cyan-rgb)/0.22), transparent 55%);
+  mix-blend-mode:plus-lighter; opacity:.38; filter:blur(42px); }
 .app-ambient:after { content:""; position:fixed; inset:0; pointer-events:none; background:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAIElEQVQoU2NkYGD4z0AEYBxVSFcwCkb9RkYBKw2E0Wg0GgYAAGWwBfmrwfrlAAAAAElFTkSuQmCC") repeat; opacity:.07; mix-blend-mode:overlay; }
 
 /* Card elevation refinements */
@@ -177,5 +213,4 @@ drop-shadow(0 6px 14px rgba(0,0,0,.10));
 /* Скрыть скроллбар (Tailwind-compatible) */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
 

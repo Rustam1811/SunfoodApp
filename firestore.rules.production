@@ -1,0 +1,150 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isStaff() {
+      return isAuthenticated() && 
+        (getUserData().role == 'admin' || getUserData().role == 'coach');
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserData().role == 'admin';
+    }
+    
+    // =========================================================================
+    // Users collection
+    // =========================================================================
+    match /users/{userId} {
+      // Users can read their own data, staff can read all
+      allow read: if isOwner(userId) || isStaff();
+      
+      // Users can update their own profile (limited fields)
+      allow update: if isOwner(userId) && 
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['name', 'avatarUrl', 'height', 'weight', 'targetWeight', 'goal', 'level', 'fcmToken', 'lastLoginAt', 'updatedAt']);
+      
+      // Staff can update any user
+      allow update: if isStaff();
+      
+      // Only staff can create users (registration creates via Firebase Auth)
+      allow create: if isStaff() || isAuthenticated();
+      
+      // Only admin can delete users
+      allow delete: if isAdmin();
+      
+      // Subcollections under users
+      match /workoutPlans/{planId} {
+        // Owner can read their plans, staff can read all
+        allow read: if isOwner(userId) || isStaff();
+        // Staff can write plans for any user
+        allow write: if isStaff();
+        // Owner can update (for progress tracking)
+        allow update: if isOwner(userId);
+      }
+      
+      match /nutritionPlans/{planId} {
+        allow read: if isOwner(userId) || isStaff();
+        allow write: if isStaff();
+      }
+      
+      match /measurements/{measurementId} {
+        allow read: if isOwner(userId) || isStaff();
+        allow write: if isOwner(userId) || isStaff();
+      }
+      
+      match /healthNotes/{noteId} {
+        allow read: if isOwner(userId) || isStaff();
+        allow write: if isStaff();
+      }
+    }
+    
+    // =========================================================================
+    // Staff users (admin/coach login)
+    // =========================================================================
+    match /staffUsers/{staffId} {
+      // Staff can read their own record
+      allow read: if isAuthenticated() && request.auth.uid == staffId;
+      // Admin can manage staff
+      allow write: if isAdmin();
+    }
+    
+    // =========================================================================
+    // Nutrition tracking
+    // =========================================================================
+    match /nutritionCheckmarks/{checkmarkId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    match /nutritionPlans/{planId} {
+      allow read: if isAuthenticated();
+      allow write: if isStaff();
+    }
+    
+    // =========================================================================
+    // Stories (public content)
+    // =========================================================================
+    match /stories/{storyId} {
+      allow read: if true; // Public
+      allow write: if isStaff();
+    }
+    
+    // =========================================================================
+    // Promotions & Promo Codes
+    // =========================================================================
+    match /promotions/{promoId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    match /promoCodes/{codeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // =========================================================================
+    // App Settings
+    // =========================================================================
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    match /bonus-settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // =========================================================================
+    // Messages between coach and client
+    // =========================================================================
+    match /messages/{messageId} {
+      allow read: if isAuthenticated();
+      allow write: if isStaff();
+    }
+    
+    // =========================================================================
+    // Legacy collections (keep open for migration)
+    // =========================================================================
+    match /scheduled_workouts/{workoutId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /workout_logs/{logId} {
+      allow read, write: if isAuthenticated();
+    }
+  }
+}

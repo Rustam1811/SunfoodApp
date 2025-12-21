@@ -1,18 +1,16 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import HttpBackend from 'i18next-http-backend';
 import { logger } from './lib/logger';
-import ru from './pages/menu/locales/ru.json';
-import en from './pages/menu/locales/en.json';
-import kz from './pages/menu/locales/kz.json';
 
+// Trainer OS v1: Load translations from public/locales via HTTP backend
 if (!i18n.isInitialized) {
   i18n
+    .use(HttpBackend)
     .use(initReactI18next)
     .init({
-      resources: {
-        ru: { translation: ru },
-        en: { translation: en },
-        kz: { translation: kz },
+      backend: {
+        loadPath: '/locales/{{lng}}/translation.json',
       },
       supportedLngs: ['ru', 'en', 'kz'],
       lng: 'ru',

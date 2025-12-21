@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '@/auth/AuthContext';
+import { AuthProvider } from '@/auth/AuthContextV2';
 import { CartProvider } from '@/contexts/CartContext';
 
 type AppProvidersProps = {

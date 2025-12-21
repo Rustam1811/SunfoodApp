@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Newsreader:wght@400;600&display=swap');
+
+:root {
+  color-scheme: only light;
+  --ink: #1e1a17;
+  --muted: #6f655d;
+  --accent: #c46a3c;
+  --accent-soft: #f3dbce;
+  --bg: #f5efe8;
+  --card: #ffffff;
+  --border: #e6dbd0;
+  --shadow: 0 26px 60px -40px rgba(29, 22, 17, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Manrope", system-ui, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top, rgba(255, 250, 244, 0.9) 0%, var(--bg) 55%),
+    radial-gradient(circle at 70% 20%, rgba(255, 227, 208, 0.35), transparent 60%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+}
+
+.title {
+  font-family: "Newsreader", serif;
+}
+
+.chip {
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  background: rgba(196, 106, 60, 0.12);
+  color: var(--accent);
+}
+
+.skeleton {
+  background: linear-gradient(110deg, #eee1d4 8%, #f8efe6 18%, #eee1d4 33%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+  border-radius: 16px;
+}
+
+@keyframes shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+
+.progress-dots {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.progress-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(215, 203, 189, 0.7);
+}
+
+.progress-dot.active {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(196, 106, 60, 0.12);
+}
+
+.feed-shell {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+  min-height: calc(100vh - 32px);
+}
+
+.feed-track {
+  display: flex;
+  align-items: center;
+  gap: var(--track-gap, 18px);
+  will-change: transform;
+}
+
+.feed-card {
+  flex: 0 0 auto;
+  border-radius: 32px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  transition: transform 0.35s ease, opacity 0.35s ease, filter 0.35s ease;
+}
+
+.feed-card-inner {
+  padding: 26px;
+}
+
+.feed-image {
+  margin-top: 20px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  height: 220px;
+}
+
+.pressable {
+  transition: transform 0.2s ease;
+  transform-origin: center;
+}
+
+.pressable.pressed {
+  transform: scale(0.985);
+}
+
+.reveal {
+  animation: fadeUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

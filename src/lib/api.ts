@@ -1,19 +1,24 @@
-import { getAuth } from 'firebase/auth';
+/**
+ * API helper
+ * 
+ * NOTE: Firebase Auth removed - using simple phone+password auth via Firestore.
+ * Requests include user ID from session instead of Firebase Auth tokens.
+ */
 
-async function headersWithAuth(extra?: HeadersInit) {
+import { getSession } from '../services/authService';
+
+function headersWithAuth(extra?: HeadersInit) {
   const h = new Headers(extra);
   h.set('Content-Type', 'application/json');
-  const u = getAuth().currentUser;
-  if (u) h.set('Authorization', `Bearer ${await u.getIdToken(false)}`);
+  const userId = getSession();
+  if (userId) {
+    h.set('X-User-ID', userId);
+  }
   return h;
 }
 
 async function request(url: string, init: RequestInit = {}) {
-  const res = await fetch(url, { ...init, headers: await headersWithAuth(init.headers) });
-  if (res.status !== 401) return res;
-  const u = getAuth().currentUser;
-  if (u) await u.getIdToken(true); // форс-рефреш
-  return fetch(url, { ...init, headers: await headersWithAuth(init.headers) });
+  return fetch(url, { ...init, headers: headersWithAuth(init.headers) });
 }
 
 const BASE = '/api';

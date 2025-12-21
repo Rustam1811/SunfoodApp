@@ -1,31 +1,66 @@
 import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Switch, Route, Redirect, useLocation } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { CartProvider } from './contexts/CartContext';
-import { AuthProvider, useAuth } from './auth/AuthContext';
+import { AuthProvider, useAuth } from './auth/AuthContextV2';
 import { HomeSkeleton } from './components/Skeleton';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastProvider } from './ui/Toast';
 import { pageVariants } from './ui/motion';
 import './lib/env';
 import './index.css';
 
 // Lazy load pages
-const Home = lazy(() => import('./pages/Home'));
-const Profile = lazy(() => import('./pages/Profile'));
-const Menu = lazy(() => import('./pages/menu/Menu'));
-const Order = lazy(() => import('./pages/Order'));
-const Booking = lazy(() => import('./pages/Booking'));
-const Card = lazy(() => import('./pages/Card'));
 const Login = lazy(() => import('./pages/Login'));
-const MyQRCode = lazy(() => import('./pages/MyQRCode'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
 
-// Bottom navigation
-import { BottomNavBar } from './app/navigation/BottomNavBar';
+// Trainer OS v2 - Client pages (Drinkitt-style swipeable)
+const ClientSwipeMain = lazy(() => import('./pages/ClientSwipeMain'));
+const WorkoutExecution = lazy(() => import('./pages/WorkoutExecution'));
+const WorkoutSession = lazy(() => import('./pages/WorkoutSession'));
+
+// Legacy client pages (kept for direct access if needed)
+const ClientToday = lazy(() => import('./pages/ClientToday'));
+const NutritionPage = lazy(() => import('./pages/NutritionPage'));
+const BodyPage = lazy(() => import('./pages/BodyPage'));
+const CoachPage = lazy(() => import('./pages/CoachPage'));
+
+// Trainer OS v2 - Coach/Admin pages (FULL FEATURED)
+const CoachDashboard = lazy(() => import('./pages/coach/CoachDashboard'));
+const ClientDetailPageNew = lazy(() => import('./pages/coach/ClientDetailPageNew'));
+const WorkoutBuilderPage = lazy(() => import('./pages/coach/WorkoutBuilderPage'));
+const SignalsPage = lazy(() => import('./pages/coach/SignalsPage'));
+const VideoDetailPage = lazy(() => import('./pages/coach/VideoDetailPage'));
+
+// Bottom navigation - different for client vs coach
+import { TrainerNavBar } from './app/navigation/TrainerNavBar';
+import { ClientNavBar } from './app/navigation/ClientNavBar';
 
 const initializeFCM = () => import('./services/messaging').then(m => m.initializeFCM());
 const createPWAUpdater = () => import('./pwa/pwa-updater').then(m => m.createPWAUpdater);
 
-const PrivateRoute: React.FC<{ component: React.ComponentType<any>; exact?: boolean; path: string }> = ({ component: Component, ...rest }) => {
+/**
+ * Redirects user based on their role
+ */
+const RoleBasedRedirect: React.FC = () => {
+  const { user, loading } = useAuth();
+  
+  if (loading) return <HomeSkeleton />;
+  if (!user) return <Redirect to="/login" />;
+  
+  // Coach/Admin → /coach/clients
+  if (user.role === 'coach' || user.role === 'admin') {
+    return <Redirect to="/coach/clients" />;
+  }
+  
+  // Client → /main (swipeable interface)
+  return <Redirect to="/main" />;
+};
+
+const PrivateRoute: React.FC<{ component: React.ComponentType<any>; exact?: boolean; path: string; skipOnboarding?: boolean }> = ({ 
+  component: Component, 
+  skipOnboarding = false,
+  ...rest 
+}) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   const prefersReduced = useReducedMotion();
@@ -36,6 +71,15 @@ const PrivateRoute: React.FC<{ component: React.ComponentType<any>; exact?: bool
       render={(props) => {
         if (loading) return <HomeSkeleton />;
         if (!user) return <Redirect to={{ pathname: '/login', state: { redirect: location.pathname } }} />;
+        
+        // Admin and coach users skip onboarding - they don't need client profile setup
+        const isAdminOrCoach = user.role === 'admin' || user.role === 'coach';
+        
+        // Check if user needs onboarding (new users without completed profile)
+        const needsOnboarding = !skipOnboarding && !isAdminOrCoach && !user.onboardingCompleted && !user.height;
+        if (needsOnboarding && location.pathname !== '/onboarding') {
+          return <Redirect to="/onboarding" />;
+        }
         
         return (
           <Suspense fallback={<HomeSkeleton />}>
@@ -85,9 +129,15 @@ const AppContent: React.FC = () => {
     }
   }, [user]);
   
+  const isOnboarding = location.pathname === '/onboarding';
+  const isLogin = location.pathname === '/login';
+  const isClientMain = location.pathname === '/main' || location.pathname === '/today' || location.pathname === '/nutrition' || location.pathname === '/body' || location.pathname === '/coach-messages';
+  const hideNavigation = isOnboarding || isLogin || isClientMain;
+  const isCoachOrAdmin = user?.role === 'coach' || user?.role === 'admin';
+  
   return (
     <>
-      <main className="pb-24 overflow-hidden min-h-screen">
+      <main className={`${hideNavigation ? '' : 'pb-24'} overflow-hidden min-h-screen`}>
         <Suspense fallback={<HomeSkeleton />}>
           <Switch location={location} key={location.pathname}>
             <Route exact path="/login" render={() => (
@@ -103,31 +153,60 @@ const AppContent: React.FC = () => {
               </motion.div>
             )} />
 
-            <PrivateRoute exact path="/home" component={Home} />
-            <PrivateRoute exact path="/menu" component={Menu} />
-            <PrivateRoute exact path="/profile" component={Profile} />
-            <PrivateRoute exact path="/card" component={Card} />
-            <PrivateRoute exact path="/my-qr" component={MyQRCode} />
-            <PrivateRoute exact path="/booking" component={Booking} />
-            <PrivateRoute exact path="/order" component={Order} />
-            <Route exact path="/"><Redirect to="/home" /></Route>
+            {/* Trainer OS v2 - Client Swipeable Main Screen (Drinkitt style) */}
+            <PrivateRoute exact path="/main" component={ClientSwipeMain} />
+            <PrivateRoute exact path="/today" component={ClientSwipeMain} />
+            <PrivateRoute exact path="/nutrition" component={ClientSwipeMain} />
+            <PrivateRoute exact path="/body" component={ClientSwipeMain} />
+            <PrivateRoute exact path="/coach-messages" component={ClientSwipeMain} />
+            
+            {/* Workout execution - separate fullscreen */}
+            <PrivateRoute exact path="/workout/:sessionId" component={WorkoutExecution} />
+            <PrivateRoute path="/workout-session" component={WorkoutSession} />
+            <PrivateRoute exact path="/onboarding" component={Onboarding} skipOnboarding />
+            
+            {/* Trainer OS v2 - Coach/Admin Dashboard (same for both) */}
+            <PrivateRoute exact path="/coach/clients" component={CoachDashboard} />
+            <PrivateRoute exact path="/admin" component={CoachDashboard} />
+            
+            {/* Client detail page with full editing */}
+            <PrivateRoute exact path="/coach/client/:clientId" component={ClientDetailPageNew} />
+            <PrivateRoute exact path="/coach/client/:clientId/video/:videoId" component={VideoDetailPage} />
+            <PrivateRoute exact path="/coach/workout-builder" component={WorkoutBuilderPage} />
+            <PrivateRoute exact path="/coach/signals" component={SignalsPage} />
+            
+            {/* Legacy client routes - redirect to /main */}
+            <Route exact path="/programs"><Redirect to="/main" /></Route>
+            <Route exact path="/progress"><Redirect to="/main" /></Route>
+            <Route exact path="/profile"><Redirect to="/main" /></Route>
+            <Route exact path="/coach"><Redirect to="/main" /></Route>
+            
+            {/* Legacy coach routes - redirect to /coach/clients */}
+            <Route exact path="/coach/programs"><Redirect to="/coach/clients" /></Route>
+            <Route exact path="/coach/profile"><Redirect to="/coach/clients" /></Route>
+            <Route exact path="/coach/clients/:clientId"><Redirect to="/coach/clients" /></Route>
+            
+            {/* Default route - handled by RoleBasedRedirect */}
+            <Route exact path="/" component={RoleBasedRedirect} />
+            <Route path="*" component={RoleBasedRedirect} />
           </Switch>
         </Suspense>
       </main>
-      <BottomNavBar />
+      {/* Show nav only for coach/admin users (clients use swipe interface) */}
+      {!hideNavigation && isCoachOrAdmin && <TrainerNavBar />}
     </>
   );
 };
 
 const App: React.FC = () => (
   <ErrorBoundary>
-    <BrowserRouter>
+    <BrowserRouter basename="/app">
       <AuthProvider>
-        <CartProvider>
-          <div className="min-h-screen bg-[#F6F7FB] text-slate-900">
+        <ToastProvider>
+          <div className="min-h-screen bg-tr-base text-tr-text">
             <AppContent />
           </div>
-        </CartProvider>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   </ErrorBoundary>

@@ -3,10 +3,10 @@ import { Container } from '@/components/Container';
 import { SectionHeader } from '@/components/SectionHeader';
 
 const featureImages = [
-  '/screenshots/feature-upsell.png',
-  '/screenshots/feature-queue.png',
-  '/screenshots/feature-loyalty.png',
-  '/screenshots/feature-analytics.png',
+  '/landing/screenshots/client_menu.png',
+  '/landing/screenshots/client_order.png',
+  '/landing/screenshots/client_card.png',
+  '/landing/screenshots/admin_analytics_mobile.png',
 ];
 
 export function Features() {

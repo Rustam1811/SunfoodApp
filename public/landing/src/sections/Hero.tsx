@@ -88,7 +88,7 @@ export function Hero() {
                 <div className="phone-notch" />
                 <div className="phone-screen aspect-[9/19.5]">
                   <img
-                    src="/screenshots/hero-app.png"
+                    src="/landing/screenshots/client_home.png"
                     alt="Brewly app"
                     className="w-full h-full object-cover"
                     onError={(e) => {

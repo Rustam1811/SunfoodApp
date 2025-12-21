@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { Route, Redirect, useLocation } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { useAuth } from '../../auth/AuthContext';
+import { useAuth } from '../../auth/AuthContextV2';
 import { HomeSkeleton } from '../../components/Skeleton';
 import { pageVariants } from '../../ui/motion';
 

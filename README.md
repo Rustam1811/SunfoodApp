@@ -1,6 +1,6 @@
-# ☕ Coffee Shop PWA - Production Ready
+# 🏋️ RauanaGym - Personal Training PWA
 
-> Enterprise-grade Progressive Web App for coffee shops with multi-tenancy support
+> Enterprise-grade Progressive Web App for personal training with video workouts
 
 [![Version](https://img.shields.io/badge/Version-1.0.0-blue)](package.json)
 [![Performance](https://img.shields.io/badge/Performance-94%2F100-brightgreen)](PERFORMANCE_CHECKLIST.md)
@@ -30,6 +30,22 @@ npm run deploy
 
 📖 **Full deployment guide**: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
+## 🏋️ Features
+
+### For Clients
+- 📱 **Mobile-first PWA** - Install as app on any device
+- 🎥 **Video workouts** - Watch exercise technique videos
+- 📊 **Progress tracking** - Track your training progress
+- 🏆 **Achievements** - Earn badges for consistency
+- 📅 **Booking** - Schedule personal training sessions
+
+### For Admin/Trainers
+- 💪 **Exercise management** - Add muscle groups and exercises
+- 🎬 **Video upload** - Attach YouTube/Vimeo videos to exercises
+- 👥 **Client management** - Track client progress
+- 📈 **Analytics** - View training statistics
+- 🎯 **Challenges** - Create fitness challenges
+
 ## ⚡ Production-Ready Features
 
 ### Security
@@ -40,7 +56,7 @@ npm run deploy
 - ✅ **Error boundaries** for graceful error handling
 
 ### Architecture
-- ✅ **Multi-tenancy** - Support multiple cafes with isolated data
+- ✅ **Multi-tenancy** - Support multiple gyms with isolated data
 - ✅ **Clean code** - No console.logs, proper logger implementation
 - ✅ **Modular structure** - Providers, routes, navigation separated
 - ✅ **Type safety** - Full TypeScript coverage

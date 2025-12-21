@@ -1,19 +1,26 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  // Явно грузим env, чтобы Vite подхватил VITE_* из .env/.env.local
+  loadEnv(mode, process.cwd(), '');
+  
   return {
+    base: '/app/',
     plugins: [
       react(),
       VitePWA({
         registerType: 'autoUpdate',
+        scope: '/app/',
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
           cleanupOutdatedCaches: true,
           clientsClaim: true,
           skipWaiting: true,
+          navigateFallback: '/app/index.html',
+          navigateFallbackDenylist: [/^\/api/, /^\/admin/],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           runtimeCaching: [
             {
@@ -45,15 +52,15 @@ export default defineConfig(() => {
         },
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192x192.png', 'icon-512x512.png'],
         manifest: {
-          name: 'Coffee Addict',
-          short_name: 'Coffee',
-          description: 'Coffee Addict - Premium Coffee Experience',
-          theme_color: '#1f2937',
+          name: 'RauanaGym',
+          short_name: 'RauanaGym',
+          description: 'RauanaGym - Персональные тренировки',
+          theme_color: '#10B981',
           background_color: '#ffffff',
           display: 'standalone',
           orientation: 'portrait',
-          scope: '/',
-          start_url: '/',
+          scope: '/app/',
+          start_url: '/app/',
           icons: [
             {
               src: '/icon-192x192.png',
@@ -72,7 +79,6 @@ export default defineConfig(() => {
         }
       })
     ],
-    base: '/',
     // Vite автоматически подхватывает VITE_* переменные из .env файлов
     define: {
       __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0'),
@@ -100,7 +106,7 @@ export default defineConfig(() => {
           ws: false
         },
         '/firebase-api': {
-          target: 'https://us-central1-coffeeaddict-c9d70.cloudfunctions.net',
+          target: 'https://us-central1-gym-vantero.cloudfunctions.net',
           changeOrigin: true,
           secure: true,
           ws: false,
@@ -121,7 +127,7 @@ export default defineConfig(() => {
       }
     },
     build: {
-      outDir: "dist",
+      outDir: "dist/app",
       emptyOutDir: true,
       rollupOptions: {
         output: {
@@ -153,8 +159,12 @@ export default defineConfig(() => {
         'framer-motion',
         'i18next',
         'react-i18next',
+        'firebase/app',
+        'firebase/firestore',
+        'firebase/storage',
+        'firebase/messaging',
+        'firebase/analytics',
       ],
-      exclude: ['@firebase/auth', '@firebase/firestore'],
     },
   };
 });

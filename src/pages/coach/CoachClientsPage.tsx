@@ -22,6 +22,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../auth/AuthContextV2';
 import { getCoachClients, type Client } from '../../services/clientService';
+import { getClientSignals } from '../../services/signalsService';
 
 // ============================================================================
 // Types
@@ -268,17 +269,33 @@ const CoachClientsPage: React.FC = () => {
       try {
         const data = await getCoachClients(user.id);
         
-        // Enrich clients with activity info
+        // Enrich clients with activity info and signals
+        const enriched: EnrichedClient[] = await Promise.all(
+          data.map(async (client) => {
+            // Load active signals for this client
+            const signals = await getClientSignals(client.id, 5);
+            const hasActiveSignals = signals.some(s => !s.acknowledged);
+            
+            return {
+              ...client,
+              activityStatus: getActivityStatus(client.lastWorkout),
+              lastActivityText: formatLastActivity(client.lastWorkout),
+              hasActiveSignals,
+            };
+          })
+        );
+        
+        setClients(enriched);
+      } catch (error) {
+        // Fallback to loading without signals
+        const data = await getCoachClients(user.id);
         const enriched: EnrichedClient[] = data.map((client) => ({
           ...client,
           activityStatus: getActivityStatus(client.lastWorkout),
           lastActivityText: formatLastActivity(client.lastWorkout),
-          hasActiveSignals: false, // TODO: Load from signals service
+          hasActiveSignals: false,
         }));
-        
         setClients(enriched);
-      } catch (error) {
-        console.error('Failed to load clients:', error);
       } finally {
         setLoading(false);
       }

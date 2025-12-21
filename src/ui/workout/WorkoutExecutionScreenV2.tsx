@@ -21,9 +21,11 @@ import {
   saveSetResult,
   completeWorkout,
   subscribeToWorkout,
+  addExerciseVideo,
   type ScheduledWorkout,
   type ExerciseResult,
 } from '../../services/workoutService';
+import { uploadVideo } from '../../services/videoService';
 
 // ============================================================================
 // Types
@@ -64,6 +66,7 @@ interface WorkoutSession {
   status: 'idle' | 'in_progress' | 'completed';
   startedAt?: Date;
   completedAt?: Date;
+  trainerId?: string;
 }
 
 // ============================================================================
@@ -448,10 +451,36 @@ export const WorkoutExecutionScreen: React.FC<WorkoutExecutionScreenProps> = ({ 
   );
 
   // Handle client video upload
-  const handleVideoUpload = useCallback(async (_exerciseId: string, _file: File) => {
-    // TODO: Implement actual upload to Firebase Storage
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-  }, []);
+  const handleVideoUpload = useCallback(async (exerciseId: string, file: File) => {
+    if (!session || !user?.id) return;
+    
+    try {
+      // Convert File to Blob for upload
+      const blob = new Blob([await file.arrayBuffer()], { type: file.type });
+      
+      // Find exercise name (it's a string in our Exercise interface)
+      const exerciseName = session.exercises.find(e => e.id === exerciseId)?.name;
+      
+      // Upload to Firebase Storage
+      await uploadVideo(
+        user.id,
+        session.trainerId || user.id,
+        blob,
+        {
+          sessionId: session.id,
+          exerciseId,
+          exerciseName: exerciseName || undefined,
+          duration: 0, // Will be set when video is processed
+        }
+      );
+      
+      // Note: videoUrl will be stored in clientVideos collection
+      // Coach can view it from the VideoDetailPage
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      throw error;
+    }
+  }, [session, user?.id]);
 
   // Handle exit
   const handleExit = useCallback(() => {

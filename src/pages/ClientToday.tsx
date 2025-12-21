@@ -22,6 +22,7 @@ import { PlayIcon, CheckIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../auth/AuthContextV2';
 import {
   subscribeTodayWorkout,
+  addClientNote,
   type TodayWorkoutState,
   type ScheduledWorkout,
 } from '../services/workoutService';
@@ -113,15 +114,26 @@ const ScheduledView: React.FC<ScheduledViewProps> = ({ workout, onStart }) => (
 
 interface CompletedViewProps {
   workoutId: string;
+  clientId: string;
 }
 
-const CompletedView: React.FC<CompletedViewProps> = () => {
+const CompletedView: React.FC<CompletedViewProps> = ({ workoutId, clientId }) => {
   const [note, setNote] = useState('');
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
-    // TODO: Save note to workout
-    setSaved(true);
+  const handleSave = async () => {
+    if (!note.trim() || saving) return;
+    
+    setSaving(true);
+    try {
+      await addClientNote(workoutId, clientId, note.trim());
+      setSaved(true);
+    } catch {
+      // Silently handle error - user can retry
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -166,9 +178,10 @@ const CompletedView: React.FC<CompletedViewProps> = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 onClick={handleSave}
-                className="w-full mt-3 py-3 rounded-xl font-medium text-tr-accent bg-tr-accent/10"
+                disabled={saving}
+                className="w-full mt-3 py-3 rounded-xl font-medium text-tr-accent bg-tr-accent/10 disabled:opacity-50"
               >
-                Отправить
+                {saving ? 'Сохраняем...' : 'Отправить'}
               </motion.button>
             )}
           </>
@@ -250,7 +263,7 @@ const ClientToday: React.FC = () => {
         )}
         
         {state?.type === 'completed' && state.workout && (
-          <CompletedView key="completed" workoutId={state.workout.id} />
+          <CompletedView key="completed" workoutId={state.workout.id} clientId={user?.id || ''} />
         )}
       </AnimatePresence>
     </div>

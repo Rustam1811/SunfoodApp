@@ -718,3 +718,22 @@ export async function getClientWorkouts(
     return [];
   }
 }
+
+/**
+ * Add client note to completed workout
+ */
+export async function addClientNote(
+  workoutId: string,
+  clientId: string,
+  note: string
+): Promise<void> {
+  try {
+    await updateDoc(doc(db, 'users', clientId, 'workoutPlans', workoutId), {
+      clientNotes: note,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error saving client note:', error);
+    throw error;
+  }
+}

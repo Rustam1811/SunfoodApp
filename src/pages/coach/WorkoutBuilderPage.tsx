@@ -26,7 +26,10 @@ import {
   ChevronUpIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 import { useAuth } from '../../auth/AuthContextV2';
+import { useToast } from '../../ui/Toast';
 import { getExercises, type Exercise } from '../../services/exerciseService';
 
 // ============================================================================
@@ -566,6 +569,7 @@ const WorkoutBuilderPage: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
   const { user } = useAuth();
+  const toast = useToast();
 
   // Parse clientId from URL if present
   const params = new URLSearchParams(location.search);
@@ -617,15 +621,44 @@ const WorkoutBuilderPage: React.FC = () => {
 
     setSaving(true);
     try {
-      const workoutPlan: WorkoutPlan = {
-        name: workoutName,
-        days: selectedDays,
-        exercises: selectedExercises,
-        isTemplate,
-        clientId: clientId || undefined,
-      };
-
-      // TODO: Call workout service to save
+      // For each selected day, create a workout plan
+      const today = new Date();
+      
+      for (const day of selectedDays) {
+        // Calculate next occurrence of this day
+        const currentDay = today.getDay();
+        let daysUntil = day - currentDay;
+        if (daysUntil <= 0) daysUntil += 7;
+        
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() + daysUntil);
+        const dateStr = targetDate.toISOString().split('T')[0];
+        
+        const plan = {
+          date: dateStr,
+          title: workoutName,
+          exercises: selectedExercises.map((ex, index) => ({
+            exerciseId: ex.id,
+            name: ex.name,
+            sets: ex.sets,
+            reps: parseInt(ex.reps) || 10,
+            rest: ex.rest,
+            notes: ex.notes || '',
+            videoUrl: ex.videoUrl || '',
+            order: index,
+          })),
+          status: 'scheduled',
+          isTemplate,
+          createdAt: new Date().toISOString(),
+          trainerId: user.id,
+        };
+        
+        if (clientId) {
+          await addDoc(collection(db, 'users', clientId, 'workoutPlans'), plan);
+        }
+      }
+      
+      toast.success('Тренировка создана');
 
       // Navigate back
       if (clientId) {
@@ -634,7 +667,7 @@ const WorkoutBuilderPage: React.FC = () => {
         history.push('/coach/clients');
       }
     } catch (error) {
-      // Error saving workout
+      toast.error('Ошибка сохранения');
     } finally {
       setSaving(false);
     }

@@ -28,6 +28,7 @@ import {
   TrashIcon,
   FireIcon,
 } from '@heroicons/react/24/solid';
+import { useToast } from '../Toast';
 
 
 
@@ -242,6 +243,7 @@ interface VideoUploadSectionProps {
 }
 
 const VideoUploadSection: React.FC<VideoUploadSectionProps> = ({ exerciseId, onUpload }) => {
+  const toast = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -254,11 +256,11 @@ const VideoUploadSection: React.FC<VideoUploadSectionProps> = ({ exerciseId, onU
 
     // Validate video
     if (!file.type.startsWith('video/')) {
-      alert('Выберите видео файл');
+      toast.warning('Выберите видео файл');
       return;
     }
     if (file.size > 100 * 1024 * 1024) {
-      alert('Максимальный размер 100MB');
+      toast.warning('Максимальный размер 100MB');
       return;
     }
 

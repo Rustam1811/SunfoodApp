@@ -477,7 +477,6 @@ export const WorkoutExecutionScreen: React.FC<WorkoutExecutionScreenProps> = ({ 
       // Note: videoUrl will be stored in clientVideos collection
       // Coach can view it from the VideoDetailPage
     } catch (error) {
-      console.error('Error uploading video:', error);
       throw error;
     }
   }, [session, user?.id]);

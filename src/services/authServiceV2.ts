@@ -74,6 +74,9 @@ export interface UserProfile {
   createdAt: string;
   updatedAt: string;
   lastLoginAt?: string;
+  
+  // Auth (internal, not exposed)
+  passwordHash?: string;
 }
 
 export interface OnboardingData {

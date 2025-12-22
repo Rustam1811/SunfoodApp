@@ -664,14 +664,14 @@ const WorkoutPlanEditor: React.FC<WorkoutPlanEditorProps> = ({ plan, date, onSav
                 entityId={exercise.id}
                 initialVideo={exercise.videoUrl ? {
                   id: `legacy_${exercise.id}`,
-                  type: exercise.videoUrl.includes('youtube.com') || exercise.videoUrl.includes('youtu.be') ? 'youtube' : 'file',
+                  type: exercise.videoUrl.includes('youtube.com') || exercise.videoUrl.includes('youtu.be') ? 'youtube' : 'upload',
                   status: 'ready',
                   originalUrl: exercise.videoUrl,
                   youtubeId: exercise.videoUrl.includes('youtube.com') ? 
                     new URL(exercise.videoUrl).searchParams.get('v') || undefined : undefined,
                   createdAt: new Date().toISOString(),
                   updatedAt: new Date().toISOString(),
-                  uploadedBy: 'coach',
+                  createdBy: 'coach',
                 } as VideoMetadata : null}
                 onVideoChange={(video) => {
                   if (video) {

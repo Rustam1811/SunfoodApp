@@ -26,10 +26,9 @@ import {
   SparklesIcon,
   HeartIcon,
   ChartBarIcon,
-  VideoCameraIcon,
-  LinkIcon,
-  PlayCircleIcon,
 } from '@heroicons/react/24/outline';
+import { VideoAttachmentCard } from '../../ui/video';
+import type { VideoMetadata } from '../../services/videoUploadService';
 import { 
   doc, 
   getDoc, 
@@ -656,35 +655,35 @@ const WorkoutPlanEditor: React.FC<WorkoutPlanEditorProps> = ({ plan, date, onSav
                 className="w-full bg-zinc-800 rounded-lg px-3 py-2 text-zinc-400 text-sm"
               />
             </div>
-            {/* Video URL */}
-            <div className="mt-2">
-              <div className="flex items-center gap-2">
-                <div className="flex-1 relative">
-                  <input
-                    type="url"
-                    value={exercise.videoUrl || ''}
-                    onChange={(e) => updateExercise(index, { videoUrl: e.target.value })}
-                    placeholder="🎬 Ссылка на видео (YouTube, и т.д.)"
-                    className="w-full bg-zinc-800 rounded-lg px-3 py-2 text-zinc-400 text-sm pr-10"
-                  />
-                  {exercise.videoUrl && (
-                    <a
-                      href={exercise.videoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-500 hover:text-blue-400"
-                    >
-                      <PlayCircleIcon className="w-5 h-5" />
-                    </a>
-                  )}
-                </div>
-              </div>
-              {exercise.videoUrl && (
-                <div className="mt-2 bg-zinc-800/50 rounded-lg p-2 text-xs text-zinc-500 flex items-center gap-2">
-                  <VideoCameraIcon className="w-4 h-4 text-blue-500" />
-                  <span className="truncate flex-1">{exercise.videoUrl}</span>
-                </div>
-              )}
+            {/* Video Upload - Premium VideoAttachmentCard */}
+            <div className="mt-3">
+              <label className="text-zinc-600 text-xs block mb-2">🎬 Видео упражнения</label>
+              <VideoAttachmentCard
+                userId="coach"
+                entityType="exercise"
+                entityId={exercise.id}
+                initialVideo={exercise.videoUrl ? {
+                  id: `legacy_${exercise.id}`,
+                  type: exercise.videoUrl.includes('youtube.com') || exercise.videoUrl.includes('youtu.be') ? 'youtube' : 'file',
+                  status: 'ready',
+                  originalUrl: exercise.videoUrl,
+                  youtubeId: exercise.videoUrl.includes('youtube.com') ? 
+                    new URL(exercise.videoUrl).searchParams.get('v') || undefined : undefined,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  uploadedBy: 'coach',
+                } as VideoMetadata : null}
+                onVideoChange={(video) => {
+                  if (video) {
+                    const url = video.type === 'youtube' && video.youtubeId 
+                      ? `https://youtube.com/watch?v=${video.youtubeId}`
+                      : video.processedUrl || video.originalUrl || '';
+                    updateExercise(index, { videoUrl: url });
+                  } else {
+                    updateExercise(index, { videoUrl: '' });
+                  }
+                }}
+              />
             </div>
           </div>
         ))}

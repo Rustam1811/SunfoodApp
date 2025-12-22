@@ -13,6 +13,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   collection,
   query,
   where,
@@ -104,8 +105,10 @@ export interface AuthResult {
 // ============================================================================
 
 const USERS_COLLECTION = 'users';
-const SESSION_KEY = 'trainer_os_auth';
+const SESSIONS_COLLECTION = 'sessions';
+const SESSION_KEY = 'trainer_os_session_token';
 const BCRYPT_ROUNDS = 10;
+const SESSION_EXPIRY_DAYS = 30;
 
 // ============================================================================
 // Password Hashing (for staff accounts)
@@ -362,7 +365,7 @@ async function handlePasswordLogin(user: UserProfile, password: string): Promise
   }
   
   await updateUserProfile(user.id, { lastLoginAt: new Date().toISOString() });
-  saveSession(user.id);
+  await createSession(user.id);
   
   return {
     success: true,
@@ -399,7 +402,7 @@ export async function register(
   // Create user profile with password hash
   const profile = await createUserProfile(userId, phone, role, { passwordHash });
   
-  saveSession(userId);
+  await createSession(userId);
   
   return {
     success: true,
@@ -413,7 +416,7 @@ export async function register(
  * Logout current user
  */
 export async function logout(): Promise<void> {
-  clearSession();
+  await clearSession();
 }
 
 /**
@@ -421,7 +424,7 @@ export async function logout(): Promise<void> {
  */
 export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   // Check session
-  const sessionUserId = getSession();
+  const sessionUserId = await validateSession();
   if (sessionUserId) {
     return getUserProfile(sessionUserId);
   }
@@ -544,18 +547,84 @@ export function getRedirectPath(user: UserProfile | null): string {
 }
 
 // ============================================================================
-// Session Management
+// Session Management - Firestore-based for cross-device auth
 // ============================================================================
 
-export function saveSession(userId: string): void {
+interface SessionData {
+  userId: string;
+  token: string;
+  createdAt: string;
+  expiresAt: string;
+  deviceInfo?: string;
+}
+
+/**
+ * Generate random session token
+ */
+function generateSessionToken(): string {
+  return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Create session in Firestore and save token to localStorage
+ */
+async function createSession(userId: string): Promise<string> {
+  const token = generateSessionToken();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+  
+  const sessionData: SessionData = {
+    userId,
+    token,
+    createdAt: now.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+    deviceInfo: navigator.userAgent.substring(0, 100),
+  };
+  
+  // Save to Firestore
+  await setDoc(doc(db, SESSIONS_COLLECTION, token), sessionData);
+  
+  // Save token to localStorage
   try {
-    localStorage.setItem(SESSION_KEY, userId);
+    localStorage.setItem(SESSION_KEY, token);
   } catch {
     // localStorage not available
   }
+  
+  return token;
 }
 
-export function getSession(): string | null {
+/**
+ * Get session from Firestore by token
+ */
+async function getSessionData(token: string): Promise<SessionData | null> {
+  try {
+    const sessionDoc = await getDoc(doc(db, SESSIONS_COLLECTION, token));
+    
+    if (!sessionDoc.exists()) {
+      return null;
+    }
+    
+    const data = sessionDoc.data() as SessionData;
+    
+    // Check if expired
+    if (new Date(data.expiresAt) < new Date()) {
+      // Delete expired session
+      await deleteDoc(doc(db, SESSIONS_COLLECTION, token));
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error getting session:', error);
+    return null;
+  }
+}
+
+/**
+ * Get current session token from localStorage
+ */
+function getSessionToken(): string | null {
   try {
     return localStorage.getItem(SESSION_KEY);
   } catch {
@@ -563,12 +632,59 @@ export function getSession(): string | null {
   }
 }
 
-export function clearSession(): void {
+/**
+ * Validate session and return userId
+ */
+async function validateSession(): Promise<string | null> {
+  const token = getSessionToken();
+  if (!token) return null;
+  
+  const sessionData = await getSessionData(token);
+  if (!sessionData) {
+    clearSessionToken();
+    return null;
+  }
+  
+  return sessionData.userId;
+}
+
+/**
+ * Clear session token from localStorage
+ */
+function clearSessionToken(): void {
   try {
     localStorage.removeItem(SESSION_KEY);
   } catch {
     // localStorage not available
   }
+}
+
+/**
+ * Delete session from Firestore
+ */
+async function deleteSession(token: string): Promise<void> {
+  try {
+    await deleteDoc(doc(db, SESSIONS_COLLECTION, token));
+  } catch (error) {
+    console.error('Error deleting session:', error);
+  }
+}
+
+// Legacy exports for compatibility
+export function saveSession(userId: string): void {
+  createSession(userId).catch(console.error);
+}
+
+export async function getSession(): Promise<string | null> {
+  return validateSession();
+}
+
+export async function clearSession(): Promise<void> {
+  const token = getSessionToken();
+  if (token) {
+    await deleteSession(token);
+  }
+  clearSessionToken();
 }
 
 // ============================================================================
@@ -577,7 +693,7 @@ export function clearSession(): void {
 
 /**
  * Subscribe to auth state changes
- * Combines Firebase Auth state with Firestore profile
+ * Session-based authentication with Firestore
  */
 export function subscribeToAuthState(
   callback: (user: UserProfile | null, loading: boolean) => void
@@ -605,16 +721,20 @@ export function subscribeToAuthState(
     });
   };
   
-  // Check session - all users use session-based auth
-  const sessionUserId = getSession();
-  if (sessionUserId) {
-    subscribeToProfile(sessionUserId);
-    initialized = true;
-  } else {
-    // No session - user is logged out
+  // Check session - validate token from Firestore
+  validateSession().then(sessionUserId => {
+    if (sessionUserId) {
+      subscribeToProfile(sessionUserId);
+      initialized = true;
+    } else {
+      // No session - user is logged out
+      callback(null, false);
+      initialized = true;
+    }
+  }).catch(() => {
     callback(null, false);
     initialized = true;
-  }
+  });
   
   return () => {
     if (profileUnsubscribe) {

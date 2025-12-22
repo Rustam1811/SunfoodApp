@@ -43,9 +43,16 @@ export const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
   onClick,
 }) => {
   const [isPressed, setIsPressed] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const completedSets = sets.filter((s) => s.completed).length;
   const isComplete = completedSets === totalSets;
   const progress = (completedSets / totalSets) * 100;
+  
+  // Validate thumbnail URL
+  const validThumbnail = thumbnailUrl && 
+    thumbnailUrl.startsWith('http') && 
+    !thumbnailUrl.includes('youtube_thumb') &&
+    !imgError;
 
   // Premium dynamic styles
   const getCardStyle = () => {
@@ -115,9 +122,14 @@ export const ExerciseListItem: React.FC<ExerciseListItemProps> = ({
           }}
         />
         
-        {thumbnailUrl ? (
+        {validThumbnail ? (
           <>
-            <img src={thumbnailUrl} alt={name} className="w-full h-full object-cover relative z-10" />
+            <img 
+              src={thumbnailUrl} 
+              alt={name} 
+              className="w-full h-full object-cover relative z-10"
+              onError={() => setImgError(true)}
+            />
             {/* Play overlay with glass effect */}
             <div 
               className="absolute inset-0 flex items-center justify-center z-20"

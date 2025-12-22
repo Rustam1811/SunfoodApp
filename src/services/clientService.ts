@@ -97,26 +97,24 @@ const USERS_COLLECTION = 'users';
  * Note: For now, returns ALL clients (role='client')
  * In future: filter by trainerId assignment
  */
-export async function getTrainerClients(trainerId: string): Promise<ClientInfo[]> {
+export async function getTrainerClients(_trainerId: string): Promise<ClientInfo[]> {
   try {
-    // Get all clients - trainerId filter temporarily removed
-    // to show all registered clients to any coach
+    // Get all clients - no complex index needed
     const clientsQuery = query(
       collection(db, USERS_COLLECTION),
-      where('role', '==', 'client'),
-      orderBy('createdAt', 'desc')
+      where('role', '==', 'client')
     );
     
     const snapshot = await getDocs(clientsQuery);
     
-    return snapshot.docs.map((doc) => {
+    const clients = snapshot.docs.map((doc) => {
       const data = doc.data();
       return {
         id: doc.id,
         phone: data.phone || '',
         password: data.password || '',
-        name: data.name || '',
-        avatar: data.avatar,
+        name: data.name || data.displayName || 'Без имени',
+        avatar: data.avatar || data.photoURL,
         height: data.height,
         weight: data.weight,
         targetWeight: data.targetWeight,
@@ -131,6 +129,13 @@ export async function getTrainerClients(trainerId: string): Promise<ClientInfo[]
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       } as ClientInfo;
+    });
+    
+    // Sort by createdAt in JS (no index needed)
+    return clients.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
     });
   } catch {
     return [];

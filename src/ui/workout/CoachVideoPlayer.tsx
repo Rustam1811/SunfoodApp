@@ -98,6 +98,10 @@ export const CoachVideoPlayer: React.FC<CoachVideoPlayerProps> = ({
   const [progress, setProgress] = useState(0);
   const [internalCollapsed, setInternalCollapsed] = useState(false);
 
+  // Validate URLs
+  const validVideoUrl = videoUrl && videoUrl.startsWith('http') && !videoUrl.includes('youtube_thumb');
+  const validThumbnail = thumbnailUrl && thumbnailUrl.startsWith('http') && !thumbnailUrl.includes('youtube_thumb');
+
   // Use controlled or internal state
   const isCollapsed = controlledCollapsed ?? internalCollapsed;
   const setCollapsed = onToggleCollapse ?? setInternalCollapsed;
@@ -223,14 +227,20 @@ export const CoachVideoPlayer: React.FC<CoachVideoPlayerProps> = ({
           >
             <div className="relative aspect-video bg-black">
               {/* Video */}
-              <video
-                ref={videoRef}
-                src={videoUrl}
-                poster={thumbnailUrl}
-                muted={isMuted}
-                playsInline
-                className="w-full h-full object-cover"
-              />
+              {validVideoUrl ? (
+                <video
+                  ref={videoRef}
+                  src={videoUrl}
+                  poster={validThumbnail ? thumbnailUrl : undefined}
+                  muted={isMuted}
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white/50">
+                  Видео не загружено
+                </div>
+              )}
 
               {/* Loading Overlay */}
               <AnimatePresence>

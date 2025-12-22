@@ -1,22 +1,13 @@
 /**
  * Auth Service V2 - Production-Ready Authentication
  * 
- * Clean, secure authentication with Firebase Auth + Firestore profiles.
- * Uses phone-as-email pattern for Firebase Auth.
- * Staff (coach/admin) passwords are hashed with bcrypt.
+ * Clean, secure authentication with Firestore + bcrypt.
+ * ALL users (clients, coaches, admins) authenticate via Firestore.
+ * Passwords are hashed with bcrypt.
  * 
  * @module services/authServiceV2
  */
 
-import {
-  signInOrCreate,
-  createUserWithPhone,
-  firebaseSignOut,
-  getCurrentUser,
-  onAuthStateChange,
-  getIdToken,
-  type AuthResult as FirebaseAuthResult,
-} from '../lib/firebaseAuth';
 import {
   doc,
   getDoc,
@@ -304,8 +295,8 @@ export function subscribeToUserProfile(
 
 /**
  * Login with phone and password
- * - Staff (coach/admin): verifies bcrypt-hashed password from Firestore
- * - Client: uses Firebase Auth
+ * ALL users (clients, coaches, admins) are authenticated via Firestore + bcrypt
+ * Firebase Auth is NOT used for authentication
  */
 export async function login(phone: string, password: string): Promise<AuthResult> {
   // Validate input
@@ -313,54 +304,26 @@ export async function login(phone: string, password: string): Promise<AuthResult
     return { success: false, error: 'Введите телефон и пароль', errorCode: 'INVALID_INPUT' };
   }
   
-  // Check if user exists with staff role
+  // Find user by phone
   const existingUser = await getUserByPhone(phone);
   
-  if (existingUser && (existingUser.role === 'coach' || existingUser.role === 'admin')) {
-    return handleStaffLogin(existingUser, password);
+  if (!existingUser) {
+    return { success: false, error: 'Пользователь не найден', errorCode: 'USER_NOT_FOUND' };
   }
   
-  // For clients: use Firebase Auth
-  const authResult = await signInOrCreate(phone, password);
-  
-  if (!authResult.success || !authResult.user) {
-    return {
-      success: false,
-      error: authResult.error || 'Ошибка авторизации',
-      errorCode: authResult.errorCode,
-    };
-  }
-  
-  const firebaseUser = authResult.user;
-  
-  // Get or create Firestore profile
-  let profile = await getUserProfile(firebaseUser.uid);
-  
-  if (!profile) {
-    profile = await createUserProfile(firebaseUser.uid, phone, 'client');
-  } else {
-    await updateUserProfile(firebaseUser.uid, { lastLoginAt: new Date().toISOString() });
-  }
-  
-  saveSession(firebaseUser.uid);
-  
-  return {
-    success: true,
-    user: profile,
-    isNewUser: authResult.isNewUser,
-    needsOnboarding: !profile.onboardingCompleted,
-  };
+  // All users authenticate via bcrypt (staff and clients)
+  return handlePasswordLogin(existingUser, password);
 }
 
 /**
- * Handle staff (coach/admin) login with bcrypt password verification
+ * Handle login with bcrypt password verification (for all users)
  */
-async function handleStaffLogin(user: UserProfile, password: string): Promise<AuthResult> {
+async function handlePasswordLogin(user: UserProfile, password: string): Promise<AuthResult> {
   const userDoc = await getDoc(doc(db, USERS_COLLECTION, user.id));
   const userData = userDoc.data();
   const storedHash = userData?.passwordHash;
   
-  // Legacy support: check plaintext password and migrate
+  // Legacy support: check plaintext password field
   const legacyPassword = userData?.password;
   
   if (!storedHash && !legacyPassword) {
@@ -401,35 +364,39 @@ async function handleStaffLogin(user: UserProfile, password: string): Promise<Au
   return {
     success: true,
     user: user,
-    isNewUser: false,
-    needsOnboarding: false,
+    needsOnboarding: !user.onboardingCompleted,
   };
 }
 
 /**
  * Register new user with phone and password
+ * Creates user in Firestore with bcrypt-hashed password
  */
 export async function register(
   phone: string,
   password: string,
   role: UserRole = 'client'
 ): Promise<AuthResult> {
-  const authResult = await createUserWithPhone(phone, password);
-  
-  if (!authResult.success || !authResult.user) {
+  // Check if user already exists
+  const existingUser = await getUserByPhone(phone);
+  if (existingUser) {
     return {
       success: false,
-      error: authResult.error,
-      errorCode: authResult.errorCode,
+      error: 'Пользователь с таким номером уже существует',
+      errorCode: 'USER_EXISTS',
     };
   }
   
-  const firebaseUser = authResult.user;
+  // Generate unique ID for user
+  const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
-  // Create Firestore profile
-  const profile = await createUserProfile(firebaseUser.uid, phone, role);
+  // Hash password
+  const passwordHash = await hashPassword(password);
   
-  saveSession(firebaseUser.uid);
+  // Create user profile with password hash
+  const profile = await createUserProfile(userId, phone, role, { passwordHash });
+  
+  saveSession(userId);
   
   return {
     success: true,
@@ -443,11 +410,6 @@ export async function register(
  * Logout current user
  */
 export async function logout(): Promise<void> {
-  try {
-    await firebaseSignOut();
-  } catch {
-    // Ignore Firebase sign out errors (e.g., for demo users)
-  }
   clearSession();
 }
 
@@ -455,16 +417,10 @@ export async function logout(): Promise<void> {
  * Get current authenticated user profile
  */
 export async function getCurrentUserProfile(): Promise<UserProfile | null> {
-  // Check session first
+  // Check session
   const sessionUserId = getSession();
   if (sessionUserId) {
     return getUserProfile(sessionUserId);
-  }
-  
-  // Check Firebase Auth
-  const firebaseUser = getCurrentUser();
-  if (firebaseUser) {
-    return getUserProfile(firebaseUser.uid);
   }
   
   return null;
@@ -646,46 +602,18 @@ export function subscribeToAuthState(
     });
   };
   
-  // First check session - staff users have session but no Firebase Auth
+  // Check session - all users use session-based auth
   const sessionUserId = getSession();
   if (sessionUserId) {
     subscribeToProfile(sessionUserId);
     initialized = true;
-  }
-  
-  // Subscribe to Firebase Auth state changes
-  const authUnsubscribe = onAuthStateChange(async (firebaseUser) => {
-    // Re-check session on every auth state change (may have changed)
-    const currentSession = getSession();
-    
-    if (firebaseUser) {
-      // Firebase user logged in - use Firebase UID
-      saveSession(firebaseUser.uid);
-      subscribeToProfile(firebaseUser.uid);
-    } else if (currentSession) {
-      // No Firebase user but we have session (staff login)
-      // Subscribe to session user's profile
-      subscribeToProfile(currentSession);
-    } else {
-      // No Firebase user and no session - user is logged out
-      if (profileUnsubscribe) {
-        profileUnsubscribe();
-        profileUnsubscribe = null;
-      }
-      currentUserId = null;
-      callback(null, false);
-    }
-    
+  } else {
+    // No session - user is logged out
+    callback(null, false);
     initialized = true;
-  });
-  
-  // If no session, set loading to false after first auth check
-  if (!initialized) {
-    callback(null, true); // Still loading until onAuthStateChange fires
   }
   
   return () => {
-    authUnsubscribe();
     if (profileUnsubscribe) {
       profileUnsubscribe();
     }
@@ -698,4 +626,3 @@ export function subscribeToAuthState(
 
 export const loginOrRegister = login;
 export const getUserById = getUserProfile;
-export { getIdToken };

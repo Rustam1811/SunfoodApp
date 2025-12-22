@@ -77,6 +77,7 @@ const COMMENTS_COLLECTION = 'videoComments';
 
 /**
  * Upload video from blob
+ * Accepts any video format (mp4, mov, webm, etc.)
  */
 export async function uploadVideo(
   clientId: string,
@@ -90,12 +91,22 @@ export async function uploadVideo(
   }
 ): Promise<string> {
   const videoId = `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const storagePath = `videos/${clientId}/${videoId}.webm`;
+  
+  // Determine file extension from blob type
+  let extension = 'mp4'; // default
+  if (videoBlob.type.includes('webm')) extension = 'webm';
+  else if (videoBlob.type.includes('quicktime') || videoBlob.type.includes('mov')) extension = 'mov';
+  else if (videoBlob.type.includes('mp4')) extension = 'mp4';
+  else if (videoBlob.type.includes('avi')) extension = 'avi';
+  
+  const storagePath = `videos/${clientId}/${videoId}.${extension}`;
   
   try {
     // Upload to Firebase Storage
     const storageRef = ref(storage, storagePath);
-    await uploadBytes(storageRef, videoBlob);
+    await uploadBytes(storageRef, videoBlob, {
+      contentType: videoBlob.type || 'video/mp4',
+    });
     const videoUrl = await getDownloadURL(storageRef);
     
     // Create Firestore document

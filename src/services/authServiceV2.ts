@@ -373,11 +373,13 @@ async function handleStaffLogin(user: UserProfile, password: string): Promise<Au
   
   let isValid = false;
   
+  // First try bcrypt hash if exists
   if (storedHash) {
-    // Verify against bcrypt hash
     isValid = await verifyPassword(password, storedHash);
-  } else if (legacyPassword) {
-    // Legacy plaintext check and migrate to bcrypt
+  }
+  
+  // If bcrypt failed or doesn't exist, try plaintext (for manual Firestore edits)
+  if (!isValid && legacyPassword) {
     isValid = legacyPassword === password;
     if (isValid) {
       // Migrate to bcrypt hash

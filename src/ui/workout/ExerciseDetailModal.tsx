@@ -254,13 +254,16 @@ const VideoUploadSection: React.FC<VideoUploadSectionProps> = ({ exerciseId, onU
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate video
-    if (!file.type.startsWith('video/')) {
-      toast.warning('Выберите видео файл');
+    // Accept common video formats
+    const validTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/avi', 'video/mov'];
+    const isVideo = file.type.startsWith('video/') || validTypes.some(t => file.type.includes(t));
+    
+    if (!isVideo) {
+      toast.warning('Выберите видео файл (MP4, MOV, WEBM)');
       return;
     }
-    if (file.size > 100 * 1024 * 1024) {
-      toast.warning('Максимальный размер 100MB');
+    if (file.size > 500 * 1024 * 1024) {
+      toast.warning('Максимальный размер 500MB');
       return;
     }
 
@@ -276,8 +279,9 @@ const VideoUploadSection: React.FC<VideoUploadSectionProps> = ({ exerciseId, onU
       setSelectedFile(null);
       setPreview(null);
       triggerHaptic('medium');
-    } catch (err) {
-      console.error('Upload error:', err);
+      toast.success('Видео загружено!');
+    } catch {
+      toast.error('Ошибка загрузки видео');
     } finally {
       setUploading(false);
     }

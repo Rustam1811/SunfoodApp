@@ -1,67 +1,10 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    function isAdmin() {
-      return isAuthenticated() && 
-             (request.auth.token.email.matches('.*@admin\\..*') ||
-              request.auth.token.role == 'admin');
-    }
-    
-    function isValidImage() {
-      return request.resource.size < 5 * 1024 * 1024 &&
-             request.resource.contentType.matches('image/.*');
-    }
-    
-    function isValidVideo() {
-      return request.resource.size < 50 * 1024 * 1024 &&
-             request.resource.contentType.matches('video/.*');
-    }
-    
-    // Stories media - admin write only, public read
-    match /stories/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin() && (isValidImage() || isValidVideo());
-    }
-    
-    // User avatars - users can upload their own avatar
-    match /avatars/{userId}/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAuthenticated() && 
-                   request.auth.uid == userId && 
-                   isValidImage();
-    }
-    
-    // Uploads folder - admin only
-    match /uploads/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin() && (isValidImage() || isValidVideo());
-    }
-    
-    // Menu items images - admin write, public read
-    match /menu/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin() && isValidImage();
-    }
-    
-    // Client workout videos - authenticated users can upload
-    match /videos/{userId}/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAuthenticated() && isValidVideo();
-    }
-    
-    // Exercise demo videos - admin/coach can upload
-    match /exercises/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAuthenticated() && isValidVideo();
-    }
-    
-    // Deny all other paths
-    match /{allPaths=**} { 
-      allow read, write: if false; 
+    // TEMPORARY: Open rules for development/testing
+    // TODO: Restrict before production launch
+    match /{allPaths=**} {
+      allow read, write: if true;
     }
   }
 }

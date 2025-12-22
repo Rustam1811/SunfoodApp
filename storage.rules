@@ -47,6 +47,18 @@ service firebase.storage {
       allow write: if isAdmin() && isValidImage();
     }
     
+    // Client workout videos - authenticated users can upload
+    match /videos/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isValidVideo();
+    }
+    
+    // Exercise demo videos - admin/coach can upload
+    match /exercises/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isValidVideo();
+    }
+    
     // Deny all other paths
     match /{allPaths=**} { 
       allow read, write: if false; 

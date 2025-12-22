@@ -699,10 +699,9 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({
               background: 'linear-gradient(180deg, #1f1f23 0%, #18181b 100%)',
             }}
           >
-            {exercise.coachVideoUrl ? (
+            {exercise.coachVideoUrl && exercise.coachVideoUrl.startsWith('http') ? (
               <video
                 src={exercise.coachVideoUrl}
-                poster={exercise.coachVideoUrl.replace(/\.[^.]+$/, '_thumb.jpg')}
                 className="w-full h-full object-contain"
                 controls
                 playsInline

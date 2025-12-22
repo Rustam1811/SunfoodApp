@@ -94,12 +94,15 @@ const USERS_COLLECTION = 'users';
 
 /**
  * Get all clients for a trainer
+ * Note: For now, returns ALL clients (role='client')
+ * In future: filter by trainerId assignment
  */
 export async function getTrainerClients(trainerId: string): Promise<ClientInfo[]> {
   try {
+    // Get all clients - trainerId filter temporarily removed
+    // to show all registered clients to any coach
     const clientsQuery = query(
       collection(db, USERS_COLLECTION),
-      where('trainerId', '==', trainerId),
       where('role', '==', 'client'),
       orderBy('createdAt', 'desc')
     );
@@ -129,8 +132,7 @@ export async function getTrainerClients(trainerId: string): Promise<ClientInfo[]
         updatedAt: data.updatedAt,
       } as ClientInfo;
     });
-  } catch (error) {
-    console.error('Error getting trainer clients:', error);
+  } catch {
     return [];
   }
 }
@@ -142,9 +144,9 @@ export function subscribeToTrainerClients(
   trainerId: string,
   callback: (clients: ClientInfo[]) => void
 ): () => void {
+  // Get all clients - no trainerId filter for now
   const clientsQuery = query(
     collection(db, USERS_COLLECTION),
-    where('trainerId', '==', trainerId),
     where('role', '==', 'client')
   );
   
@@ -214,8 +216,7 @@ export async function getClientById(clientId: string): Promise<ClientInfo | null
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     } as ClientInfo;
-  } catch (error) {
-    console.error('Error getting client:', error);
+  } catch {
     return null;
   }
 }
